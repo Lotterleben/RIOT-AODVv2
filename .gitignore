@@ -3,4 +3,9 @@
 
 # ignore compiled stuff
 /bin
+.o
+.a
+.elf
+.hex
+.map
 
