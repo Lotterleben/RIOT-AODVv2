@@ -10,10 +10,16 @@ export BOARD = native
 # this has to be the absolute path of the RIOT-base dir
 export RIOTBASE =$(CURDIR)/../riot/RIOT
 export RIOTBOARD =$(RIOTBASE)/../boards
+export RIOTLIBS =$(RIOTBASE)/../riot-libs
+export OONFBASE=$(CURDIR)/../oonf_api
 
 ifeq (,$(findstring native,$(BOARD)))
 include $(RIOTBASE)/../Makefile.unsupported
 else
+
+EXTERNAL_MODULES +=$(OONFBASE)
+EXTERNAL_MODULES +=$(RIOTLIBS)
+export EXTERNAL_MODULES
 
 ## Modules to include. 
 
@@ -34,13 +40,18 @@ USEMODULE += transceiver
 USEMODULE += uart0
 USEMODULE += vtimer
 
-# as of yet unsupported modules:
-#USEMODULE += fat
-#USEMODULE += sht11
+# oonf
+USEMODULE += net_help
+USEMODULE += cunit
+USEMODULE += compat_misc
+USEMODULE += oonf_common
+USEMODULE += oonf_rfc5444
+
 
 export INCLUDES = -I$(RIOTBOARD)/$(BOARD)/include -I$(RIOTBASE)/core/include \
 				  -I$(RIOTBASE)/cpu/$(CPU)/include -I$(RIOTBASE)/sys/lib \
-				  -I$(RIOTBASE)/sys/include/ -I$(RIOTBASE)/drivers/include/
+				  -I$(RIOTBASE)/sys/include/ -I$(RIOTBASE)/drivers/include/\
+				  -I$(OONFBASE)/src-api -I$(RIOTLIBS)
 
 include $(RIOTBASE)/Makefile.include
 valgrind: all
