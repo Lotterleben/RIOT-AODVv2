@@ -1,0 +1,1307 @@
+Archive member included because of file (symbol)
+
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o (tap_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o) (_nativenet_handle_packet)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o) (_native_in_syscall)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o) (lpm_set)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o) (_native_rfds)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(tramp.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o) (_native_sig_leave_tramp)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o (kernel_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o) (msg_send_int)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o) (queue_remove_head)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o) (sched_context_switch_request)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o) (thread_create)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o) (cib_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o) (clist_add)
+/home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o (board_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o) (_native_LED_GREEN_OFF)
+/home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o) (_native_handle_uart0_input)
+/home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+                              /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o (main)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o) (auto_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o) (ltc4150_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o) (posix_open)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o) (rtc_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o) (shell_run)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o) (_shell_command_list)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o) (_id_handler)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o) (_nativenet_get_set_address_handler)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o) (_get_current_handler)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o) (_ps_handler)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o) (_date_handler)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o) (transceiver_pid)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o) (uart0_handler_pid)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o) (vtimer_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o) (hwtimer_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o) (lifo_empty)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o) (mutex_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o) (chardev_loop)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o) (timex_add)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o) (ringbuffer_init)
+/home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o) (config_save)
+/home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o) (ltc4150_disable_int)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a(config.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o) (sysconfig)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o) (thread_print_all)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o) (atomic_set_return)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o) (hwtimer_arch_enable_interrupt)
+/home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+                              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o) (number_of_highest_bit)
+/usr/lib32/libc_nonshared.a(elf-init.oS)
+                              /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o (__libc_csu_init)
+
+Allocating common symbols
+Common symbol       size              file
+
+_native_tap_fd      0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+_native_net_chan    0x1               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+uart0_ringbuffer    0x14              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+thread_pid          0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+_native_net_addr    0x2               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+_native_rfds        0x80              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+_native_uart_in     0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+_native_uart_out    0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+_native_uart_rfds   0x80              /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+sigalt_stk          0x2000            /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+data_buffer         0x1182            /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+_native_net_monitor
+                    0x1               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+runqueues           0x80              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+uart0_handler_pid   0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+native_interrupts_enabled
+                    0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+msg_q               0x200             /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+msg_buffer          0x100             /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+_native_saved_eip   0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+transceiver_stack   0x4000            /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+_native_isr_ctx     0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+_native_sigpend     0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+radio_stack_buffer  0x2000            /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+_native_net_pan     0x2               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+_native_in_isr      0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+process_heap_address
+                    0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+sched_context_switch_request
+                    0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+transceiver_buffer  0x3f              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+reg                 0x20              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+sched_threads       0x80              /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+native_isr_context  0x15c             /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+active_thread       0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+response            0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+_native_in_syscall  0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+_native_tap_mac     0x6               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+_native_cur_ctx     0x4               /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+_nativenet_rx_buffer
+                    0x3b2e            /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+
+Discarded input sections
+
+ .note.GNU-stack
+                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a(config.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+ .group         0x0000000000000000        0x8 /usr/lib32/libc_nonshared.a(elf-init.oS)
+ .text.__x86.get_pc_thunk.bx
+                0x0000000000000000        0x4 /usr/lib32/libc_nonshared.a(elf-init.oS)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /usr/lib32/libc_nonshared.a(elf-init.oS)
+ .note.GNU-stack
+                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+ .note.GNU-stack
+                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+START GROUP
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a
+LOAD /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/libm.so
+END GROUP
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/32/libgcc.a
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/32/libgcc_s.so
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/libc.so
+START GROUP
+LOAD /lib32/libc.so.6
+LOAD /usr/lib32/libc_nonshared.a
+LOAD /lib32/ld-linux.so.2
+END GROUP
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/32/libgcc.a
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/32/libgcc_s.so
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+LOAD /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+                0x0000000008048000                PROVIDE (__executable_start, 0x8048000)
+                0x0000000008048154                . = (0x8048000 + SIZEOF_HEADERS)
+
+.interp         0x0000000008048154       0x13
+ *(.interp)
+ .interp        0x0000000008048154       0x13 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.note.ABI-tag   0x0000000008048168       0x20
+ .note.ABI-tag  0x0000000008048168       0x20 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.note.gnu.build-id
+                0x0000000008048188       0x24
+ *(.note.gnu.build-id)
+ .note.gnu.build-id
+                0x0000000008048188       0x24 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.hash
+ *(.hash)
+
+.gnu.hash       0x00000000080481ac       0x2c
+ *(.gnu.hash)
+ .gnu.hash      0x00000000080481ac       0x2c /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.dynsym         0x00000000080481d8      0x3c0
+ *(.dynsym)
+ .dynsym        0x00000000080481d8      0x3c0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.dynstr         0x0000000008048598      0x241
+ *(.dynstr)
+ .dynstr        0x0000000008048598      0x241 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.gnu.version    0x00000000080487da       0x78
+ *(.gnu.version)
+ .gnu.version   0x00000000080487da       0x78 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.gnu.version_d  0x0000000008048854        0x0
+ *(.gnu.version_d)
+ .gnu.version_d
+                0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.gnu.version_r  0x0000000008048854       0x60
+ *(.gnu.version_r)
+ .gnu.version_r
+                0x0000000008048854       0x60 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.rel.dyn        0x00000000080488b4        0x8
+ *(.rel.init)
+ *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)
+ .rel.text      0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ *(.rel.fini)
+ *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)
+ .rel.rodata    0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ *(.rel.data.rel.ro .rel.data.rel.ro.* .rel.gnu.linkonce.d.rel.ro.*)
+ *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
+ *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)
+ *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)
+ *(.rel.ctors)
+ *(.rel.dtors)
+ *(.rel.got)
+ .rel.got       0x00000000080488b4        0x8 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
+ .rel.bss       0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ *(.rel.ifunc)
+
+.rel.plt        0x00000000080488bc      0x1c0
+ *(.rel.plt)
+ .rel.plt       0x00000000080488bc      0x1c0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008048a7c                PROVIDE (__rel_iplt_start, .)
+ *(.rel.iplt)
+ .rel.iplt      0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008048a7c                PROVIDE (__rel_iplt_end, .)
+
+.init           0x0000000008048a7c       0x23
+ *(SORT(.init))
+ .init          0x0000000008048a7c       0x1e /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+                0x0000000008048a7c                _init
+ .init          0x0000000008048a9a        0x5 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+
+.plt            0x0000000008048aa0      0x390
+ *(.plt)
+ .plt           0x0000000008048aa0      0x390 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008048ab0                setitimer@@GLIBC_2.0
+                0x0000000008048ac0                strcmp@@GLIBC_2.0
+                0x0000000008048ad0                read@@GLIBC_2.0
+                0x0000000008048ae0                printf@@GLIBC_2.0
+                0x0000000008048af0                sigprocmask@@GLIBC_2.0
+                0x0000000008048b00                free@@GLIBC_2.0
+                0x0000000008048b10                strdup@@GLIBC_2.0
+                0x0000000008048b20                memcpy@@GLIBC_2.0
+                0x0000000008048b30                setcontext@@GLIBC_2.0
+                0x0000000008048b40                clock_gettime@@GLIBC_2.17
+                0x0000000008048b50                time@@GLIBC_2.0
+                0x0000000008048b60                gettimeofday@@GLIBC_2.0
+                0x0000000008048b70                select@@GLIBC_2.0
+                0x0000000008048b80                __stack_chk_fail@@GLIBC_2.4
+                0x0000000008048b90                sigpending@@GLIBC_2.0
+                0x0000000008048ba0                htons@@GLIBC_2.0
+                0x0000000008048bb0                localtime_r@@GLIBC_2.0
+                0x0000000008048bc0                sigismember@@GLIBC_2.0
+                0x0000000008048bd0                strsignal@@GLIBC_2.0
+                0x0000000008048be0                err@@GLIBC_2.0
+                0x0000000008048bf0                asctime@@GLIBC_2.0
+                0x0000000008048c00                ioctl@@GLIBC_2.0
+                0x0000000008048c10                strcpy@@GLIBC_2.0
+                0x0000000008048c20                getpid@@GLIBC_2.0
+                0x0000000008048c30                strtok_r@@GLIBC_2.0
+                0x0000000008048c40                malloc@@GLIBC_2.0
+                0x0000000008048c50                puts@@GLIBC_2.0
+                0x0000000008048c70                exit@@GLIBC_2.0
+                0x0000000008048c80                open@@GLIBC_2.0
+                0x0000000008048c90                strlen@@GLIBC_2.0
+                0x0000000008048ca0                __libc_start_main@@GLIBC_2.0
+                0x0000000008048cb0                write@@GLIBC_2.0
+                0x0000000008048cc0                sigdelset@@GLIBC_2.0
+                0x0000000008048cd0                getcontext@@GLIBC_2.1
+                0x0000000008048ce0                fcntl@@GLIBC_2.0
+                0x0000000008048cf0                sigaddset@@GLIBC_2.0
+                0x0000000008048d00                warnx@@GLIBC_2.0
+                0x0000000008048d10                sigfillset@@GLIBC_2.0
+                0x0000000008048d20                __isoc99_sscanf@@GLIBC_2.7
+                0x0000000008048d30                memset@@GLIBC_2.0
+                0x0000000008048d40                snprintf@@GLIBC_2.0
+                0x0000000008048d50                swapcontext@@GLIBC_2.1
+                0x0000000008048d60                __errno_location@@GLIBC_2.0
+                0x0000000008048d70                strncpy@@GLIBC_2.0
+                0x0000000008048d80                makecontext@@GLIBC_2.1
+                0x0000000008048d90                pipe@@GLIBC_2.0
+                0x0000000008048da0                strtok@@GLIBC_2.0
+                0x0000000008048db0                sigemptyset@@GLIBC_2.0
+                0x0000000008048dc0                warn@@GLIBC_2.0
+                0x0000000008048dd0                errx@@GLIBC_2.0
+                0x0000000008048de0                ntohs@@GLIBC_2.0
+                0x0000000008048df0                atoi@@GLIBC_2.0
+                0x0000000008048e00                sigaction@@GLIBC_2.0
+                0x0000000008048e10                close@@GLIBC_2.0
+                0x0000000008048e20                sigaltstack@@GLIBC_2.0
+ *(.iplt)
+ .iplt          0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.text           0x0000000008048e30     0x5894
+ *(.text.unlikely .text.*_unlikely)
+ *(.text.exit .text.exit.*)
+ *(.text.startup .text.startup.*)
+ *(.text.hot .text.hot.*)
+ *(.text .stub .text.* .gnu.linkonce.t.*)
+ .text          0x0000000008048e30       0x24 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008048e30                _start
+ .text          0x0000000008048e54        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+ *fill*         0x0000000008048e54        0xc 
+ .gnu.linkonce.t.__x86.get_pc_thunk.bx
+                0x0000000008048e60        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+                0x0000000008048e60                __x86.get_pc_thunk.bx
+ *fill*         0x0000000008048e64        0xc 
+ .text          0x0000000008048e70       0xbc /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ .text          0x0000000008048f2c       0x5f /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ *fill*         0x0000000008048f8b        0x1 
+ .text          0x0000000008048f8c      0x571 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+                0x0000000008048f8c                _native_handle_tap_input
+                0x00000000080490dd                _native_marshall_ethernet
+                0x000000000804920a                send_buf
+                0x00000000080492be                tap_init
+ *fill*         0x00000000080494fd        0x3 
+ .text          0x0000000008049500      0x2b7 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+                0x0000000008049500                nativenet_init
+                0x000000000804952b                nativenet_powerdown
+                0x0000000008049531                nativenet_set_monitor
+                0x0000000008049548                nativenet_set_channel
+                0x0000000008049569                nativenet_get_channel
+                0x0000000008049578                nativenet_set_pan
+                0x0000000008049598                nativenet_get_pan
+                0x00000000080495a4                nativenet_set_address
+                0x00000000080495c4                nativenet_get_address
+                0x00000000080495d0                nativenet_send
+                0x000000000804960e                nativenet_switch_to_rx
+                0x0000000008049614                _nativenet_register_cb
+                0x0000000008049638                _nativenet_unregister_cb
+                0x000000000804965d                do_cb
+                0x0000000008049688                _nativenet_handle_packet
+ *fill*         0x00000000080497b7        0x1 
+ .text          0x00000000080497b8      0xa82 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+                0x00000000080497b8                print_thread_sigmask
+                0x000000000804988d                print_sigmasks
+                0x00000000080498fa                native_print_signals
+                0x0000000008049a97                disableIRQ
+                0x0000000008049b75                enableIRQ
+                0x0000000008049c3d                restoreIRQ
+                0x0000000008049c58                inISR
+                0x0000000008049c62                dINT
+                0x0000000008049c6f                eINT
+                0x0000000008049c7c                _native_popsig
+                0x0000000008049d00                native_irq_handler
+                0x0000000008049d6d                native_isr_entry
+                0x0000000008049e30                register_interrupt
+                0x0000000008049ee8                unregister_interrupt
+                0x0000000008049fa2                shutdown
+                0x0000000008049fb6                native_interrupt_init
+ *fill*         0x000000000804a23a        0x2 
+ .text          0x000000000804a23c      0x18c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+                0x000000000804a23c                lpm_init
+                0x000000000804a24c                _native_lpm_sleep
+                0x000000000804a31c                lpm_set
+                0x000000000804a398                lpm_awake
+                0x000000000804a3a8                lpm_begin_awake
+                0x000000000804a3ae                lpm_end_awake
+                0x000000000804a3be                lpm_get
+ .text          0x000000000804a3c8      0x1da /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+                0x000000000804a3c8                thread_print_stack
+                0x000000000804a3ce                thread_stack_init
+                0x000000000804a48f                cpu_switch_context_exit
+                0x000000000804a4e7                thread_yield
+                0x000000000804a53b                native_cpu_init
+ *fill*         0x000000000804a5a2        0x2 
+ .text          0x000000000804a5a4       0x28 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(tramp.o)
+                0x000000000804a5a4                _native_sig_leave_tramp
+ .text          0x000000000804a5cc       0xe4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+                0x000000000804a5f7                kernel_init
+ .text          0x000000000804a6b0      0x540 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+                0x000000000804a6f7                msg_send
+                0x000000000804a874                msg_send_int
+                0x000000000804a8f0                msg_send_receive
+                0x000000000804a942                msg_reply
+                0x000000000804a9d2                msg_reply_int
+                0x000000000804aa3c                msg_try_receive
+                0x000000000804aa57                msg_receive
+                0x000000000804aba3                msg_init_queue
+ .text          0x000000000804abf0      0x150 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+                0x000000000804abf0                queue_remove
+                0x000000000804ac27                queue_remove_head
+                0x000000000804ac4a                queue_add_tail
+                0x000000000804ac73                queue_add_head
+                0x000000000804ac8a                queue_priority_add
+                0x000000000804ace2                queue_priority_add_generic
+ .text          0x000000000804ad40      0x303 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+                0x000000000804ad51                sched_init
+                0x000000000804adc7                sched_run
+                0x000000000804aec3                sched_set_status
+                0x000000000804afb7                sched_switch
+                0x000000000804afee                sched_task_exit
+ *fill*         0x000000000804b043        0x1 
+ .text          0x000000000804b044      0x395 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+                0x000000000804b044                thread_getpid
+                0x000000000804b055                thread_getlastpid
+                0x000000000804b05f                thread_getstatus
+                0x000000000804b08a                thread_getname
+                0x000000000804b0b1                thread_sleep
+                0x000000000804b0e9                thread_wakeup
+                0x000000000804b16b                thread_measure_stack_usage
+                0x000000000804b19d                thread_create
+ *fill*         0x000000000804b3d9        0x3 
+ .text          0x000000000804b3dc       0xba /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+                0x000000000804b3dc                cib_init
+                0x000000000804b401                cib_avail
+                0x000000000804b417                cib_get
+                0x000000000804b451                cib_put
+ *fill*         0x000000000804b496        0x2 
+ .text          0x000000000804b498       0xbe /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+                0x000000000804b498                clist_add
+                0x000000000804b50d                clist_remove
+ *fill*         0x000000000804b556        0x2 
+ .text          0x000000000804b558       0x23 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+                0x000000000804b558                board_init
+ *fill*         0x000000000804b57b        0x1 
+ .text          0x000000000804b57c       0x78 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+                0x000000000804b57c                _native_LED_GREEN_OFF
+                0x000000000804b590                _native_LED_GREEN_ON
+                0x000000000804b5a4                _native_LED_GREEN_TOGGLE
+                0x000000000804b5b8                _native_LED_RED_OFF
+                0x000000000804b5cc                _native_LED_RED_ON
+                0x000000000804b5e0                _native_LED_RED_TOGGLE
+ .text          0x000000000804b5f4      0x1bf /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+                0x000000000804b5f4                _native_handle_uart0_input
+                0x000000000804b710                _native_set_uart_fds
+                0x000000000804b762                _native_init_uart0
+                0x000000000804b78a                putchar
+ *fill*         0x000000000804b7b3        0x1 
+ .text          0x000000000804b7b4      0x278 /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+                0x000000000804b7b4                radio
+                0x000000000804b902                main
+ .text          0x000000000804ba2c       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+                0x000000000804ba2c                auto_init
+ *fill*         0x000000000804ba57        0x1 
+ .text          0x000000000804ba58      0x1d0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+                0x000000000804bab6                ltc4150_get_last_int_duration_us
+                0x000000000804bac0                ltc4150_get_current_mA
+                0x000000000804baeb                ltc4150_get_total_mAh
+                0x000000000804bb08                ltc4150_get_total_Joule
+                0x000000000804bb1d                ltc4150_get_avg_mA
+                0x000000000804bb5b                ltc4150_get_interval
+                0x000000000804bb71                ltc4150_get_intcount
+                0x000000000804bb7b                ltc4150_init
+                0x000000000804bb88                ltc4150_start
+                0x000000000804bbc1                ltc4150_stop
+                0x000000000804bbce                ltc4150_interrupt
+ .text          0x000000000804bc28      0x105 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+                0x000000000804bc96                posix_open
+                0x000000000804bcb8                posix_close
+                0x000000000804bcdb                posix_read
+                0x000000000804bd04                posix_write
+ *fill*         0x000000000804bd2d        0x3 
+ .text          0x000000000804bd30      0x112 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+                0x000000000804bd30                rtc_init
+                0x000000000804bd4e                rtc_enable
+                0x000000000804bd5d                rtc_disable
+                0x000000000804bd6c                rtc_set_localtime
+                0x000000000804bd80                rtc_get_localtime
+                0x000000000804bde5                rtc_time
+ *fill*         0x000000000804be42        0x2 
+ .text          0x000000000804be44      0x31a /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+                0x000000000804c09b                shell_run
+                0x000000000804c13f                shell_init
+ *fill*         0x000000000804c15e        0x2 
+ .text          0x000000000804c160        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+ .text          0x000000000804c160       0x76 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+                0x000000000804c160                _id_handler
+ *fill*         0x000000000804c1d6        0x2 
+ .text          0x000000000804c1d8      0x366 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+                0x000000000804c1d8                _nativenet_get_set_address_handler
+                0x000000000804c26b                _nativenet_get_set_channel_handler
+                0x000000000804c2fd                _nativenet_send_handler
+                0x000000000804c4bc                _nativenet_monitor_handler
+ *fill*         0x000000000804c53e        0x2 
+ .text          0x000000000804c540       0x58 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+                0x000000000804c540                _get_current_handler
+                0x000000000804c58b                _reset_current_handler
+ .text          0x000000000804c598        0xd /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+                0x000000000804c598                _ps_handler
+ *fill*         0x000000000804c5a5        0x3 
+ .text          0x000000000804c5a8       0xf0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+                0x000000000804c5a8                _gettime_handler
+                0x000000000804c5d6                _settime_handler
+                0x000000000804c66e                _date_handler
+ .text          0x000000000804c698      0x8af /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+                0x000000000804c698                transceiver_init
+                0x000000000804c746                transceiver_start
+                0x000000000804c7c1                transceiver_register
+ *fill*         0x000000000804cf47        0x1 
+ .text          0x000000000804cf48      0x110 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+                0x000000000804cf5c                board_uart0_init
+                0x000000000804cfd6                uart0_handle_incoming
+                0x000000000804cff4                uart0_notify_thread
+                0x000000000804d016                uart0_readc
+                0x000000000804d045                uart0_putc
+ .text          0x000000000804d058      0x55d /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+                0x000000000804d126                vtimer_tick
+                0x000000000804d1d2                vtimer_callback
+                0x000000000804d25d                normalize_to_tick
+                0x000000000804d3c1                vtimer_now
+                0x000000000804d40e                vtimer_init
+                0x000000000804d47b                vtimer_set_wakeup
+                0x000000000804d4c0                vtimer_usleep
+                0x000000000804d4f7                vtimer_sleep
+                0x000000000804d52c                vtimer_remove
+                0x000000000804d572                vtimer_set_msg
+ *fill*         0x000000000804d5b5        0x3 
+ .text          0x000000000804d5b8      0x2ef /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+                0x000000000804d60c                hwtimer_spin
+                0x000000000804d637                hwtimer_init
+                0x000000000804d64b                hwtimer_init_comp
+                0x000000000804d6a0                hwtimer_active
+                0x000000000804d6bc                hwtimer_now
+                0x000000000804d6c9                hwtimer_wait
+                0x000000000804d804                hwtimer_set
+                0x000000000804d82d                hwtimer_set_absolute
+                0x000000000804d856                hwtimer_remove
+ *fill*         0x000000000804d8a7        0x1 
+ .text          0x000000000804d8a8       0xa6 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+                0x000000000804d8a8                lifo_empty
+                0x000000000804d8bb                lifo_init
+                0x000000000804d8ed                lifo_insert
+                0x000000000804d91c                lifo_get
+ *fill*         0x000000000804d94e        0x2 
+ .text          0x000000000804d950      0x1b3 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+                0x000000000804d950                mutex_init
+                0x000000000804d981                mutex_trylock
+                0x000000000804d9a7                prio
+                0x000000000804d9b8                mutex_lock
+                0x000000000804d9e7                mutex_wait
+                0x000000000804da71                mutex_unlock
+ *fill*         0x000000000804db03        0x1 
+ .text          0x000000000804db04      0x1d4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+                0x000000000804db19                chardev_loop
+ .text          0x000000000804dcd8      0x160 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+                0x000000000804dcd8                timex_add
+                0x000000000804dd1c                timex_normalize
+                0x000000000804dd6f                timex_set
+                0x000000000804dd96                timex_sub
+                0x000000000804ddcf                timex_cmp
+                0x000000000804de16                timex_print
+ .text          0x000000000804de38      0x186 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+                0x000000000804de38                ringbuffer_init
+                0x000000000804de6c                rb_add_elements
+                0x000000000804dea6                rb_add_element
+                0x000000000804df15                rb_get_element
+                0x000000000804df79                rb_get_elements
+ *fill*         0x000000000804dfbe        0x2 
+ .text          0x000000000804dfc0       0x2e /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+                0x000000000804dfc0                config_load
+                0x000000000804dfd5                config_save
+ *fill*         0x000000000804dfee        0x2 
+ .text          0x000000000804dff0       0xd6 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+                0x000000000804e03c                ltc4150_disable_int
+                0x000000000804e04b                ltc4150_enable_int
+                0x000000000804e092                ltc4150_sync_blocking
+                0x000000000804e0ad                ltc4150_arch_init
+ *fill*         0x000000000804e0c6        0x2 
+ .text          0x000000000804e0c8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a(config.o)
+ .text          0x000000000804e0c8      0x173 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+                0x000000000804e0c8                thread_print_all
+ *fill*         0x000000000804e23b        0x1 
+ .text          0x000000000804e23c       0x2e /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+                0x000000000804e23c                atomic_set_return
+ *fill*         0x000000000804e26a        0x2 
+ .text          0x000000000804e26c      0x3bc /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+                0x000000000804e26c                ticks2tv
+                0x000000000804e2b5                tv2ticks
+                0x000000000804e2cd                ts2ticks
+                0x000000000804e2fe                schedule_timer
+                0x000000000804e410                hwtimer_isr_timer
+                0x000000000804e451                hwtimer_arch_enable_interrupt
+                0x000000000804e46e                hwtimer_arch_disable_interrupt
+                0x000000000804e483                hwtimer_arch_unset
+                0x000000000804e4b6                hwtimer_arch_set
+                0x000000000804e517                hwtimer_arch_set_absolute
+                0x000000000804e542                hwtimer_arch_now
+                0x000000000804e5a7                hwtimer_arch_init
+ .text          0x000000000804e628       0x1c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+                0x000000000804e628                number_of_highest_bit
+ *fill*         0x000000000804e644        0xc 
+ .text          0x000000000804e650       0x72 /usr/lib32/libc_nonshared.a(elf-init.oS)
+                0x000000000804e650                __libc_csu_init
+                0x000000000804e6c0                __libc_csu_fini
+ *fill*         0x000000000804e6c2        0x2 
+ .text          0x000000000804e6c4        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+ .text          0x000000000804e6c4        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+ *(.gnu.warning)
+
+.fini           0x000000000804e6c4       0x14
+ *(SORT(.fini))
+ .fini          0x000000000804e6c4        0xf /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+                0x000000000804e6c4                _fini
+ .fini          0x000000000804e6d3        0x5 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+                0x000000000804e6d8                PROVIDE (__etext, .)
+                0x000000000804e6d8                PROVIDE (_etext, .)
+                0x000000000804e6d8                PROVIDE (etext, .)
+
+.rodata         0x000000000804e6e0     0x1154
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata        0x000000000804e6e0        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x000000000804e6e0                _fp_hw
+ .rodata.cst4   0x000000000804e6e4        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x000000000804e6e4                _IO_stdin_used
+ .rodata        0x000000000804e6e8       0x4b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ *fill*         0x000000000804e733        0x1 
+ .rodata        0x000000000804e734       0x92 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+ *fill*         0x000000000804e7c6        0x2 
+ .rodata        0x000000000804e7c8       0x25 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+ *fill*         0x000000000804e7ed        0x3 
+ .rodata        0x000000000804e7f0      0x414 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+ .rodata        0x000000000804ec04       0x94 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+ .rodata        0x000000000804ec98       0xab /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+ *fill*         0x000000000804ed43        0x1 
+ .rodata        0x000000000804ed44       0xaa /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+ .rodata        0x000000000804edee       0x12 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+ .rodata        0x000000000804ee00       0x1f /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+ .rodata        0x000000000804ee1f       0x52 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+ *fill*         0x000000000804ee71        0x3 
+ .rodata        0x000000000804ee74       0x53 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+ *fill*         0x000000000804eec7        0x1 
+ .rodata        0x000000000804eec8      0x108 /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+ .rodata        0x000000000804efd0       0x28 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+ .rodata        0x000000000804eff8       0x6a /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+ *fill*         0x000000000804f062        0x2 
+ .rodata        0x000000000804f064       0x69 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+ *fill*         0x000000000804f0cd       0x13 
+ .rodata        0x000000000804f0e0      0x258 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+                0x000000000804f2c0                _shell_command_list
+ .rodata        0x000000000804f338       0x39 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+ *fill*         0x000000000804f371        0x3 
+ .rodata        0x000000000804f374      0x127 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+ *fill*         0x000000000804f49b        0x1 
+ .rodata        0x000000000804f49c       0x3e /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+ *fill*         0x000000000804f4da        0x2 
+ .rodata        0x000000000804f4dc       0x3f /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+ *fill*         0x000000000804f51b        0x1 
+ .rodata        0x000000000804f51c       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+ .rodata        0x000000000804f5dc       0x18 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+ .rodata        0x000000000804f5f4       0x11 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+ .rodata        0x000000000804f605       0x16 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+ *fill*         0x000000000804f61b        0x1 
+ .rodata        0x000000000804f61c       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+ .rodata        0x000000000804f63c       0x79 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+ *fill*         0x000000000804f6b5        0x3 
+ .rodata        0x000000000804f6b8       0x58 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+ .rodata        0x000000000804f710       0xf4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+ .rodata        0x000000000804f804       0x30 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+
+.rodata1
+ *(.rodata1)
+
+.eh_frame_hdr   0x000000000804f834      0x78c
+ *(.eh_frame_hdr)
+ .eh_frame_hdr  0x000000000804f834      0x78c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+
+.eh_frame       0x000000000804ffc0     0x1e80
+ *(.eh_frame)
+ .eh_frame      0x000000000804ffc0       0x3c /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                                         0x40 (size before relaxing)
+ .eh_frame      0x000000000804fffc       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+                                         0x38 (size before relaxing)
+ .eh_frame      0x000000000805001c       0x80 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+                                         0x98 (size before relaxing)
+ .eh_frame      0x000000000805009c      0x1e0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+                                        0x1f8 (size before relaxing)
+ .eh_frame      0x000000000805027c      0x20c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+                                        0x224 (size before relaxing)
+ .eh_frame      0x0000000008050488       0xec /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+                                        0x104 (size before relaxing)
+ .eh_frame      0x0000000008050574       0xa0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+                                         0xb8 (size before relaxing)
+ .eh_frame      0x0000000008050614       0x3c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+                                         0x54 (size before relaxing)
+ .eh_frame      0x0000000008050650      0x148 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+                                        0x160 (size before relaxing)
+ .eh_frame      0x0000000008050798       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x0000000008050858       0xc4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+                                         0xdc (size before relaxing)
+ .eh_frame      0x000000000805091c      0x100 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+                                        0x118 (size before relaxing)
+ .eh_frame      0x0000000008050a1c       0x80 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+                                         0x98 (size before relaxing)
+ .eh_frame      0x0000000008050a9c       0x40 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+                                         0x58 (size before relaxing)
+ .eh_frame      0x0000000008050adc       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+                                         0x38 (size before relaxing)
+ .eh_frame      0x0000000008050afc       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x0000000008050bbc       0x94 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+                                         0xac (size before relaxing)
+ .eh_frame      0x0000000008050c50       0x3c /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+                                         0x54 (size before relaxing)
+ .eh_frame      0x0000000008050c8c       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+                                         0x38 (size before relaxing)
+ .eh_frame      0x0000000008050cac      0x1c0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+                                        0x1d8 (size before relaxing)
+ .eh_frame      0x0000000008050e6c       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x0000000008050f2c       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x0000000008050fec       0xdc /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+                                         0xf4 (size before relaxing)
+ .eh_frame      0x00000000080510c8       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+                                         0x38 (size before relaxing)
+ .eh_frame      0x00000000080510e8       0x80 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+                                         0x98 (size before relaxing)
+ .eh_frame      0x0000000008051168       0x44 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+                                         0x5c (size before relaxing)
+ .eh_frame      0x00000000080511ac       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+                                         0x38 (size before relaxing)
+ .eh_frame      0x00000000080511cc       0x60 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+                                         0x78 (size before relaxing)
+ .eh_frame      0x000000000805122c      0x1fc /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+                                        0x214 (size before relaxing)
+ .eh_frame      0x0000000008051428       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x00000000080514e8      0x1c4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+                                        0x1dc (size before relaxing)
+ .eh_frame      0x00000000080516ac      0x180 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+                                        0x198 (size before relaxing)
+ .eh_frame      0x000000000805182c       0x80 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+                                         0x98 (size before relaxing)
+ .eh_frame      0x00000000080518ac       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x000000000805196c       0x3c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+                                         0x54 (size before relaxing)
+ .eh_frame      0x00000000080519a8       0xc0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+                                         0xd8 (size before relaxing)
+ .eh_frame      0x0000000008051a68       0xa4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+                                         0xbc (size before relaxing)
+ .eh_frame      0x0000000008051b0c       0x40 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+                                         0x58 (size before relaxing)
+ .eh_frame      0x0000000008051b4c       0xa0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+                                         0xb8 (size before relaxing)
+ .eh_frame      0x0000000008051bec       0x30 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+                                         0x48 (size before relaxing)
+ .eh_frame      0x0000000008051c1c       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+                                         0x38 (size before relaxing)
+ .eh_frame      0x0000000008051c3c      0x18c /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+                                        0x1a4 (size before relaxing)
+ .eh_frame      0x0000000008051dc8       0x24 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+                                         0x3c (size before relaxing)
+ .eh_frame      0x0000000008051dec       0x50 /usr/lib32/libc_nonshared.a(elf-init.oS)
+                                         0x7c (size before relaxing)
+ .eh_frame      0x0000000008051e3c        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.exception_ranges
+ *(.exception_ranges .exception_ranges*)
+                0x0000000008051e40                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x0000000008052f04                . = DATA_SEGMENT_ALIGN (0x1000, 0x1000)
+
+.eh_frame
+ *(.eh_frame)
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.exception_ranges
+ *(.exception_ranges .exception_ranges*)
+
+.tdata
+ *(.tdata .tdata.* .gnu.linkonce.td.*)
+
+.tbss
+ *(.tbss .tbss.* .gnu.linkonce.tb.*)
+ *(.tcommon)
+
+.preinit_array  0x0000000008052f04        0x0
+                0x0000000008052f04                PROVIDE (__preinit_array_start, .)
+ *(.preinit_array)
+                0x0000000008052f04                PROVIDE (__preinit_array_end, .)
+
+.init_array     0x0000000008052f04        0x8
+                0x0000000008052f04                PROVIDE (__init_array_start, .)
+ *(SORT(.init_array.*) SORT(.ctors.*))
+ *(.init_array)
+ .init_array    0x0000000008052f04        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ .init_array    0x0000000008052f08        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .ctors)
+                0x0000000008052f0c                PROVIDE (__init_array_end, .)
+
+.fini_array     0x0000000008052f0c        0x4
+                0x0000000008052f0c                PROVIDE (__fini_array_start, .)
+ *(SORT(.fini_array.*) SORT(.dtors.*))
+ *(.fini_array)
+ .fini_array    0x0000000008052f0c        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .dtors)
+                0x0000000008052f10                PROVIDE (__fini_array_end, .)
+
+.ctors
+ *crtbegin.o(.ctors)
+ *crtbegin?.o(.ctors)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+ *(SORT(.ctors.*))
+ *(.ctors)
+
+.dtors
+ *crtbegin.o(.dtors)
+ *crtbegin?.o(.dtors)
+ *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+ *(SORT(.dtors.*))
+ *(.dtors)
+
+.jcr            0x0000000008052f10        0x4
+ *(.jcr)
+ .jcr           0x0000000008052f10        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ .jcr           0x0000000008052f10        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+
+.data.rel.ro
+ *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
+ *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*)
+
+.dynamic        0x0000000008052f14       0xe8
+ *(.dynamic)
+ .dynamic       0x0000000008052f14       0xe8 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008052f14                _DYNAMIC
+
+.got            0x0000000008052ffc        0x4
+ *(.got)
+ .got           0x0000000008052ffc        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ *(.igot)
+                0x0000000008053ff4                . = DATA_SEGMENT_RELRO_END (., (SIZEOF (.got.plt) >= 0xc)?0xc:0x0)
+
+.got.plt        0x0000000008053000       0xec
+ *(.got.plt)
+ .got.plt       0x0000000008053000       0xec /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008053000                _GLOBAL_OFFSET_TABLE_
+ *(.igot.plt)
+ .igot.plt      0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+
+.data           0x0000000008053100       0x40
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x0000000008053100        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+                0x0000000008053100                data_start
+                0x0000000008053100                __data_start
+ .data          0x0000000008053104        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+ .data          0x0000000008053104        0x4 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+                0x0000000008053104                __dso_handle
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+ .data          0x0000000008053108        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(tramp.o)
+ .data          0x0000000008053108        0x8 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+                0x0000000008053108                main_name
+                0x000000000805310c                idle_name
+ .data          0x0000000008053110        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+ .data          0x0000000008053110        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+ .data          0x0000000008053110        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+                0x0000000008053110                last_pid
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+ .data          0x0000000008053114        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+ .data          0x0000000008053114        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+                0x0000000008053114                transceiver_pid
+ .data          0x0000000008053118        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+ .data          0x0000000008053118        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+ .data          0x000000000805311c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a(config.o)
+ *fill*         0x000000000805311c        0x4 
+ .data          0x0000000008053120       0x20 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+                0x0000000008053120                state_names
+ .data          0x0000000008053140        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+ .data          0x0000000008053140        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+ .data          0x0000000008053140        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+ .data          0x0000000008053140        0x0 /usr/lib32/libc_nonshared.a(elf-init.oS)
+ .data          0x0000000008053140        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+ .data          0x0000000008053140        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+
+.tm_clone_table
+                0x0000000008053140        0x0
+ .tm_clone_table
+                0x0000000008053140        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ .tm_clone_table
+                0x0000000008053140        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+
+.data1
+ *(.data1)
+                0x0000000008053140                _edata = .
+                0x0000000008053140                PROVIDE (edata, .)
+                0x0000000008053140                . = .
+                0x0000000008053140                __bss_start = .
+
+.bss            0x0000000008053140    0x1a19c
+ *(.dynbss)
+ .dynbss        0x0000000000000000        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x0000000008053140        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crt1.o
+ .bss           0x0000000008053140        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crti.o
+ .bss           0x0000000008053140        0x1 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+ *fill*         0x0000000008053141        0x3 
+ .bss           0x0000000008053144        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ .bss           0x0000000008053144        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+ *fill*         0x0000000008053144       0x1c 
+ .bss           0x0000000008053160      0x404 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+ *fill*         0x0000000008053564       0x1c 
+ .bss           0x0000000008053580     0x24a8 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+ .bss           0x0000000008055a28        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+ *fill*         0x0000000008055a2c       0x14 
+ .bss           0x0000000008055a40     0x2160 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+ .bss           0x0000000008057ba0        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(tramp.o)
+ .bss           0x0000000008057ba0     0x6020 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+                0x0000000008057ba0                lpm_prevent_sleep
+ .bss           0x000000000805dbc0        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+ .bss           0x000000000805dbc0        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+ .bss           0x000000000805dbc0        0x8 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+                0x000000000805dbc0                num_tasks
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+ .bss           0x000000000805dbc8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+ .bss           0x000000000805dbc8       0x10 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+ .bss           0x000000000805dbd8        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+ .bss           0x000000000805dbd8        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+ .bss           0x000000000805dbdc        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+ .bss           0x000000000805dbdc        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+                0x000000000805dbdc                transceivers
+ .bss           0x000000000805dbe0     0x2120 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+ .bss           0x000000000805fd00       0x50 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+ *fill*         0x000000000805fd50       0x10 
+ .bss           0x000000000805fd60       0x34 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+ .bss           0x000000000805fd94        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+ .bss           0x000000000805fd94        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+ .bss           0x000000000805fd94        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+ .bss           0x000000000805fd94        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+ .bss           0x000000000805fd94        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+ .bss           0x000000000805fd94        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+ .bss           0x000000000805fd94        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+ .bss           0x000000000805fd98        0x4 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a(config.o)
+                0x000000000805fd98                sysconfig
+ .bss           0x000000000805fd9c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+ .bss           0x000000000805fd9c        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+ *fill*         0x000000000805fd9c        0x4 
+ .bss           0x000000000805fda0       0x78 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+ .bss           0x000000000805fe18        0x0 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+ .bss           0x000000000805fe18        0x0 /usr/lib32/libc_nonshared.a(elf-init.oS)
+ .bss           0x000000000805fe18        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+ .bss           0x000000000805fe18        0x0 /usr/lib/gcc/x86_64-linux-gnu/4.7/../../../../lib32/crtn.o
+ *(COMMON)
+ COMMON         0x000000000805fe18        0xa /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+                0x000000000805fe18                _native_tap_fd
+                0x000000000805fe1c                _native_tap_mac
+ *fill*         0x000000000805fe22       0x1e 
+ COMMON         0x000000000805fe40     0x3b4e /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+                0x000000000805fe40                _native_net_chan
+                0x000000000805fe42                _native_net_addr
+                0x000000000805fe44                _native_net_monitor
+                0x000000000805fe46                _native_net_pan
+                0x000000000805fe60                _nativenet_rx_buffer
+ *fill*         0x000000000806398e       0x12 
+ COMMON         0x00000000080639a0     0x2184 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+                0x00000000080639a0                sigalt_stk
+                0x00000000080659a0                native_interrupts_enabled
+                0x00000000080659a4                _native_saved_eip
+                0x00000000080659a8                _native_isr_ctx
+                0x00000000080659ac                _native_sigpend
+                0x00000000080659b0                _native_in_isr
+                0x00000000080659b4                process_heap_address
+                0x00000000080659c0                native_isr_context
+                0x0000000008065b1c                _native_in_syscall
+                0x0000000008065b20                _native_cur_ctx
+ *fill*         0x0000000008065b24       0x1c 
+ COMMON         0x0000000008065b40       0x80 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+                0x0000000008065b40                _native_rfds
+ COMMON         0x0000000008065bc0      0x144 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+                0x0000000008065bc0                thread_pid
+                0x0000000008065be0                runqueues
+                0x0000000008065c60                sched_context_switch_request
+                0x0000000008065c80                sched_threads
+                0x0000000008065d00                active_thread
+ *fill*         0x0000000008065d04       0x1c 
+ COMMON         0x0000000008065d20       0xa0 /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+                0x0000000008065d20                _native_uart_in
+                0x0000000008065d24                _native_uart_out
+                0x0000000008065d40                _native_uart_rfds
+ COMMON         0x0000000008065dc0     0x2200 /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+                0x0000000008065dc0                msg_q
+                0x0000000008065fc0                radio_stack_buffer
+ COMMON         0x0000000008067fc0     0x5304 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+                0x0000000008067fc0                data_buffer
+                0x0000000008069160                msg_buffer
+                0x0000000008069260                transceiver_stack
+                0x000000000806d260                transceiver_buffer
+                0x000000000806d2a0                reg
+                0x000000000806d2c0                response
+ COMMON         0x000000000806d2c4       0x18 /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+                0x000000000806d2c4                uart0_ringbuffer
+                0x000000000806d2d8                uart0_handler_pid
+                0x000000000806d2dc                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x000000000806d2dc                . = ALIGN (0x4)
+                0x000000000806d2dc                . = ALIGN (0x4)
+                0x000000000806d2dc                _end = .
+                0x000000000806d2dc                PROVIDE (end, .)
+                0x000000000806d2dc                . = DATA_SEGMENT_END (.)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x0000000000000000       0x2a
+ *(.comment)
+ .comment       0x0000000000000000       0x2a /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtbegin.o
+                                         0x2b (size before relaxing)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/startup.o
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(tap.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/nativenet.a(interface.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(irq_cpu.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(lpm_cpu.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(native_cpu.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(kernel_init.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(msg.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(queue.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(sched.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(thread.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(cib.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(clist.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_init.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-led.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-uart0.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.a(main.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/auto_init.a(auto_init.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ltc4150.a(ltc4150.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/posix.a(posix_io.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/rtc.a(posix-rtc.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell.a(shell.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(shell_commands.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_id.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_nativenet.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ltc4150.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_ps.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/shell_commands.a(sc_rtc.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/transceiver.a(transceiver.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/uart0.a(uart0.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/vtimer.a(vtimer.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(hwtimer.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(lifo.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(mutex.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/sys.a(chardev_thread.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/timex.a(timex.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/lib.a(ringbuffer.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(board_config.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../boards/native/bin/native_base.a(native-ltc4150.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/config.a(config.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/ps.a(ps.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(atomic_cpu.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/cpu.a(hwtimer_cpu.o)
+ .comment       0x0000000000000000       0x2b /home/lotte/bachelor/aodvv2/riot/default-native/../RIOT/bin/core.a(bitarithm.o)
+ .comment       0x0000000000000000       0x2b /usr/lib32/libc_nonshared.a(elf-init.oS)
+ .comment       0x0000000000000000       0x2b /usr/lib/gcc/x86_64-linux-gnu/4.7/32/crtend.o
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info .gnu.linkonce.wi.*)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges
+ *(.debug_ranges)
+
+.debug_macro
+ *(.debug_macro)
+
+.gnu.attributes
+ *(.gnu.attributes)
+
+/DISCARD/
+ *(.note.GNU-stack)
+ *(.gnu_debuglink)
+ *(.gnu.lto_*)
+OUTPUT(/home/lotte/bachelor/aodvv2/riot/default-native/bin/default-native.elf elf32-i386)

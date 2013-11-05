@@ -1,0 +1,12 @@
+[submodule "riot/RIOT"]
+	path = riot/RIOT
+	url = https://github.com/RIOT-OS/RIOT
+[submodule "riot/boards"]
+	path = riot/boards
+	url = https://github.com/RIOT-OS/boards
+[submodule "riot/riot-libs"]
+	path = riot/riot-libs
+	url = https://github.com/benpicco/riot-libs
+[submodule "oonf_api"]
+	path = oonf_api
+	url = https://github.com/benpicco/oonf_api
