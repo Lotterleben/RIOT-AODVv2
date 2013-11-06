@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
- */
-
 
 /*
  * The olsr.org Optimized Link-State Routing daemon version 2 (olsrd2)
@@ -43,22 +39,15 @@
  *
  */
 
-#include <string.h>
-#include <stdio.h>
+#ifndef READER_H_
+#define READER_H_
 
 #include "common/common_types.h"
-#include "common/netaddr.h"
-
 #include "rfc5444/rfc5444_reader.h"
-#include "rfc5444/rfc5444_writer.h"
-#include "rfc5444/rfc5444_print.h"
 
-#include "aodvv2/reader.h"
-#include "aodvv2/writer.h"
+EXPORT extern struct rfc5444_reader reader;
 
-static struct autobuf _hexbuf;
+void reader_init(void);
+void reader_cleanup(void);
 
-int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
-  printf("yay!");
-  return 0;
-}
+#endif /* READER_H_ */
