@@ -5,12 +5,7 @@ enum tlv_type {
     RFC5444_MSGTLV_METRIC,
 };
 
-/* For some reason message creation fails if msg_type is 0 */
 enum msg_type {
-    RREQ = 1,
-    RREP = 2
+    RFC5444_MSGTYPE_RREQ = 2,
+    RFC5444_MSGTYPE_RREP = 3,
 };
-
-
-
-// typedef struct socka6 sockaddr6_t;

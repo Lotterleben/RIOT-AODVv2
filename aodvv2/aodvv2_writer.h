@@ -45,8 +45,8 @@
 #include "common/common_types.h"
 #include "rfc5444/rfc5444_writer.h"
 
-EXPORT extern struct rfc5444_writer_target interface_1;
-EXPORT extern struct rfc5444_writer writer;
+struct rfc5444_writer_target interface_1;
+struct rfc5444_writer writer;
 
 typedef void (*write_packet_func_ptr)(
     struct rfc5444_writer *wr, struct rfc5444_writer_target *iface, void *buffer, size_t length);
