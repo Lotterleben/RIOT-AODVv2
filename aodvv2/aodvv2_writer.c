@@ -38,7 +38,7 @@ uint16_t _pkt_seqno;
  * addresses and address block TLVs to all messages of type RREQ.
  */
 static struct rfc5444_writer_content_provider _rreq_message_content_provider = {
-    .msg_type = 0,
+    .msg_type = RFC5444_MSGTYPE_RREQ,
     .addMessageTLVs = _cb_rreq_addMessageTLVs,
     .addAddresses = _cb_rreq_addAddresses,
 };
@@ -159,7 +159,7 @@ void writer_init(write_packet_func_ptr ptr)
     /* register rreq and rrep messages with 4 byte addresses.
        AddPacketHeader & addMessageGeader callbacks are triggered here.
        this fails if type is anything other than 1. THEFUCK? [TODO]*/
-    _rreq_msg = rfc5444_writer_register_message(&writer, 0, false, 4);
+    _rreq_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREQ, false, 4);
 
     _rreq_msg->addMessageHeader = _cb_rreq_addMessageHeader;
 

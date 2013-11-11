@@ -6,6 +6,6 @@ enum tlv_type {
 };
 
 enum msg_type {
-    RFC5444_MSGTYPE_RREQ = 2,
-    RFC5444_MSGTYPE_RREP = 3,
+    RFC5444_MSGTYPE_RREQ,
+    RFC5444_MSGTYPE_RREP,
 };

@@ -56,6 +56,8 @@
 #include "aodvv2/reader.h"
 #include "aodvv2/aodvv2_writer.h"
 
+#include "include/aodvv2.h"
+
 static struct autobuf _hexbuf;
 
 /**
@@ -91,7 +93,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
   writer_init(write_packet);
   
   /* send message */
-  rfc5444_writer_create_message_alltarget(&writer, 1);
+  rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
   rfc5444_writer_flush(&writer, &interface_1, false);
 
   /* cleanup */
