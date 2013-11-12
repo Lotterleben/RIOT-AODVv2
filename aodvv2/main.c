@@ -94,7 +94,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
   
     /* send messages */
     writer_send_rreq();
-    writer_send_rrep();
+    //writer_send_rrep();
 
     /* cleanup */
     reader_cleanup();

@@ -66,7 +66,6 @@ _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *int
  */
 static struct rfc5444_writer_content_provider _rreq_message_content_provider = {
     .msg_type = RFC5444_MSGTYPE_RREQ,
-    .addMessageTLVs = _cb_rreq_addMessageTLVs,
     .addAddresses = _cb_rreq_addAddresses,
 };
 
@@ -94,25 +93,6 @@ _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 }
 
 /**
- * Callback to add message TLVs to a RFC5444 RREQ message.
- * @param wr
- */
-static void
-_cb_rreq_addMessageTLVs(struct rfc5444_writer *wr)
-{
-    printf("[aodvv2] %s()\n", __func__);
-    int _rreq_foo;
-
-    /* add message tlv type SeqNum (exttype 0) with 4-byte value 23 */
-    _rreq_foo = htonl(23);
-    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_SEQNUM, 0, &_rreq_foo, sizeof (_rreq_foo));
-
-    /* add message tlv type Metric (ext 0) with 4-byte value 42 */
-    _rreq_foo = htonl(42);
-    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_METRIC, 0, &_rreq_foo, sizeof (_rreq_foo));
-}
-
-/**
  * Callback to add addresses and address TLVs to a RFC5444 RREQ message
  * @param wr
  */
@@ -121,8 +101,10 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 {
     printf("[aodvv2] %s()\n", __func__);
 
-    struct rfc5444_writer_address *addr;
+    struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
+    int seqNum = 8;
+    int origNodeHopCt = 9;
 
     if (netaddr_from_string(&na_origNode, "127.0.0.1")) {
     return;
@@ -132,10 +114,23 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     }
 
     /* add origNode address (has no address tlv); is mandatory address */
-    rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_origNode, true);
+    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_origNode, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_targNode, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_targNode, true);
+
+    /* Add Address TLVs to both addresses, effectively turning it into an
+       AddressBlockTLV. */
+
+    // add SeqNum TLVs
+    // TODO: allow_dup true or false?
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[0], &seqNum, sizeof(seqNum), false  );
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &seqNum, sizeof(seqNum), false  );
+
+    // add Metric TLVs
+    // TODO: which metric types are there?
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[1], &origNodeHopCt, sizeof(origNodeHopCt), false);
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[1], &origNodeHopCt, sizeof(origNodeHopCt), false );
 }
 
 /*
@@ -179,11 +174,16 @@ static void
 _cb_rrep_addMessageTLVs(struct rfc5444_writer *wr)
 {
     printf("[aodvv2] %s()\n", __func__);
-    int _rrep_foo;
+    int _rrep_origNode_seqNum, _rrep_targNode_seqNum ;
 
     /* add message tlv type SeqNum (exttype 0) with 4-byte value 23 */
-    _rrep_foo = htonl(1337);
-    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_SEQNUM, 0, &_rrep_foo, sizeof (_rrep_foo));
+    _rrep_origNode_seqNum = htonl(23);
+    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_SEQNUM, 0, &_rrep_origNode_seqNum, sizeof (_rrep_origNode_seqNum));
+
+
+    /* add message tlv type SeqNum (exttype 0) with 4-byte value 23 */
+    _rrep_targNode_seqNum = htonl(42);
+    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_SEQNUM, 0, &_rrep_targNode_seqNum, sizeof (_rrep_targNode_seqNum));
 }
 
 /**
@@ -210,6 +210,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 
     /* add origNode address (has no address tlv); is mandatory address */
     rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &na_targNode, true);
+
 }
 
 void writer_init(write_packet_func_ptr ptr)
@@ -243,7 +244,7 @@ void writer_init(write_packet_func_ptr ptr)
     rfc5444_writer_register_msgcontentprovider(&writer, &_rreq_message_content_provider, _rreq_addrtlvs, ARRAYSIZE(_rreq_addrtlvs));
     rfc5444_writer_register_msgcontentprovider(&writer, &_rrep_message_content_provider, _rrep_addrtlvs, ARRAYSIZE(_rrep_addrtlvs));
 
-    /* register rreq and rrep messages with 4 byte addresses.
+    /* register rreq and rrep messages with 16 byte (ipv6) addresses.
        AddPacketHeader & addMessageGeader callbacks are triggered here. */
     _rreq_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREQ, false, 4);
     _rrep_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREP, false, 4);
