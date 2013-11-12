@@ -69,37 +69,37 @@ static struct autobuf _hexbuf;
  */
 static void
 write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
-    struct rfc5444_writer_target *iface __attribute__((unused)),
-    void *buffer, size_t length) {
-  printf("[aodvv2] %s()\n", __func__);
+        struct rfc5444_writer_target *iface __attribute__((unused)),
+        void *buffer, size_t length) {
+    printf("[aodvv2] %s()\n", __func__);
 
-  /* generate hexdump of packet */
-  abuf_hexdump(&_hexbuf, "\t", buffer, length);
-  rfc5444_print_direct(&_hexbuf, buffer, length);
+    /* generate hexdump of packet */
+    abuf_hexdump(&_hexbuf, "\t", buffer, length);
+    rfc5444_print_direct(&_hexbuf, buffer, length);
 
-  /* print hexdump to console */
-  printf("%s", abuf_getptr(&_hexbuf));
+    /* print hexdump to console */
+    printf("%s", abuf_getptr(&_hexbuf));
 
-  /* parse packet */
-  rfc5444_reader_handle_packet(&reader, buffer, length);
+    /* parse packet */
+    rfc5444_reader_handle_packet(&reader, buffer, length);
 }
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
-  /* initialize buffer for hexdump */
-  abuf_init(&_hexbuf);
+    /* initialize buffer for hexdump */
+    abuf_init(&_hexbuf);
 
-  /* init reader and writer */
-  reader_init();
-  writer_init(write_packet);
+    /* init reader and writer */
+    reader_init();
+    writer_init(write_packet);
   
-  /* send message */
-  rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
-  rfc5444_writer_flush(&writer, &interface_1, false);
+    /* send messages */
+    writer_send_rreq();
+    writer_send_rrep();
 
-  /* cleanup */
-  reader_cleanup();
-  writer_cleanup();
-  abuf_free(&_hexbuf);
+    /* cleanup */
+    reader_cleanup();
+    writer_cleanup();
+    abuf_free(&_hexbuf);
 
-  return 0;
+    return 0;
 }
