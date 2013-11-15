@@ -92,13 +92,14 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     reader_init();
     writer_init(write_packet);
   
-
-    writer_send_rreq();
+    //writer_send_rreq();
     
     /* cleanup */
+    /*
     reader_cleanup();
     writer_cleanup();
     abuf_free(&_hexbuf);
+    */
 
     /* send messages */
     writer_send_rrep();
