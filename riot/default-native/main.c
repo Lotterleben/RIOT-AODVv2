@@ -57,6 +57,14 @@ void radio(void) {
     }
 }
 
+void hello_world(char *str){
+    printf("hello world!\n");
+}
+
+const shell_command_t shell_commands[] = {
+    {"hello", "prints hello world", hello_world},
+};
+
 int main(void)
 {
     int radio_pid;
@@ -87,7 +95,7 @@ int main(void)
     printf("You may use the shell now.\n");
     printf("Type help for help, ctrl+c to exit.\n");
 
-    shell_init(&shell, NULL, uart0_readc, uart0_putc);
+    shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     shell_run(&shell);
         
     return 0;

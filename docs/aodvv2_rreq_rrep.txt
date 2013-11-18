@@ -1,0 +1,321 @@
+This document contains every part of AODVv2 that I want to implement for my
+bachelor's thesis (so far). I may extend it as I go along.
+
+== Questions ==
+- how do I handle Metric Types in compliance with rfc6551?
+
+== TBD ==
+
+Routing Messages RREQ and RREP (RteMsgs)
+
+   When an AODVv2 router needs to forward a data packet from a node
+   (OrigNode) in its set of router clients, and it does not have a
+   forwarding route toward the packet's IP destination address
+   (TargNode), the AODVv2 router (RREQ_Gen) generates a RREQ (as
+   described in Section 7.3) to discover a route toward TargNode.
+   Subsequently RREQ_Gen awaits reception of an RREP message (see
+   Section 7.4) or other route table update (see Section 6.2) to
+   establish a route toward TargNode.
+
+I will/may go over the AODVVv2 draft iteratively and add more functions after
+successful implementation if everything in the document.
+(For example Route Mainenance, which is missing entirely, may be added partly later on.)
+
+================================================================================
+
+5.5.  Sequence Numbers
+   Each AODVv2 router in the network MUST maintain its own sequence
+   number.  An AODVv2 router increments its SeqNum as follows.  Most of
+   the time, SeqNum is incremented by simply adding one (1).  But to
+   increment SeqNum when it has the value of the largest possible number
+   representable as a 16-bit unsigned integer (i.e., 65,535), it MUST be
+   set to one (1).  In other words, the sequence number after 65,535 is
+   1.
+
+6.2.  Applying Route Updates To Route Table Entries
+   To apply the route update, the route table entry is populated with
+   the following information:
+
+   o  Route.Address := RteMsg.Addr
+   o  Route.SeqNum := RteMsg.SeqNum
+   o  Route.NextHopAddress := IP.SourceAddress (i.e., an address of the
+      node from which the RteMsg was received)
+
+7.2.  RteMsg Structure
+   
+   RteMsgs have the following general format:
+
+   +---------------------------------------------------------------+
+   |       RFC 5444 Message Header (optionally, with MsgTLVs)      |
+   +---------------------------------------------------------------+
+   |                AddrBlk := {OrigNode,TargNode}                 |
+   +---------------------------------------------------------------+
+   |              OrigSeqNumTLV AND/OR TargSeqNumTLV               |
+   +---------------------------------------------------------------+
+   |                 Added Node Address SeqNumTLV                  |
+   +---------------------------------------------------------------+
+
+         Figure 1: RREQ and RREP (RteMsg) message structure
+
+   Required Message Header Fields
+      The RteMsg MUST contain the following:
+      *  <msg-hop-limit>
+   
+   AddrBlk
+      This Address Block contains the IP addresses for RREQ Originating
+      and Target Node (OrigNode and TargNode).  For both RREP and RREQ,
+      OrigNode and TargNode are as identified in the context of the RREQ
+      message originator.
+   OrigSeqNum AND/OR TargSeqNum AddrTLV
+      At least one of OrigSeqNum or TargSeqNum Address Block TLV is
+      REQUIRED and carries the destination sequence numbers associated
+      with either OrigNode or TargNode.  Both may appear when SeqNum
+      information is available for both OrigNode and TargNode.
+
+
+   RteMsgs carry information about OrigNode and TargNode.  Since their
+   addresses may appear in arbitrary order within the RFC 5444 AddrBlk,
+   the OrigSeqNum and/or TargSeqNum TLVs must be used to distinguish the
+   nature of the node addresses present in the AddrBlk.  In each RteMsg,
+   at least one of OrigSeqNumTLV or TargSeqNumTLV MUST appear.  Both
+   TLVs MAY appear in the same RteMsg, but each one MUST NOT appear more
+   than once, because there is only one OrigNode and only one TargNode
+   address in the AddrBlk.
+
+7.3.  RREQ Generation
+
+   The AODVv2 router generating the RREQ (RREQ_Gen) on behalf of its
+   client OrigNode follows the steps in this section. OrigNode MUST be
+   a unicast address.
+
+   1. RREQ_Gen MUST increment its SeqNum by one (1) according to the
+      rules specified in Section 5.5.  This assures that each node
+      receiving the RREQ will update its route table using the
+      information in the RREQ.
+
+   An example RREQ message format is illustrated in Appendix A.1.
+
+7.4.  RREP Generation
+
+   Before transmitting a RREP, the routing information of the RREQ is
+   processed as specified in Section 6.2; after such processing,
+   RREP_Gen has an updated route to OrigNode as well as TargNode.  The
+   basic format of an RREP conforms to the structure for RteMsgs as
+   shown in Figure 1.
+
+   RREP_Gen generates the RREP as follows:
+
+   2.   RREP_Gen MUST increment its SeqNum by one (1) according to the
+        rules specified in Section 5.5.
+   3.   RREP.AddrBlk := {OrigNode.Addr, TargNode.Addr}
+
+        Let OrigNodeNdx and TargNodeNdx denote the indexes of OrigNode
+        and TargNode respectively in the RREQ.AddrBlk list.
+   4.   RREP.OrigSeqNumTLV[OrigNodeNdx]  := Route[OrigNode].Seqnum
+   5.   RREP.TargSeqNumTLV[TargNodeNdx]  := RREP_Gen's SeqNum
+   11.  IP.DestinationAddr := Route[OrigNode].NextHop
+
+   An example message format for RREP is illustrated in Appendix A.2.
+
+7.5.  Handling a Received RteMsg
+
+   OrigNodeNdx and TargNodeNdx are
+   set according to the rules in Section 7.2.  For RREQ, RteMsg.Metric
+   is MetricTLV[OrigNodeNdx].  For RREP, RteMsg.Metric is
+   MetricTLV[TargNodeNdx]. In this section (unless qualified by
+   additional description such as "upstream" or "neighboring") all
+   occurrences of the term "router" refer to the AODVv2 router handling
+   the received RteMsg.
+
+   2. The router examines the RteMsg to ascertain that it contains the
+      required information: <msg-hop-limit>, TargNode.Addr,
+      OrigNode.Addr, RteMsg.Metric, and either RteMsg.OrigSeqNum or
+      RteMsg.TargSeqNum.  If the required information does not exist,
+      the message is disregarded.
+   
+   An AODVv2 router handles a permissible RteMsg according to the
+   following steps.
+
+   3. If RteMsg.<msg-hop-limit> is zero (0), no further action is
+      taken, and the RteMsg is not retransmitted.  Otherwise, the
+      router MUST decrement RteMsg.<msg-hop-limit>.
+
+7.5.1.  Additional Handling for Incoming RREQ
+
+   o  By sending a RREQ, a router advertises that it will route for
+      addresses contained in the RteMsg based on the information
+      enclosed.  The router MAY choose not to send the RREQ.
+   o  The incoming RREQ MUST be checked against previously received
+      information from the RREQ Table Section 7.6.  If the information
+      in the incoming RteMsg is redundant, then then no further action
+      is taken.
+   o  If TargNode is a client of the router receiving the RREQ, then the
+      router generates a RREP message as specified in Section 7.4, and
+      subsequently processing for the RREQ is complete.  Otherwise,
+      processing continues as follows.
+   o  The RREQ (with updated fields as specified above>) SHOULD be sent
+      to the IP multicast address LL-MANET-Routers [RFC5498].  If the
+      RREQ is unicast, the IP.DestinationAddress is set to
+      Route[RREQ.TargNode].NextHopAddress.
+
+7.5.2.  Additional Handling for Incoming RREP
+   
+   o  If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
+      earlier RREQ, and RREP processing is completed.  Any packets
+      buffered for OrigNode should be transmitted.
+
+
+========== APPENDIX ============================================================
+
+A.1.  RREQ Message Format 
+
+   Figure 4 illustrates a packet format for an example RREQ message.
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | PV=0 |  PF=0  | msg-type=RREQ | MF=4  | MAL=3 |  msg-size=28  |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  msg-size=28  | msg-hop-limit |      msg.tlvs-length=0        |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   num-addr=2  |1|0|0|0|0| Rsv | head-length=3 |Head(Orig&Targ)|
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Head (bytes for Orig & Target)|   Orig.Tail   |  Target.Tail  |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |      addr.tlvs-length=11      |  type=SeqNum  |0|1|0|1|0|0|Rsv|
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Index-start=0 | tlv-length=2  |     Orig.Node Sequence #      |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  type=Metric  |0|1|0|1|0|0|Rsv| Index-start=0 | tlv-length=1  |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | OrigNodeHopCt |
+     +-+-+-+-+-+-+-+-+
+
+       Figure 4: Example IPv4 RREQ, with SeqNum and Metric AddrTLVs
+
+   The fields in Figure 4 are to be interpreted as follows:
+
+   o  PV=0 (Packet Header Version = 0)
+   o  PF=0 (Packet Flags = 0)
+   o  msg-type=RREQ (first [and only] message is of type RREQ)
+   o  MF=4 (Message Flags = 4 [only msg-hop-limit field is present])
+   o  MAL=3 (Message Address Length indicator [3 for IPv4, 15 for IPv6])
+   o  msg-size=28 (octets -- counting MsgHdr, MsgTLVs, and AddrBlks)
+   o  msg-hop-limit (initially MAX_HOPCOUNT by default)
+   o  msg.tlvs-length=0 (no Message TLVs)
+   o  num-addr=2 (OrigNode and TargNode addresses in RteMsg AddrBlock)
+   o  AddrBlk flags:
+
+      *  bit 0 (ahashead): 1
+      *  bit 1 (ahasfulltail): 0
+      *  bit 2 (ahaszerotail): 0
+      *  bit 3 (ahassingleprelen): 0
+      *  bit 4 (ahasmultiprelen): 0
+      *  bits 5-7: RESERVED
+   o  head-length=3 (length of head part of each address is 3 octets)
+   o  Head (3 initial bytes for both Originating & Target addresses)
+   o  Orig.Tail (4th byte of Originating Node IP address)
+   o  Target.Tail (4th byte of Target Node IP address)
+   o  addr.tlvs-length=11 (length in bytes for SeqNum and Metric TLVs
+   o  type=SeqNum (AddrTLV type of first AddrBlk TLV, values 2 octets)
+   o  AddrTLV flags for SeqNumTLV:
+
+      *  bit 0 (thastypeext): 0
+      *  bit 1 (thassingleindex): 1
+      *  bit 2 (thasmultiindex): 0
+      *  bit 3 (thasvalue): 1
+      *  bit 4 (thasextlen): 0
+      *  bit 5 (tismultivalue): 0
+      *  bits 6-7: RESERVED
+   o  Index-start=0 (SeqNum TLV values start at index 0)
+   o  tlv-length=2 (so there is only one TLV value, [1 = 2/2])
+   o  Orig.Node Sequence # (first [and only] TLV value for SeqNum TLVs
+   o  type=Metric (AddrTLV type of second AddrBlk TLV, values 1 octet)
+   o  AddrTLV flags for MetricTLV:
+
+      *  bit 0 (thastypeext): 0
+      *  bit 1 (thassingleindex): 1
+      *  bit 2 (thasmultiindex): 0
+      *  bit 3 (thasvalue): 1
+      *  bit 4 (thasextlen): 0
+      *  bit 5 (tismultivalue): 0
+      *  bits 6-7: RESERVED
+   o  Index-start=0 (Metric TLV values start at index 0)
+   o  tlv-length=1 (so there is only one TLV value, [1 = 1/1])
+   o  OrigNodeHopCt (first [and only] TLV value for Metric TLVs)
+
+
+
+A.2.  RREP Message Format
+
+   Figure 5 illustrates a packet format for an example RREP message.
+
+        0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | PV=0 |  PF=0  | msg-type=RREP | MF=4  | MAL=3 |  msg-size=30  |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |  msg-size=30  | msg-hop-limit |      msg.tlvs-length=0        |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |   num-addr=2  |1|0|0|0|0| Rsv | head-length=3 |Head(Orig&Targ)|
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | Head (bytes for Orig & Target)|   Orig.Tail   |  Target.Tail  |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |      addr.tlvs-length=13      |  type=SeqNum  |0|1|0|1|0|0|Rsv|
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | Index-start=0 | tlv-length=2  |     Orig.Node Sequence #      |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |    Target.Node Sequence #     |  type=Metric  |0|1|0|1|0|0|Rsv|
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | Index-start=1 | tlv-length=1  | TargNodeHopCt |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+         Figure 5: Example IPv4 RREP, with 2 SeqNums and 1 Metric
+
+   The fields in Figure 5 are to be interpreted as follows:
+   o  PV=0 (Packet Header Version = 0)
+   o  PF=0 (Packet Flags = 0)
+   o  msg-type=RREP (first [and only] message is of type RREP)
+   o  MF=4 (Message Flags = 4 [only msg-hop-limit field is present])
+   o  MAL=3 (Message Address Length indicator [3 for IPv4, 15 for IPv6])
+   o  msg-size=28 (octets -- counting MsgHdr, MsgTLVs, and AddrBlks)
+   o  msg-hop-limit (initially MAX_HOPCOUNT by default)
+   o  msg.tlvs-length=0 (no Message TLVs)
+   o  num-addr=2 (OrigNode and TargNode addresses in RteMsg AddrBlock)
+   o  AddrBlk flags:
+      *  bit 0 (ahashead): 1
+      *  bit 1 (ahasfulltail): 0
+      *  bit 2 (ahaszerotail): 0
+      *  bit 3 (ahassingleprelen): 0
+      *  bit 4 (ahasmultiprelen): 0
+      *  bits 5-7: RESERVED
+   o  head-length=3 (length of head part of each address is 3 octets)
+   o  Head (3 initial bytes for both Originating & Target addresses)
+   o  Orig.Tail (4th byte of Originating Node IP address)
+   o  Target.Tail (4th byte of Target Node IP address)
+   o  addr.tlvs-length=13 (length in bytes for SeqNum and Metric TLVs
+   o  type=SeqNum (AddrTLV type of first AddrBlk TLV, values 2 octets)
+   o  AddrTLV flags for SeqNumTLV:
+      *  bit 0 (thastypeext): 0
+      *  bit 1 (thassingleindex): 1
+      *  bit 2 (thasmultiindex): 0
+      *  bit 3 (thasvalue): 1
+      *  bit 4 (thasextlen): 0
+      *  bit 5 (tismultivalue): 0
+      *  bits 6-7: RESERVED
+   o  Index-start=0 (SeqNum TLV values start at index 0)
+   o  tlv-length=4 (so there is are two TLV values, [2 = 4/2])
+   o  Orig.Node Sequence # (first of two TLV values for SeqNum TLVs
+   o  Targ.Node Sequence # (second of two TLV values for SeqNum TLVs
+   o  type=Metric (AddrTLV type of second AddrBlk TLV, values 1 octet)
+   o  AddrTLV flags for MetricTLV [01010000, same as for SeqNumTLV]
+   o  Index-start=1 (Metric TLV values start at index 1)
+   o  tlv-length=1 (so there is only one TLV value, [1 = 1/1])
+   o  TargNodeHopCt (first [and only] TLV value for Metric TLVs)
+
+
+
+
+
+
+

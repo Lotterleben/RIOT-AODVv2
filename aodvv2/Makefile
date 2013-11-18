@@ -42,6 +42,7 @@ USEMODULE += vtimer
 
 # oonf
 USEMODULE += net_help 
+USEMODULE += sixlowpan
 USEMODULE += cunit
 USEMODULE += compat_misc
 USEMODULE += oonf_common
@@ -51,6 +52,7 @@ export INCLUDES +=	-I$(RIOTBOARD)/$(BOARD)/include -I$(RIOTBASE)/core/include \
 					-I$(RIOTBASE)/sys/include -I$(RIOTBASE)/drivers/include \
 					-I$(RIOTBASE)/cpu/$(BOARD)/include -I$(RIOTBASE)/sys/lib \
 					-I$(RIOTBASE)/sys/net/destiny/include \
+					-I$(RIOTBASE)/sys/net/sixlowpan/include \
 					-I$(RIOTBASE)/sys/net/net_help/ -I.. \
 					-I$(OONFBASE)/src-api -I$(RIOTLIBS)
 
