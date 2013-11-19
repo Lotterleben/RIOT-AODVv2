@@ -48,7 +48,7 @@
 #include "common/netaddr.h"
 #include "rfc5444/rfc5444_reader.h"
 
-#include "aodvv2/reader.h"
+#include "reader.h"
 #include "include/aodvv2.h"
 
 static enum rfc5444_result _cb_blocktlv_messagetlvs_okay(

@@ -11,7 +11,7 @@
 #include "rfc5444/rfc5444_writer.h"
 #include "rfc5444/rfc5444_iana.h"
 
-#include "aodvv2/aodvv2_writer.h"
+#include "aodvv2_writer.h"
 #include "include/aodvv2.h"
 
 /**
