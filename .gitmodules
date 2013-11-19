@@ -7,6 +7,3 @@
 [submodule "riot/RIOT"]
 	path = riot/RIOT
 	url = https://github.com/benpicco/RIOT
-[submodule "oonf_api"]
-	path = oonf_api
-	url = https://github.com/benpicco/oonf_api.git
