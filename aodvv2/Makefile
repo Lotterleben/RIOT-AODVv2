@@ -8,10 +8,10 @@ export PROJECT = aodvv2
 export BOARD = native
 
 # this has to be the absolute path of the RIOT-base dir
-export RIOTBASE =$(CURDIR)/../riot/RIOT
+export RIOTBASE =$(CURDIR)/../../riot/RIOT
 export RIOTBOARD =$(RIOTBASE)/../boards
 export RIOTLIBS =$(RIOTBASE)/../riot-libs
-export OONFBASE=$(CURDIR)/../oonf_api
+export OONFBASE=$(CURDIR)/../../oonf_api
 
 ifeq (,$(findstring native,$(BOARD)))
 include $(RIOTBASE)/../Makefile.unsupported
