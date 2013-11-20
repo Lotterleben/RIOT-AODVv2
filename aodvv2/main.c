@@ -68,6 +68,8 @@
 
 #include "reader.h"
 #include "aodvv2_writer.h"
+#include "sender.h"
+#include "destiny/socket.h"
 
 #include "include/aodvv2.h"
 
@@ -174,6 +176,7 @@ void send_rrep(char *str){
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
+    /*{"udp_send", "send udp packet", udp_send},*/
 };
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {

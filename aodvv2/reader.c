@@ -42,7 +42,7 @@
 #include <string.h>
 #include <stdio.h>
 #ifdef RIOT
-#include "net_help/net_help.h"
+#include "net_help.h"
 #endif
 #include "common/common_types.h"
 #include "common/netaddr.h"

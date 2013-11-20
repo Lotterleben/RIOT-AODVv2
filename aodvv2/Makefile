@@ -1,6 +1,8 @@
 valgrind: CFLAGS += -g
 valgrind: CFLAGS += -DHAVE_VALGRIND_VALGRIND_H
 
+export CFLAGS += -DRIOT
+
 # name of your project
 export PROJECT = aodvv2
 #
