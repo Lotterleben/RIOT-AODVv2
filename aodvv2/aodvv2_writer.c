@@ -109,7 +109,7 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     if (netaddr_from_string(&na_origNode, "::1")) {
         return;
     }
-    if (netaddr_from_string(&na_targNode, "::1")) {
+    if (netaddr_from_string(&na_targNode, "::42")) {
         return;
     }
 
@@ -201,10 +201,10 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     int targNode_seqNum = 0;
     int targNode_hopCt = 1;
 
-    if (netaddr_from_string(&na_origNode, "127.0.0.1")) {
+    if (netaddr_from_string(&na_origNode, "::42")) {
         return;
     }
-    if (netaddr_from_string(&na_targNode, "127.0.0.23")) {
+    if (netaddr_from_string(&na_targNode, "::1")) {
         return;
     }
 
@@ -263,8 +263,8 @@ void writer_init(write_packet_func_ptr ptr)
 
     /* register rreq and rrep messages with 16 byte (ipv6) addresses.
        AddPacketHeader & addMessageHeader callbacks are triggered here. */
-    _rreq_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREQ, false, 16);
-    _rrep_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREP, false, 4);
+    _rreq_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREQ, false, RFC5444_MAX_ADDRLEN);
+    _rrep_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREP, false, RFC5444_MAX_ADDRLEN);
 
     _rreq_msg->addMessageHeader = _cb_rreq_addMessageHeader;
     _rrep_msg->addMessageHeader = _cb_rrep_addMessageHeader;
