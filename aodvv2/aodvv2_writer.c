@@ -85,11 +85,9 @@ _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 {
     printf("[aodvv2] %s()\n", __func__);
 
-    /* no originator, no hopcunt, has hoplimit, no seqno */
+    /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-
-    /* set seqno */
-    rfc5444_writer_set_msg_seqno(wr, message, _msg_seqno);
+    rfc5444_writer_set_msg_hoplimit(wr, message, AODVV2_MAX_HOPCOUNT);
 }
 
 /**
@@ -157,11 +155,9 @@ _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 {
     printf("[aodvv2] %s()\n", __func__);
 
-    /* no originator, no hopcunt, has hoplimit, no seqno */
+    /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-
-    /* set seqno */
-    rfc5444_writer_set_msg_seqno(wr, message, _msg_seqno);
+    rfc5444_writer_set_msg_hoplimit(wr, message, AODVV2_MAX_HOPCOUNT);
 }
 
 /**

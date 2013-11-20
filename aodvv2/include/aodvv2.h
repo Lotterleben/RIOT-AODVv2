@@ -1,4 +1,6 @@
 
+#define AODVV2_MAX_HOPCOUNT 255
+
 enum tlv_type {
     RFC5444_MSGTLV_SEQNUM, /* could be omitted & replaced with ORIGNODE_SEQNUM */
     RFC5444_MSGTLV_ORIGNODE_SEQNUM,
