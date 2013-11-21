@@ -1,6 +1,7 @@
 # Mac OS
 .DS_Store
 .swp
+._*
 
 # ignore compiled stuff
 bin/
