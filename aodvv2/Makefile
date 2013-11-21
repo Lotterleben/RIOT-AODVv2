@@ -42,6 +42,12 @@ USEMODULE += transceiver
 USEMODULE += uart0
 USEMODULE += vtimer
 
+#tlayer
+USEMODULE += destiny
+USEMODULE += uart0
+USEMODULE += posix
+USEMODULE += ltc4150
+
 # oonf
 USEMODULE += net_help 
 USEMODULE += sixlowpan
@@ -59,6 +65,7 @@ USEMODULE += oonf_rfc5444
 export INCLUDES +=	-I$(RIOTBASE)/sys/include -I$(RIOTBASE)/drivers/include \
 					-I$(RIOTBASE)/cpu/$(BOARD)/include \
 					-I$(RIOTBASE)/sys/net/include \
+					-I$(RIOTBASE)/sys/net/destiny \
 					-I$(OONFBASE)/src-api -I$(RIOTLIBS) \
 
 include $(RIOTBASE)/Makefile.include

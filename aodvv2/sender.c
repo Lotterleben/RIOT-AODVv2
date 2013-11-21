@@ -1,46 +1,68 @@
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "destiny/socket.h"
-#include "net_help.h"
+#include "ltc4150.h"
 
-void udp_receive(char *str){
+#include "destiny/socket.h" // need
+#include "net_help.h" // need
 
-}
+#include "sender.h"
 
-void udp_send(char *str){
+void send_udp(char *str){
 
+    timex_t start, end, total;
+    long secs;
     int sock;
-    sockaddr6_t sockaddr;
+    sockaddr6_t sa;
     ipv6_addr_t ipaddr;
-
-    int address, bytes_sent;
+    int bytes_sent;
+    int address, count;
     char text[] = "abcdefghijklmnopqrstuvwxyz0123456789!-=$%&/()";
+    sscanf(str, "send_udp %i %i %s", &count, &address, text);
 
-    sock = destiny_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP );
+    sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
-    if (!sock){
-        perror("Error opening socket");
+    if(-1 == sock) {
+        printf("Error Creating Socket!");
         exit(EXIT_FAILURE);
     }
 
-    /* set own ip address */
-    ipv6_addr_init(&ipaddr, 0xabcd, 0x0, 0x0, 0x0, 0x3612, 0x00ff, 0xfe00, (uint16_t) address);
-    print_ipv6_addr(&ipaddr);
+    memset(&sa, 0, sizeof sa);
 
-    sockaddr.sin6_family = AF_INET6;
-    memcpy(&sockaddr.sin6_addr, &ipaddr, 16); /* why the memcpy? */
-    sockaddr.sin6_port = HTONS(0xf4);
+    ipv6_addr_init(&ipaddr, 0xabcd, 0x0, 0x0, 0x0, 0x3612, 0x00ff, 0xfe00, (uint16_t)address);
 
-    printf("sending data...\n");
-    bytes_sent = destiny_socket_sendto(sock, (char *)text, 
-                                        strlen((char *)text) + 1, 0, &sockaddr, 
-                                        sizeof sockaddr);
-    if(bytes_sent < 0) {
-        perror("Error sending packet");
+    sa.sin6_family = AF_INET;
+    memcpy(&sa.sin6_addr, &ipaddr, 16);
+    sa.sin6_port = HTONS(0xf4);
+    ltc4150_start();
+    printf("Start power: %f\n", ltc4150_get_total_Joule());
+    vtimer_now(&start);
+
+    for(int i = 0; i < count; i++) {
+        bytes_sent = destiny_socket_sendto(sock, (char *)text, 
+                                           strlen((char *)text) + 1, 0, &sa, 
+                                           sizeof sa);
+
+        if(bytes_sent < 0) {
+            printf("Error sending packet!\n");
+        }
+
+        /*  hwtimer_wait(20*1000); */
     }
 
+    vtimer_now(&end);
+    total = timex_sub(end, start);
+    secs = total.microseconds / 1000000;
+    printf("Used power: %f\n", ltc4150_get_total_Joule());
+    printf("Start: %lu, End: %lu, Total: %lu\n", start.microseconds, end.microseconds, total.microseconds);
+    secs = total.microseconds / 1000000;
+    if (!secs) {
+        puts("Transmission in no time!");
+    }
+    else {
+        printf("Time: %lu seconds, Bandwidth: %lu byte/second\n", secs, (count * 48) / secs);
+    }
     destiny_socket_close(sock);
 }

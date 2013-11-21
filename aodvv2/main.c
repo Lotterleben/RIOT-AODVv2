@@ -69,9 +69,11 @@
 #include "reader.h"
 #include "aodvv2_writer.h"
 #include "sender.h"
+#include "destiny.h"
 #include "destiny/socket.h"
 
 #include "include/aodvv2.h"
+
 
 #define SND_BUFFER_SIZE     (100)
 #define RCV_BUFFER_SIZE     (64)
@@ -176,7 +178,7 @@ void send_rrep(char *str){
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
-    /*{"udp_send", "send udp packet", udp_send},*/
+    {"send_udp", "send udp packet", send_udp},
 };
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
@@ -195,12 +197,15 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     /* prepare aodvv2 RFC5444 packet writer */
     init_writer();
 
+    /*
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
     rtc_get_localtime(&localt);
     printf("The time is now: %s\n", asctime(&localt));
+    */
 
     /* fancy greeting */
+    /*
     printf("Hold on half a second...\n");
     LED_RED_TOGGLE;
     vtimer_usleep(500000);
@@ -208,11 +213,16 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     LED_GREEN_ON;
     LED_GREEN_OFF;
 
+
     printf("You may use the shell now.\n");
     printf("Type help for help, ctrl+c to exit.\n");
 
+    
     shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     shell_run(&shell);
+    */
+
+    send_udp("foo");
 
     return 0;
 }
