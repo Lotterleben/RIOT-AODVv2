@@ -52,8 +52,8 @@ static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         void *buffer, size_t length);
 
 
-void aodv_init(void){
- 
+void aodv_init(void)
+{
     /* initialize buffer for hexdump */
     abuf_init(&_hexbuf);
 
@@ -77,16 +77,9 @@ void aodv_init(void){
 
 }
 
-void send_udp(void *buffer, size_t length){
-//void send_udp(char *str){
-
-    timex_t start, end, total;
-    long secs;
-
+void send_udp(void *buffer, size_t length)
+{
     int bytes_sent;
-    int address, count;
-    //char text[] = "abcdefghijklmnopqrstuvwxyz0123456789!-=$%&/()";
-    //sscanf(str, "send_udp %i %i %s", &count, &address, text);
 
     printf("sending data...\n");
     bytes_sent = destiny_socket_sendto(sock, buffer, length, 0, &sockaddr, 
@@ -102,7 +95,8 @@ void send_udp(void *buffer, size_t length){
     destiny_socket_close(sock);
 }
 
-void send_rreq(char *str){
+void send_rreq(char *str)
+{
     printf("[aodvv2] sending RREQ...\n");
 
     writer_send_rreq();
@@ -115,7 +109,8 @@ void send_rreq(char *str){
     printf("[aodvv2] RREQ sent\n");
 }
 
-void send_rrep(char *str){
+void send_rrep(char *str)
+{
     printf("[aodvv2] sending RREP...\n");
 
     writer_send_rrep();
@@ -130,11 +125,8 @@ void send_rrep(char *str){
 
 /*********** HELPERS **********************************************************/
 
-void init_writer(void){
-
-}
-
-void radio(void) {
+void radio(void) 
+{
     msg_t m;
     radio_packet_t *p;
     uint8_t i;
@@ -177,7 +169,8 @@ void radio(void) {
 static void
 write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
-        void *buffer, size_t length) {
+        void *buffer, size_t length)
+{
     printf("[aodvv2] %s()\n", __func__);
 
     /* generate hexdump and human readable representation of packet
@@ -187,9 +180,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     printf("%s", abuf_getptr(&_hexbuf));
 
     /* parse packet */
-    //rfc5444_reader_handle_packet(&reader, buffer, length);
     send_udp(buffer, length);
-    //send_udp("");
 }
 
 
