@@ -112,8 +112,8 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     shell_run(&shell);
     */
 
-    send_udp("foo");
-    //send_rreq("bar");
+    //send_udp("foo");
+    send_rreq("bar");
 
     return 0;
 }

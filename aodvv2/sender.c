@@ -77,26 +77,19 @@ void aodv_init(void){
 
 }
 
-//void send_udp(void *buffer, size_t length){
-void send_udp(char *str){
+void send_udp(void *buffer, size_t length){
+//void send_udp(char *str){
 
     timex_t start, end, total;
     long secs;
-    ipv6_addr_t ipaddr;
 
     int bytes_sent;
     int address, count;
-    char text[] = "abcdefghijklmnopqrstuvwxyz0123456789!-=$%&/()";
-    sscanf(str, "send_udp %i %i %s", &count, &address, text);
-
-    ipv6_addr_init(&ipaddr, 0xabcd, 0x0, 0x0, 0x0, 0x3612, 0x00ff, 0xfe00, (uint16_t)address);
-
-    ltc4150_start();
-    printf("Start power: %f\n", ltc4150_get_total_Joule());
+    //char text[] = "abcdefghijklmnopqrstuvwxyz0123456789!-=$%&/()";
+    //sscanf(str, "send_udp %i %i %s", &count, &address, text);
 
     printf("sending data...\n");
-    bytes_sent = destiny_socket_sendto(sock, (char *)text, 
-                                       strlen((char *)text) + 1, 0, &sockaddr, 
+    bytes_sent = destiny_socket_sendto(sock, buffer, length, 0, &sockaddr, 
                                        sizeof sockaddr);
 
     if(bytes_sent < 0) {
@@ -105,6 +98,7 @@ void send_udp(char *str){
         printf("success!\n");
     }
 
+    // übergangslösung
     destiny_socket_close(sock);
 }
 
@@ -194,8 +188,8 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
 
     /* parse packet */
     //rfc5444_reader_handle_packet(&reader, buffer, length);
-    //send_udp(buffer, length);
-    send_udp("");
+    send_udp(buffer, length);
+    //send_udp("");
 }
 
 
