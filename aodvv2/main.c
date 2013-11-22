@@ -77,27 +77,37 @@
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
+    {"receive_udp", "send rrep", send_rrep},
 };
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))
 {
-    
-    int radio_pid;
+    shell_t shell;
     struct tm localt;
 
     aodv_init();
-    send_rreq("");
 
-    /*
+    posix_open(uart0_handler_pid, 0);
+
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
+    rtc_get_localtime(&localt);
+    printf("The time is now: %s\n", asctime(&localt));
+
+    /* fancy greeting */
+    printf("Hold on half a second...\n");
+    LED_RED_TOGGLE;
+    vtimer_usleep(500000);
+    LED_RED_TOGGLE;
+    LED_GREEN_ON;
+    LED_GREEN_OFF;
+
+    printf("\n\t\t\tWelcome to RIOT\n\n");
 
     printf("You may use the shell now.\n");
-    printf("Type help for help, ctrl+c to exit.\n");
-
     
     shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     shell_run(&shell);
-    */
+
     return 0;
 }

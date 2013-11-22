@@ -47,6 +47,7 @@ sockaddr6_t sockaddr;
 /* helper methods */
 void init_writer(void);
 void radio(void);
+void send_udp(void *buffer, size_t length);
 static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
@@ -62,7 +63,7 @@ void aodv_init(void)
     writer_init(write_packet);
 
     /* init (broadcast) address */
-    sockaddr.sin6_family = AF_INET;
+    sockaddr.sin6_family = AF_INET6;
     sockaddr.sin6_port = MANET_PORT;
 
     /* init socket */
@@ -74,26 +75,9 @@ void aodv_init(void)
         printf("Error Creating Socket!");
         exit(EXIT_FAILURE);
     }
-
 }
 
-void send_udp(void *buffer, size_t length)
-{
-    int bytes_sent;
-
-    printf("sending data...\n");
-    bytes_sent = destiny_socket_sendto(sock, buffer, length, 0, &sockaddr, 
-                                       sizeof sockaddr);
-
-    if(bytes_sent < 0) {
-        printf("Error sending packet: % i\n", bytes_sent);
-    }else{
-        printf("success!\n");
-    }
-
-    // übergangslösung
-    destiny_socket_close(sock);
-}
+/*********** COMMANDS *********************************************************/
 
 void send_rreq(char *str)
 {
@@ -121,6 +105,9 @@ void send_rrep(char *str)
     abuf_free(&_hexbuf);
 
     printf("[aodvv2] RREP sent\n");
+}
+
+void receive_udp(char *str){
 }
 
 /*********** HELPERS **********************************************************/
@@ -183,5 +170,22 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     send_udp(buffer, length);
 }
 
+void send_udp(void *buffer, size_t length)
+{
+    int bytes_sent;
+
+    printf("sending data...\n");
+    bytes_sent = destiny_socket_sendto(sock, buffer, length, 0, &sockaddr, 
+                                       sizeof sockaddr);
+
+    if(bytes_sent < 0) {
+        printf("Error sending packet: % i\n", bytes_sent);
+    }else{
+        printf("success!\n");
+    }
+
+    // übergangslösung
+    destiny_socket_close(sock);
+}
 
 
