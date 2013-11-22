@@ -74,128 +74,18 @@
 
 #include "include/aodvv2.h"
 
-
-#define SND_BUFFER_SIZE     (100)
-#define RCV_BUFFER_SIZE     (64)
-#define RADIO_STACK_SIZE    (KERNEL_CONF_STACKSIZE_DEFAULT)
-
-static struct autobuf _hexbuf;
-char radio_stack_buffer[RADIO_STACK_SIZE];
-msg_t msg_q[RCV_BUFFER_SIZE];
-
-void radio(void) {
-    msg_t m;
-    radio_packet_t *p;
-    uint8_t i;
-
-    msg_init_queue(msg_q, RCV_BUFFER_SIZE);
-
-    while (1) {
-        msg_receive(&m);
-        if (m.type == PKT_PENDING) {
-            p = (radio_packet_t*) m.content.ptr;
-            printf("Got radio packet:\n");
-            printf("\tLength:\t%u\n", p->length);
-            printf("\tSrc:\t%u\n", p->src);
-            printf("\tDst:\t%u\n", p->dst);
-            printf("\tLQI:\t%u\n", p->lqi);
-            printf("\tRSSI:\t%u\n", p->rssi);
-
-            for (i = 0; i < p->length; i++) {
-                printf("%02X ", p->data[i]);
-            }
-            p->processing--;
-            puts("\n");
-        }
-        else if (m.type == ENOBUFFER) {
-            puts("Transceiver buffer full");
-        }
-        else {
-            puts("Unknown packet received");
-        }
-    }
-}
-
-/**
- * Handle the output of the RFC5444 packet creation process
- * @param wr
- * @param iface
- * @param buffer
- * @param length
- */
-static void
-write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
-        struct rfc5444_writer_target *iface __attribute__((unused)),
-        void *buffer, size_t length) {
-    printf("[aodvv2] %s()\n", __func__);
-
-    /* generate hexdump of packet */
-    abuf_hexdump(&_hexbuf, "\t", buffer, length);
-    rfc5444_print_direct(&_hexbuf, buffer, length);
-
-    /* print hexdump to console */
-    printf("%s", abuf_getptr(&_hexbuf));
-
-    /* parse packet */
-    rfc5444_reader_handle_packet(&reader, buffer, length);
-}
-
-static void init_writer(void){
-    /* initialize buffer for hexdump */
-    abuf_init(&_hexbuf);
-
-    /* init reader and writer */
-    reader_init();
-    writer_init(write_packet);
-}
-
-void send_rreq(char *str){
-    printf("[aodvv2] sending RREQ...\n");
-
-    writer_send_rreq();
-
-    /* cleanup */
-    reader_cleanup();
-    writer_cleanup();
-    abuf_free(&_hexbuf);
-
-    printf("[aodvv2] RREQ sent\n");
-}
-
-void send_rrep(char *str){
-    printf("[aodvv2] sending RREP...\n");
-
-    writer_send_rrep();
-
-    /* cleanup */
-    reader_cleanup();
-    writer_cleanup();
-    abuf_free(&_hexbuf);
-
-    printf("[aodvv2] RREP sent\n");
-}
-
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
-    {"send_udp", "send udp packet", send_udp},
+    /*{"send_udp", "send udp packet", send_udp},*/
 };
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
     
     int radio_pid;
     struct tm localt;
-    shell_t shell;
 
-    transceiver_init(TRANSCEIVER_NATIVE);
-    transceiver_start();
-    radio_pid = thread_create(radio_stack_buffer, RADIO_STACK_SIZE, PRIORITY_MAIN-2, CREATE_STACKTEST, radio, "radio");
-    transceiver_register(TRANSCEIVER_NATIVE, radio_pid);
-
-    posix_open(uart0_handler_pid, 0);
-
-    /* prepare aodvv2 RFC5444 packet writer */
-    init_writer();
+    aodv_init();
 
     /*
     printf("\n\t\t\tWelcome to RIOT\n\n");
@@ -223,6 +113,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     */
 
     send_udp("foo");
+    //send_rreq("bar");
 
     return 0;
 }
