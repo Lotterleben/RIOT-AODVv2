@@ -53,7 +53,6 @@
 #include "shell.h"
 #include "shell_commands.h"
 #include "board.h"
-#include "transceiver.h"
 #include "posix_io.h"
 #include "nativenet.h"
 #include "msg.h"
@@ -77,7 +76,7 @@
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
-    {"receive_udp", "send rrep", send_rrep},
+    {"receive_udp", "send rrep", receive_udp},
 };
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))

@@ -9,7 +9,6 @@
 #include "shell.h"
 #include "shell_commands.h"
 #include "board.h"
-#include "transceiver.h"
 #include "posix_io.h"
 #include "nativenet.h"
 #include "msg.h"
@@ -18,7 +17,6 @@
 #include "common/common_types.h"
 #include "common/netaddr.h"
 
-#include "ltc4150.h"
 #include "rfc5444/rfc5444_reader.h"
 #include "rfc5444/rfc5444_writer.h"
 #include "rfc5444/rfc5444_print.h"
@@ -65,6 +63,7 @@ void aodv_init(void)
     /* init (broadcast) address */
     sockaddr.sin6_family = AF_INET6;
     sockaddr.sin6_port = MANET_PORT;
+    ipv6_addr_set_all_nodes_addr(&sockaddr.sin6_addr); // TODO: does this make sense?
 
     /* init socket */
     sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -107,7 +106,36 @@ void send_rrep(char *str)
     printf("[aodvv2] RREP sent\n");
 }
 
-void receive_udp(char *str){
+void receive_udp(char *str)
+{
+    uint32_t fromlen;
+    int32_t recvsize; 
+    char buffer[256];
+
+    printf("initializing UDP server...\n");
+    sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    fromlen = sizeof(sockaddr);
+
+    if(destiny_socket_bind(sock, &sockaddr, sizeof(sockaddr)) < 0 ) {
+        printf("Error: bind failed! Exiting.\n");
+        destiny_socket_close(sock);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("ready to receive packets.\n");
+
+    for(;;){
+        recvsize = destiny_socket_recvfrom(sock, (void *)buffer, 256, 0, 
+                                          &sockaddr, &fromlen);
+
+        if(recvsize < 0) {
+            printf("Error receiving data!\n");
+        }
+
+        printf("recvsize: %"PRIi32"\n ", recvsize);
+        printf("datagram: %s\n", buffer);
+    }
+
 }
 
 /*********** HELPERS **********************************************************/

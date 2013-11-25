@@ -31,20 +31,17 @@ USEMODULE += auto_init
 
 USEMODULE += config
 USEMODULE += hwtimer
-USEMODULE += ltc4150 # depends on hwtimer
 USEMODULE += nativenet
 USEMODULE += posix
 USEMODULE += ps
 USEMODULE += rtc
 USEMODULE += shell
 USEMODULE += shell_commands
-USEMODULE += transceiver
 USEMODULE += uart0
 USEMODULE += vtimer
 
 #tlayer
 USEMODULE += destiny
-USEMODULE += uart0
 USEMODULE += posix
 USEMODULE += ltc4150
 
