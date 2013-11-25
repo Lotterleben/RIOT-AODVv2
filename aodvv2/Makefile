@@ -53,12 +53,6 @@ USEMODULE += compat_misc
 USEMODULE += oonf_common
 USEMODULE += oonf_rfc5444
 
-#export INCLUDES +=	-I$(RIOTBOARD)/$(BOARD)/include -I$(RIOTBASE)/core/include \
-#					-I$(RIOTBASE)/sys/include -I$(RIOTBASE)/drivers/include \
-#					-I$(RIOTBASE)/cpu/$(BOARD)/include -I$(RIOTBASE)/sys/lib \
-#					-I$(RIOTBASE)/sys/net/destiny/include -I.. \
-#					-I$(OONFBASE)/src-api -I$(RIOTLIBS)
-
 export INCLUDES +=	-I$(RIOTBASE)/sys/include -I$(RIOTBASE)/drivers/include \
 					-I$(RIOTBASE)/cpu/$(BOARD)/include \
 					-I$(RIOTBASE)/sys/net/include \
