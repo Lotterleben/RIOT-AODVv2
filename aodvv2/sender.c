@@ -31,12 +31,7 @@
 #include "sender.h"
 #include "include/aodvv2.h"
 
-#define SND_BUFFER_SIZE     (100)
-#define RCV_BUFFER_SIZE     (64)
-#define RADIO_STACK_SIZE    (KERNEL_CONF_STACKSIZE_DEFAULT)
 
-char radio_stack_buffer[RADIO_STACK_SIZE];
-msg_t msg_q[RCV_BUFFER_SIZE];
 static struct autobuf _hexbuf;
 
 int sock;
@@ -44,7 +39,6 @@ sockaddr6_t sockaddr;
 
 /* helper methods */
 void init_writer(void);
-void radio(void);
 void send_udp(void *buffer, size_t length);
 static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
@@ -140,40 +134,6 @@ void receive_udp(char *str)
 
 /*********** HELPERS **********************************************************/
 
-void radio(void) 
-{
-    msg_t m;
-    radio_packet_t *p;
-    uint8_t i;
-
-    msg_init_queue(msg_q, RCV_BUFFER_SIZE);
-
-    while (1) {
-        msg_receive(&m);
-        if (m.type == PKT_PENDING) {
-            p = (radio_packet_t*) m.content.ptr;
-            printf("Got radio packet:\n");
-            printf("\tLength:\t%u\n", p->length);
-            printf("\tSrc:\t%u\n", p->src);
-            printf("\tDst:\t%u\n", p->dst);
-            printf("\tLQI:\t%u\n", p->lqi);
-            printf("\tRSSI:\t%u\n", p->rssi);
-
-            for (i = 0; i < p->length; i++) {
-                printf("%02X ", p->data[i]);
-            }
-            p->processing--;
-            puts("\n");
-        }
-        else if (m.type == ENOBUFFER) {
-            puts("Transceiver buffer full");
-        }
-        else {
-            puts("Unknown packet received");
-        }
-    }
-}
-
 /**
  * Handle the output of the RFC5444 packet creation process
  * @param wr
@@ -194,7 +154,6 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     rfc5444_print_direct(&_hexbuf, buffer, length);
     printf("%s", abuf_getptr(&_hexbuf));
 
-    /* parse packet */
     send_udp(buffer, length);
 }
 
