@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <mutex.h>
 
 #include "vtimer.h"
 #include "rtc.h"
@@ -37,16 +38,27 @@ static struct autobuf _hexbuf;
 int sock;
 sockaddr6_t sockaddr;
 
+mutex_t m_seqnum; // TODO: find name that makes more sense
+uint16_t seqNum; 
+
 /* helper methods */
 void init_writer(void);
 void send_udp(void *buffer, size_t length);
 static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
+void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
 
 
 void aodv_init(void)
 {
+    /* initialize sequence number and its mutex */
+    mutex_init(&m_seqnum);
+    // TODO: overkill?
+    mutex_lock(&m_seqnum);
+    seqNum = 1;
+    mutex_unlock(&m_seqnum);
+
     /* initialize buffer for hexdump */
     abuf_init(&_hexbuf);
 
@@ -59,10 +71,11 @@ void aodv_init(void)
     sockaddr.sin6_port = MANET_PORT;
     ipv6_addr_set_all_nodes_addr(&sockaddr.sin6_addr); // TODO: does this make sense?
 
+    //printf("[aodvv2] My IP address is:\n");
+    //print_ipv6_addr(&sockaddr.sin6_addr);
+
     /* init socket */
     sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
-    printf("[sender.c] sock: %i\n", sock);
 
     if(-1 == sock) {
         printf("Error Creating Socket!");
@@ -102,15 +115,19 @@ void send_rrep(char *str)
 
 void receive_udp(char *str)
 {
+    sockaddr6_t sa = {0};
+    sa.sin6_family = AF_INET6;
+    sa.sin6_port = MANET_PORT;
+
     uint32_t fromlen;
     int32_t recvsize; 
     char buffer[256];
 
     printf("initializing UDP server...\n");
     sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    fromlen = sizeof(sockaddr);
+    fromlen = sizeof(sa);
 
-    if(destiny_socket_bind(sock, &sockaddr, sizeof(sockaddr)) < 0 ) {
+    if(destiny_socket_bind(sock, &sa, sizeof(sa)) < 0 ) {
         printf("Error: bind failed! Exiting.\n");
         destiny_socket_close(sock);
         exit(EXIT_FAILURE);
@@ -119,8 +136,8 @@ void receive_udp(char *str)
     printf("ready to receive packets.\n");
 
     for(;;){
-        recvsize = destiny_socket_recvfrom(sock, (void *)buffer, 256, 0, 
-                                          &sockaddr, &fromlen);
+        recvsize = destiny_socket_recvfrom(sock, (void *)buffer, sizeof(buffer), 0, 
+                                            &sa, &fromlen);
 
         if(recvsize < 0) {
             printf("Error receiving data!\n");
@@ -129,7 +146,6 @@ void receive_udp(char *str)
         printf("recvsize: %"PRIi32"\n ", recvsize);
         printf("datagram: %s\n", buffer);
     }
-
 }
 
 /*********** HELPERS **********************************************************/
@@ -175,4 +191,19 @@ void send_udp(void *buffer, size_t length)
     destiny_socket_close(sock);
 }
 
+void inc_seqNum(void)
+{
+    mutex_lock(&m_seqnum);
+    //printf("[aodvv2] %s(): seqNum = %i\n", __func__, seqNum);
+    seqNum++;
+    //printf("[aodvv2] %s(): seqNum = %i\n", __func__, seqNum);
+    mutex_unlock(&m_seqnum);
+}
+
+
+void print_ipv6_addr(const ipv6_addr_t *ipv6_addr)
+{
+    char addr_str[IPV6_MAX_ADDR_STR_LEN];
+    printf("%s\n", ipv6_addr_to_str(addr_str, ipv6_addr));
+}
 

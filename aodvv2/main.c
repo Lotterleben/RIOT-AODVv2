@@ -76,7 +76,7 @@
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
-    {"receive_udp", "send rrep", receive_udp},
+    {"receive_udp", "receive udp packets", receive_udp},
 };
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))
@@ -84,6 +84,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     shell_t shell;
     struct tm localt;
 
+    /* init aodv sender */
     aodv_init();
 
     posix_open(uart0_handler_pid, 0);
