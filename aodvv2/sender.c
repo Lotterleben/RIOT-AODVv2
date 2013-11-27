@@ -35,11 +35,10 @@
 
 static struct autobuf _hexbuf;
 
-int sock;
-sockaddr6_t sockaddr;
+static int sock;
+static sockaddr6_t sockaddr;
 
-mutex_t m_seqnum; // TODO: find name that makes more sense
-uint16_t seqNum; 
+static uint16_t seqNum; 
 
 /* helper methods */
 void init_writer(void);
@@ -47,11 +46,12 @@ void send_udp(void *buffer, size_t length);
 static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
-void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
+static void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
 
 
 void aodv_init(void)
-{
+{   
+    test = 1;
     /* initialize sequence number and its mutex */
     mutex_init(&m_seqnum);
     // TODO: overkill?
@@ -200,6 +200,13 @@ void inc_seqNum(void)
     mutex_unlock(&m_seqnum);
 }
 
+/* if I use a mutex here, that smells like race conditions, doesn't it?
+Am Besten m_seqNum doch static machen und dann drauf locken wenn 
+ich seqnum auslese... */
+uint16_t get_seqNum(void)
+{
+    return seqNum;
+}
 
 void print_ipv6_addr(const ipv6_addr_t *ipv6_addr)
 {

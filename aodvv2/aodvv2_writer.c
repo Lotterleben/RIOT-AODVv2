@@ -13,6 +13,7 @@
 
 #include "aodvv2_writer.h"
 #include "include/aodvv2.h"
+#include "sender.h"
 
 /**
  * Writer to create aodvv2 RFC5444 RREQ and RREP messages.
@@ -101,7 +102,12 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
-    int seqNum = 8;
+
+    /* make sure we don't mess up the SeqNum */
+    mutex_lock(&m_seqnum);
+    int origNode_seqNum = get_seqNum();
+    mutex_unlock(&m_seqnum);
+    
     int origNode_hopCt = 9;
 
     if (netaddr_from_string(&na_origNode, "::1")) {
@@ -122,8 +128,8 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 
     // add SeqNum TLVs
     // TODO: allow_dup true or false?
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[0], &seqNum, sizeof(seqNum), false  );
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &seqNum, sizeof(seqNum), false  );
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
 
     // add Metric TLVs
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[1], &origNode_hopCt, sizeof(origNode_hopCt), false);
@@ -161,26 +167,6 @@ _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 }
 
 /**
- * Callback to add message TLVs to a RFC5444 RREQ message.
- * @param wr
- */
-static void
-_cb_rrep_addMessageTLVs(struct rfc5444_writer *wr)
-{
-    printf("[aodvv2] %s()\n", __func__);
-    int _rrep_origNode_seqNum, _rrep_targNode_seqNum ;
-
-    /* add message tlv type SeqNum (exttype 0) with 4-byte value 23 */
-    _rrep_origNode_seqNum = htonl(23);
-    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_SEQNUM, 0, &_rrep_origNode_seqNum, sizeof (_rrep_origNode_seqNum));
-
-
-    /* add message tlv type SeqNum (exttype 0) with 4-byte value 23 */
-    _rrep_targNode_seqNum = htonl(42);
-    rfc5444_writer_add_messagetlv(wr, RFC5444_MSGTLV_SEQNUM, 0, &_rrep_targNode_seqNum, sizeof (_rrep_targNode_seqNum));
-}
-
-/**
  * Callback to add addresses and address TLVs to a RFC5444 RREQ message
  * @param wr
  */
@@ -194,7 +180,12 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     struct netaddr na_origNode, na_targNode;
 
     int origNode_seqNum = 0;
-    int targNode_seqNum = 0;
+    
+    /* make sure we don't mess up the SeqNum */
+    mutex_lock(&m_seqnum);
+    int targNode_seqNum = get_seqNum();
+    mutex_unlock(&m_seqnum);
+
     int targNode_hopCt = 1;
 
     if (netaddr_from_string(&na_origNode, "::42")) {
