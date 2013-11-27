@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
- */
-
 
 /*
  * The olsr.org Optimized Link-State Routing daemon version 2 (olsrd2)
@@ -43,71 +39,15 @@
  *
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-
-#include "vtimer.h"
-#include "rtc.h"
-#include "board_uart0.h"
-#include "shell.h"
-#include "shell_commands.h"
-#include "board.h"
-#include "posix_io.h"
-#include "nativenet.h"
-#include "msg.h"
-#include <thread.h>
+#ifndef READER_H_
+#define READER_H_
 
 #include "common/common_types.h"
-#include "common/netaddr.h"
-
 #include "rfc5444/rfc5444_reader.h"
-#include "rfc5444/rfc5444_writer.h"
-#include "rfc5444/rfc5444_print.h"
 
-#include "aodvv2_reader.h"
-#include "aodvv2_writer.h"
-#include "sender.h"
-#include "destiny.h"
-#include "destiny/socket.h"
+EXPORT extern struct rfc5444_reader reader;
 
-#include "include/aodvv2.h"
+void reader_init(void);
+void reader_cleanup(void);
 
-const shell_command_t shell_commands[] = {
-    {"rreq", "send rreq", send_rreq},
-    {"rrep", "send rrep", send_rrep},
-    {"receive_udp", "receive udp packets", receive_udp},
-};
-
-int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))
-{
-    shell_t shell;
-    struct tm localt;
-
-    /* init aodv sender */
-    aodv_init();
-
-    posix_open(uart0_handler_pid, 0);
-
-    printf("\n\t\t\tWelcome to RIOT\n\n");
-
-    rtc_get_localtime(&localt);
-    printf("The time is now: %s\n", asctime(&localt));
-
-    /* fancy greeting */
-    printf("Hold on half a second...\n");
-    LED_RED_TOGGLE;
-    vtimer_usleep(500000);
-    LED_RED_TOGGLE;
-    LED_GREEN_ON;
-    LED_GREEN_OFF;
-
-    printf("\n\t\t\tWelcome to RIOT\n\n");
-
-    printf("You may use the shell now.\n");
-    
-    shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
-    shell_run(&shell);
-
-    return 0;
-}
+#endif /* READER_H_ */

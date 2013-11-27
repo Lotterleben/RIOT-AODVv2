@@ -22,7 +22,7 @@
 #include "rfc5444/rfc5444_writer.h"
 #include "rfc5444/rfc5444_print.h"
 
-#include "reader.h"
+#include "aodvv2_reader.h"
 #include "aodvv2_writer.h"
 #include "sender.h"
 #include "destiny.h"
@@ -170,7 +170,10 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     rfc5444_print_direct(&_hexbuf, buffer, length);
     printf("%s", abuf_getptr(&_hexbuf));
 
-    send_udp(buffer, length);
+    //send_udp(buffer, length);
+
+    /* parse packet */
+    reader_handle_packet(buffer, length);
 }
 
 void send_udp(void *buffer, size_t length)
