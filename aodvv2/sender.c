@@ -27,6 +27,7 @@
 #include "sender.h"
 #include "destiny.h"
 #include "destiny/socket.h"
+#include "transceiver.h"
 #include "net_help.h"
 
 #include "sender.h"
@@ -40,18 +41,23 @@ static sockaddr6_t sockaddr;
 
 static uint16_t seqNum; 
 
-/* helper methods */
+/* helper functions */
 void init_writer(void);
 void send_udp(void *buffer, size_t length);
 static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
 static void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
+static uint16_t get_node_id(void);
 
 
 void aodv_init(void)
 {   
-    test = 1;
+    /* experimental */
+
+    destiny_init_transport_layer();
+    sixlowpan_lowpan_init(TRANSCEIVER_NATIVE, get_node_id(), 0);
+
     /* initialize sequence number and its mutex */
     mutex_init(&m_seqnum);
     // TODO: overkill?
@@ -170,7 +176,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     rfc5444_print_direct(&_hexbuf, buffer, length);
     printf("%s", abuf_getptr(&_hexbuf));
 
-    //send_udp(buffer, length);
+    send_udp(buffer, length);
 
     /* parse packet */
     reader_handle_packet(buffer, length);
@@ -215,5 +221,9 @@ void print_ipv6_addr(const ipv6_addr_t *ipv6_addr)
 {
     char addr_str[IPV6_MAX_ADDR_STR_LEN];
     printf("%s\n", ipv6_addr_to_str(addr_str, ipv6_addr));
+}
+
+static uint16_t get_node_id(void) {
+    return getpid();
 }
 
