@@ -40,9 +40,6 @@ static uint8_t _packet_buffer[128];
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
 
-uint8_t _msg_seqno;
-uint16_t _pkt_seqno;
-
 
 /**
  * Callback to define the packet header for a RFC5444 packet. This is actually
@@ -56,9 +53,6 @@ _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *int
 
     /* set header with sequence number */
     rfc5444_writer_set_pkt_header(wr, interface_1, true);
-
-    /* set sequence number */
-    rfc5444_writer_set_pkt_seqno(wr, interface_1, _pkt_seqno);
 }
 
 /*
@@ -220,10 +214,6 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 void writer_init(write_packet_func_ptr ptr)
 {
     printf("[aodvv2] %s()\n", __func__);
-
-    /* set dummy values */
-    _pkt_seqno = 7;
-    _msg_seqno = 13;
 
     /* define interface for generating rfc5444 packets */
     interface_1.packet_buffer = _packet_buffer;
