@@ -45,7 +45,7 @@ static struct rfc5444_reader_tlvblock_consumer _address_consumer = {
  * TLV types RFC5444_MSGTLV_SEQNUM and RFC5444_MSGTLV_METRIC
  */
 static struct rfc5444_reader_tlvblock_consumer_entry _rreq_address_consumer_entries[] = {
-  [RFC5444_MSGTLV_SEQNUM] = { .type = RFC5444_MSGTLV_SEQNUM },
+  [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
   [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
 };
 
@@ -82,11 +82,11 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     printf("\taddr: %s\n", __func__, netaddr_to_string(&nbuf, &cont->addr));
 
     /* handle SeqNum TLV */
-    tlv = _rreq_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
+    tlv = _rreq_address_consumer_entries[RFC5444_MSGTLV_ORIGNODE_SEQNUM].tlv;
     while (tlv) {
         /* values of TLVs are not aligned well in memory, so we have to copy them */
         memcpy(&value, tlv->single_value, sizeof(value));
-        printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d\n", ntohl(value));
+        printf("\ttlv RFC5444_MSGTLV_ORIGNODE_SEQNUM: %d\n", ntohl(value));
         tlv = tlv->next_entry;
     }
 

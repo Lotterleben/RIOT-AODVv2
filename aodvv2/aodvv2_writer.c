@@ -66,7 +66,7 @@ static struct rfc5444_writer_content_provider _rreq_message_content_provider = {
 
 /* declaration of all address TLVs added to the RREQ message */
 static struct rfc5444_writer_tlvtype _rreq_addrtlvs[] = {
-    { .type = RFC5444_MSGTLV_SEQNUM },
+    { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
     { .type = RFC5444_MSGTLV_METRIC },
 };
 
@@ -123,7 +123,7 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     // add SeqNum TLVs
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
+    //rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
 
     // add Metric TLVs
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[1], &origNode_hopCt, sizeof(origNode_hopCt), false);
@@ -139,9 +139,10 @@ static struct rfc5444_writer_content_provider _rrep_message_content_provider = {
     .addAddresses = _cb_rrep_addAddresses,
 };
 
-/* declaration of all address TLVs added to the RREQ message */
+/* declaration of all address TLVs added to the RREP message */
 static struct rfc5444_writer_tlvtype _rrep_addrtlvs[] = {
-    { .type = RFC5444_MSGTLV_SEQNUM },
+    { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
+    { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
     { .type = RFC5444_MSGTLV_METRIC },
 };
 
@@ -201,14 +202,14 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     // add OrigNode and TargNode SeqNum TLVs
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
+    //rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
 
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[0], &targNode_seqNum, sizeof(targNode_seqNum), false  );
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &targNode_seqNum, sizeof(targNode_seqNum), false  );
+    //rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[0], &targNode_seqNum, sizeof(targNode_seqNum), false  );
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[1], &targNode_seqNum, sizeof(targNode_seqNum), false  );
 
     // add Metric TLVs
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[1], &targNode_hopCt, sizeof(targNode_hopCt), false);
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[1], &targNode_hopCt, sizeof(targNode_hopCt), false );
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[2], &targNode_hopCt, sizeof(targNode_hopCt), false);
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[2], &targNode_hopCt, sizeof(targNode_hopCt), false );
 }
 
 void writer_init(write_packet_func_ptr ptr)
