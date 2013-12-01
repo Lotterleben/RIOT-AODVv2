@@ -133,15 +133,12 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     /* add origNode address (has no address tlv); is mandatory address */
     targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_targNode, true);
 
-    /* Add Address TLVs to both addresses, effectively turning it into an
-       AddressBlockTLV. */
-
-    // add SeqNum TLVs
+    /* add SeqNum TLVs */
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-    //rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
 
-    // add Metric TLVs
+    /* Add Metric TLVs to both addresses, effectively turning it into an
+       AddressBlockTLV. */
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[1], &origNode_hopCt, sizeof(origNode_hopCt), false);
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[1], &origNode_hopCt, sizeof(origNode_hopCt), false );
 }
@@ -170,7 +167,6 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 {
     printf("[aodvv2] %s()\n", __func__);
 
-    //struct rfc5444_writer_address *addr;
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
@@ -196,18 +192,14 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     /* add origNode address (has no address tlv); is mandatory address */
     targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &na_targNode, true);
 
-   /* Add Address TLVs to both addresses, effectively turning it into an
-       AddressBlockTLV. */
 
-    // add OrigNode and TargNode SeqNum TLVs
+    /* add OrigNode and TargNode SeqNum TLVs */
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-    //rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-
-    //rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[0], &targNode_seqNum, sizeof(targNode_seqNum), false  );
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[1], &targNode_seqNum, sizeof(targNode_seqNum), false  );
 
-    // add Metric TLVs
+    /* Add Metric TLVs to both addresses, effectively turning it into an
+       AddressBlockTLV. */
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[2], &targNode_hopCt, sizeof(targNode_hopCt), false);
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[2], &targNode_hopCt, sizeof(targNode_hopCt), false );
 }
