@@ -100,7 +100,6 @@ static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_rea
     if (cont->has_hoplimit) {
         printf("[aodvv2] %s() \t i can has hop limit: %d\n",__func__ , &cont->hoplimit);
     }
-
     return RFC5444_OKAY;
 }
 
@@ -152,7 +151,6 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_rea
     if (cont->has_hoplimit) {
         printf("[aodvv2] %s() \t i can has hop limit: %d\n",__func__ , &cont->hoplimit);
     }
-
     return RFC5444_OKAY;
 }
 
