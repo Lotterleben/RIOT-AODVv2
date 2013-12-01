@@ -70,6 +70,22 @@ static struct rfc5444_writer_tlvtype _rreq_addrtlvs[] = {
     { .type = RFC5444_MSGTLV_METRIC },
 };
 
+/*
+ * message content provider that will add message TLVs,
+ * addresses and address block TLVs to all messages of type RREQ.
+ */
+static struct rfc5444_writer_content_provider _rrep_message_content_provider = {
+    .msg_type = RFC5444_MSGTYPE_RREP,
+    .addAddresses = _cb_rrep_addAddresses,
+};
+
+/* declaration of all address TLVs added to the RREP message */
+static struct rfc5444_writer_tlvtype _rrep_addrtlvs[] = {
+    { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
+    { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
+    { .type = RFC5444_MSGTLV_METRIC },
+};
+
 /**
  * Callback to define the message header for a RFC5444 RREQ message
  * @param wr
@@ -129,22 +145,6 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[1], &origNode_hopCt, sizeof(origNode_hopCt), false);
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[1], &origNode_hopCt, sizeof(origNode_hopCt), false );
 }
-
-/*
- * message content provider that will add message TLVs,
- * addresses and address block TLVs to all messages of type RREQ.
- */
-static struct rfc5444_writer_content_provider _rrep_message_content_provider = {
-    .msg_type = RFC5444_MSGTYPE_RREP,
-    .addAddresses = _cb_rrep_addAddresses,
-};
-
-/* declaration of all address TLVs added to the RREP message */
-static struct rfc5444_writer_tlvtype _rrep_addrtlvs[] = {
-    { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-    { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
-    { .type = RFC5444_MSGTLV_METRIC },
-};
 
 /**
  * Callback to define the message header for a RFC5444 RREQ message
