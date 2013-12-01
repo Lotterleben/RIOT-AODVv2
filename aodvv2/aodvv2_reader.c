@@ -28,11 +28,11 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(
  * type RFC5444_MSGTYPE_RREQ that contains all the mandatory message TLVs
  */
 static struct rfc5444_reader_tlvblock_consumer _rreq_consumer = {
-  /* parse message type 1 */
-  .msg_id = RFC5444_MSGTYPE_RREQ,
+    /* parse message type 1 */
+    .msg_id = RFC5444_MSGTYPE_RREQ,
 
-  /* use a block callback */
-  .block_callback = _cb_rreq_blocktlv_messagetlvs_okay,
+    /* use a block callback */
+    .block_callback = _cb_rreq_blocktlv_messagetlvs_okay,
 };
 
 /*
@@ -40,9 +40,9 @@ static struct rfc5444_reader_tlvblock_consumer _rreq_consumer = {
  * type RFC5444_MSGTYPE_RREQ.
  */
 static struct rfc5444_reader_tlvblock_consumer _rreq_address_consumer = {
-  .msg_id = RFC5444_MSGTYPE_RREQ,
-  .addrblock_consumer = true,
-  .block_callback = _cb_rreq_blocktlv_addresstlvs_okay,
+    .msg_id = RFC5444_MSGTYPE_RREQ,
+    .addrblock_consumer = true,
+    .block_callback = _cb_rreq_blocktlv_addresstlvs_okay,
 };
 
 /*
@@ -50,8 +50,8 @@ static struct rfc5444_reader_tlvblock_consumer _rreq_address_consumer = {
  * TLV types RFC5444_MSGTLV_SEQNUM and RFC5444_MSGTLV_METRIC
  */
 static struct rfc5444_reader_tlvblock_consumer_entry _rreq_address_consumer_entries[] = {
-  [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-  [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
+    [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
+    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
 };
 
 /*
@@ -59,11 +59,11 @@ static struct rfc5444_reader_tlvblock_consumer_entry _rreq_address_consumer_entr
  * type RFC5444_MSGTYPE_RREP that contains all the mandatory message TLVs
  */
 static struct rfc5444_reader_tlvblock_consumer _rrep_consumer = {
-  /* parse message type 1 */
-  .msg_id = RFC5444_MSGTYPE_RREP,
+    /* parse message type 1 */
+    .msg_id = RFC5444_MSGTYPE_RREP,
 
-  /* use a block callback */
-  .block_callback = _cb_rrep_blocktlv_messagetlvs_okay,
+    /* use a block callback */
+    .block_callback = _cb_rrep_blocktlv_messagetlvs_okay,
 };
 
 /*
@@ -71,9 +71,9 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_consumer = {
  * type RFC5444_MSGTYPE_RREP.
  */
 static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
-  .msg_id = RFC5444_MSGTYPE_RREP,
-  .addrblock_consumer = true,
-  .block_callback = _cb_rrep_blocktlv_addresstlvs_okay,
+    .msg_id = RFC5444_MSGTYPE_RREP,
+    .addrblock_consumer = true,
+    .block_callback = _cb_rrep_blocktlv_addresstlvs_okay,
 };
 
 /*
@@ -82,9 +82,9 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
  * and RFC5444_MSGTLV_METRIC
  */
 static struct rfc5444_reader_tlvblock_consumer_entry _rrep_address_consumer_entries[] = {
-  [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-  [RFC5444_MSGTLV_TARGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
-  [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
+    [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
+    [RFC5444_MSGTLV_TARGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
+    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
 };
 
 /**
