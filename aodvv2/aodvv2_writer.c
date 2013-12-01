@@ -196,7 +196,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     /* add OrigNode and TargNode SeqNum TLVs */
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[0], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[1], &targNode_seqNum, sizeof(targNode_seqNum), false  );
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[1], &targNode_seqNum, sizeof(targNode_seqNum), false  );
 
     /* Add Metric TLVs to both addresses, effectively turning it into an
        AddressBlockTLV. */
