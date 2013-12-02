@@ -113,7 +113,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
 {
     struct netaddr_str nbuf;
     struct rfc5444_reader_tlvblock_entry* tlv;
-    uint16_t value;
+    int value;
 
     printf("[aodvv2] %s()\n", __func__);
     printf("\tmessage type: %d\n", cont->type);
@@ -165,7 +165,7 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
 {
     struct netaddr_str nbuf;
     struct rfc5444_reader_tlvblock_entry* tlv;
-    uint16_t value;
+    int value;
 
     printf("[aodvv2] %s()\n", __func__);
     printf("\tmessage type: %d\n", cont->type);

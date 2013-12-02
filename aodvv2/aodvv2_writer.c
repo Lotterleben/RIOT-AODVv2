@@ -33,9 +33,9 @@ static void _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_
 
 static void _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface_1);
 
-static uint8_t _msg_buffer[128];
-static uint8_t _msg_addrtlvs[1000];
-static uint8_t _packet_buffer[128];
+static int _msg_buffer[128];
+static int _msg_addrtlvs[1000];
+static int _packet_buffer[128];
 
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
@@ -115,10 +115,10 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 
     /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
-    int origNode_seqNum = get_seqNum();
+    int origNode_seqNum = htonl(get_seqNum());
     mutex_unlock(&m_seqnum);
     
-    int origNode_hopCt = 9;
+    int origNode_hopCt = htonl(9);
 
     if (netaddr_from_string(&na_origNode, "::1")) {
         return;
@@ -170,14 +170,14 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
-    int origNode_seqNum = 0;
+    int origNode_seqNum = htonl(13);
     
     /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
-    int targNode_seqNum = get_seqNum();
+    int targNode_seqNum = htonl(get_seqNum());
     mutex_unlock(&m_seqnum);
 
-    int targNode_hopCt = 1;
+    int targNode_hopCt = htonl(9);
 
     if (netaddr_from_string(&na_origNode, "::42")) {
         return;
