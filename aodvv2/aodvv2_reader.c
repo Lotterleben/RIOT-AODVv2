@@ -116,7 +116,8 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     uint16_t value;
 
     printf("[aodvv2] %s()\n", __func__);
-    printf("\taddr: %s\n", __func__, netaddr_to_string(&nbuf, &cont->addr));
+    printf("\tmessage type: %d\n", cont->type);
+    printf("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
     /* handle SeqNum TLV */
     tlv = _rreq_address_consumer_entries[RFC5444_MSGTLV_ORIGNODE_SEQNUM].tlv;
@@ -167,7 +168,8 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     uint16_t value;
 
     printf("[aodvv2] %s()\n", __func__);
-    printf("\taddr: %s\n", __func__, netaddr_to_string(&nbuf, &cont->addr));
+    printf("\tmessage type: %d\n", cont->type);
+    printf("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
     /* handle OrigNode SeqNum TLV */
     tlv = _rrep_address_consumer_entries[RFC5444_MSGTLV_ORIGNODE_SEQNUM].tlv;
@@ -222,6 +224,7 @@ void reader_init(void)
 void reader_cleanup(void)
 {
     printf("%s() TODO\n", __func__);
+    rfc5444_reader_cleanup(&reader);
 }
 
 int reader_handle_packet(void* buffer, size_t length) {
