@@ -106,10 +106,12 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 
     printf("You may use the shell now.\n");
     
-    shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
-    shell_run(&shell);
+    //shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
+    //shell_run(&shell);
 
     //send_rreq("");
+
+    test_rt();
 
     return 0;
 }

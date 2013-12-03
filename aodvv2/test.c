@@ -2,25 +2,27 @@
 
 #import "routing.h"
 #include "common/netaddr.h"
+#include "sender.h"
 
 void test_rt(void)
 {
-    
-}
+    uint8_t success;
+    init_routingtable();
+    ipv6_addr_t address, next_hop;
 
-void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
-{   
-    struct netaddr_str nbuf;
+    /* init data */
+    ipv6_addr_set_loopback_addr(&address);
+    ipv6_addr_set_all_nodes_addr(&next_hop);
 
-    printf("routing table entry at %i:\n", index );
-    printf("\t address: %s\n", netaddr_to_string(&nbuf, &rt_entry->address));
-    printf("\t prefixLength: %i\n", rt_entry->prefixLength);
-    printf("\t seqNum:\n", rt_entry->seqNum);
-    printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
-    printf("\t lastUsed: %i\n", rt_entry->lastUsed);
-    printf("\t expirationTime: %i\n", rt_entry->expirationTime);
-    printf("\t broken: %d\n", rt_entry->broken);
-    printf("\t metricType: %i\n", rt_entry->metricType);
-    printf("\t metric: %i\n", rt_entry->metric);
-    printf("\t state: \n", rt_entry->state);
+    /* start testing */
+    print_rt();
+    printf("Adding first entry...\n");
+    add_routing_entry(&address, 1, 2, &next_hop, 0, 13, 0, ROUTE_STATE_IDLE);
+    print_rt();
+    printf("Adding second entry...\n");
+    add_routing_entry(&next_hop, 1, 2, &next_hop, 1, 1, 1, ROUTE_STATE_ACTIVE);
+    print_rt();
+    printf("Deleting first entry...\n");
+    delete_routing_entry(&address);
+    print_rt();
 }

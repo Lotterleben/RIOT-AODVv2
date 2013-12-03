@@ -8,6 +8,8 @@
 
 #include "routing.h" 
 #include "include/aodvv2.h"
+#include "common/netaddr.h"
+
 
 static aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
 
@@ -22,14 +24,14 @@ void init_routingtable(void)
 ipv6_addr_t* get_next_hop(ipv6_addr_t* addr)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (rpl_equal_id(&routing_table[i].address, addr) && !(&routing_table[i].broken)) {
+        if (ipv6_addr_is_equal(&routing_table[i].address, addr) && !(&routing_table[i].broken)) {
             return &routing_table[i].nextHopAddress;
         }
     }
     return NULL;
 }
 
-int add_routing_entry( ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum,
+int add_routing_entry(ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum,
     ipv6_addr_t* nextHopAddress, bool broken, uint8_t metricType, uint8_t metric, uint8_t state)
 {
     timex_t now, validity_t;
@@ -44,7 +46,7 @@ int add_routing_entry( ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNu
         for (uint8_t i = 0; i< AODVV2_MAX_ROUTING_ENTRIES; i++){
             /* seqNum can't be 0 so this has to work as an indicator of 
                an "empty" struct for now*/
-            if (!routing_table[i].seqNum){
+            if (!routing_table[i].seqNum) {
                 /* TODO: sanity check? */
                 routing_table[i].address = *address;
                 routing_table[i].prefixLength = prefixLength;
@@ -80,10 +82,41 @@ aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
 int delete_routing_entry(ipv6_addr_t* addr)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (rpl_equal_id(&routing_table[i].address, addr)) {
+        if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
             return 0;
         }
     }
     return -1;
+}
+
+void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
+{   
+    struct netaddr_str nbuf;
+
+    printf("routing table entry at %i:\n", index );
+    printf("\t address: %s\n", netaddr_to_string(&nbuf, &rt_entry->address)); // wrong type, don't care
+    printf("\t prefixLength: %i\n", rt_entry->prefixLength);
+    printf("\t seqNum: %i\n", rt_entry->seqNum);
+    printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
+    printf("\t lastUsed: %i\n", rt_entry->lastUsed);
+    printf("\t expirationTime: %i\n", rt_entry->expirationTime);
+    printf("\t broken: %d\n", rt_entry->broken);
+    printf("\t metricType: %i\n", rt_entry->metricType);
+    printf("\t metric: %i\n", rt_entry->metric);
+    printf("\t state: \n", rt_entry->state);
+}
+
+void print_rt(void)
+{   
+    aodvv2_routing_entry_t curr_entry;
+
+    printf("===== BEGIN ROUTING TABLE ===================\n");
+    for(int i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
+        if (routing_table[i].seqNum) {
+            print_rt_entry(&routing_table[i], i); // fuck it, I'm tired.
+        }
+    }
+    printf("===== END ROUTING TABLE =====================\n");
+
 }
