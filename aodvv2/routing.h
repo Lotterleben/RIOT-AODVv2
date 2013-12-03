@@ -33,8 +33,8 @@ typedef struct {
     uint8_t prefixLength; //should be long enough, no?
     uint8_t seqNum;
     ipv6_addr_t nextHopAddress;
-    time_t lastUsed; // use timer thingy for this?
-    time_t expirationTime; // siehe rtc stuff. TODO: richtige wahl? Doof zu inkrementieren...
+    timex_t lastUsed; // use timer thingy for this?
+    timex_t expirationTime; // siehe rtc stuff. TODO: richtige wahl? Doof zu inkrementieren...
     bool broken;
     uint8_t metricType;
     uint8_t metric;
@@ -43,7 +43,8 @@ typedef struct {
 
 void init_routingtable(void);
 ipv6_addr_t* get_next_hop(ipv6_addr_t* addr);
-int add_routing_entry(aodvv2_routing_entry_t* rt_entry);
+int add_routing_entry( ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum,
+    ipv6_addr_t* nextHopAddress, bool broken, uint8_t metricType, uint8_t metric, uint8_t state);
 /* 
 OBACHT: sicher stellen dass immer nur 1 thread diesen entry
 (andere entries sind unaffected, oder?) bearbeitet! wie stell ich das am 
