@@ -41,6 +41,9 @@ typedef struct {
     uint8_t state; /* see aodvv2_routing_states */
 } aodvv2_routing_entry_t;
 
+void init_routingtable(void);
+ipv6_addr_t* get_next_hop(ipv6_addr_t* addr);
+int add_routing_entry(aodvv2_routing_entry_t* rt_entry);
 /* 
 OBACHT: sicher stellen dass immer nur 1 thread diesen entry
 (andere entries sind unaffected, oder?) bearbeitet! wie stell ich das am 
@@ -48,4 +51,3 @@ elegantesten an?
 */
 aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr);
 int delete_routing_entry(ipv6_addr_t* addr);
-int clear_routingtable(void);
