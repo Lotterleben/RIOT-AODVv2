@@ -89,10 +89,10 @@ void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
 
 
     printf("routing table entry at %i:\n", index );
-    printf("\t address: %s\n", ipv6_addr_to_str(&(rt_entry->address), addr_str)); // wrong type, don't care
+    printf("\t address: %s\n", ipv6_addr_to_str(addr_str, &(rt_entry->address))); 
     printf("\t prefixLength: %i\n", rt_entry->prefixLength);
     printf("\t seqNum: %i\n", rt_entry->seqNum);
-    printf("\t nextHopAddress: %s\n", ipv6_addr_to_str(&(rt_entry->nextHopAddress), addr_str));
+    printf("\t nextHopAddress: %s\n", ipv6_addr_to_str(addr_str, &(rt_entry->nextHopAddress)));
     printf("\t lastUsed: %i\n", rt_entry->lastUsed);
     printf("\t expirationTime: %i\n", rt_entry->expirationTime);
     printf("\t broken: %d\n", rt_entry->broken);

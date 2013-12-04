@@ -53,3 +53,4 @@ elegantesten an?
 aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr);
 void delete_routing_entry(ipv6_addr_t* addr);
 void print_rt(void);
+char* ipv6_stringify(ipv6_addr_t* addr);
