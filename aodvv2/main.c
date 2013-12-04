@@ -109,7 +109,8 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     //shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     //shell_run(&shell);
 
-    send_rrep("");
-
+    //send_rrep("");
+    test_rt();
+    
     return 0;
 }
