@@ -3,7 +3,7 @@
 mutex_t m_seqnum; // TODO: find name that makes more sense
 int test;
 
-void aodv_init(void);
+void sender_init(void);
 uint16_t get_seqNum(void);
 void inc_seqNum(void);
 void receive_udp(char *str);

@@ -51,7 +51,7 @@ static void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
 static uint16_t get_node_id(void);
 
 
-void aodv_init(void)
+void sender_init(void)
 {   
     /* experimental */
 
