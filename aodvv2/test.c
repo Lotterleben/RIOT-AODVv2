@@ -2,7 +2,6 @@
 
 #import "routing.h"
 #include "common/netaddr.h"
-#include "sender.h"
 
 void test_rt(void)
 {
@@ -17,13 +16,13 @@ void test_rt(void)
 
     /* start testing */
     print_rt();
-    printf("Adding first entry...\n");
+    printf("Adding first entry: %s ...\n", ipv6_addr_to_str(&address, addr_str));
     add_routing_entry(&address, 1, 2, &next_hop, 0, 13, 0, ROUTE_STATE_IDLE);
     print_rt();
-    printf("Adding second entry...\n");
+    printf("Adding second entry: %s ...\n", ipv6_addr_to_str(&next_hop, addr_str));
     add_routing_entry(&next_hop, 1, 2, &next_hop, 1, 1, 1, ROUTE_STATE_ACTIVE);
     print_rt();
-    printf("Deleting first entry...\n");
+    printf("Deleting first entry: %s ...\n", ipv6_addr_to_str(&address, addr_str));
     delete_routing_entry(&address);
     print_rt();
     printf("getting next hop of second entry:\n");

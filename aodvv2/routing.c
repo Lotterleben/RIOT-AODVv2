@@ -10,12 +10,10 @@
 #include "include/aodvv2.h"
 #include "common/netaddr.h"
 
-
 static aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
 
 void init_routingtable(void)
 {   
-    // TODO: init timer?!
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
     }
@@ -87,13 +85,14 @@ void delete_routing_entry(ipv6_addr_t* addr)
 
 void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
 {   
-    struct netaddr_str nbuf;
+    char addr_str[IPV6_MAX_ADDR_STR_LEN];
+
 
     printf("routing table entry at %i:\n", index );
-    printf("\t address: %s\n", netaddr_to_string(&nbuf, &rt_entry->address)); // wrong type, don't care
+    printf("\t address: %s\n", ipv6_addr_to_str(&(rt_entry->address), addr_str)); // wrong type, don't care
     printf("\t prefixLength: %i\n", rt_entry->prefixLength);
     printf("\t seqNum: %i\n", rt_entry->seqNum);
-    printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
+    printf("\t nextHopAddress: %s\n", ipv6_addr_to_str(&(rt_entry->nextHopAddress), addr_str));
     printf("\t lastUsed: %i\n", rt_entry->lastUsed);
     printf("\t expirationTime: %i\n", rt_entry->expirationTime);
     printf("\t broken: %d\n", rt_entry->broken);
