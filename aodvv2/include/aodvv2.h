@@ -1,6 +1,4 @@
-/* beware, for these are dummy values */
 #define AODVV2_MAX_HOPCOUNT 255
-#define AODVV2_ROUTE_VALIDITY_TIME 10000
 
 /* RFC5498 */
 #define MANET_PORT  269
@@ -14,4 +12,12 @@ enum tlv_type {
     RFC5444_MSGTLV_ORIGNODE_SEQNUM,
     RFC5444_MSGTLV_TARGNODE_SEQNUM,
     RFC5444_MSGTLV_METRIC,
+};
+
+/* for temporary storage so we can pass around pointers to handle the data we've
+ received */
+
+struct rreq_msg {
+    uint8_t msg_hop_limit;
+    struct netaddr origNode_addr;
 };

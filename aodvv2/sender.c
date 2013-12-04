@@ -44,10 +44,10 @@ static uint16_t seqNum;
 /* helper functions */
 void init_writer(void);
 void send_udp(void *buffer, size_t length);
-void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
 static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
+static void print_ipv6_addr(const ipv6_addr_t *ipv6_addr);
 static uint16_t get_node_id(void);
 
 
