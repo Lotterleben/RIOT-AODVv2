@@ -9,8 +9,12 @@
 
 #include "aodvv2_reader.h"
 #include "include/aodvv2.h"
+#include "debug.h"
 
 static struct rfc5444_reader reader;
+
+/* Needed in the address callback, but retrieved in the packet callback */
+static uint16_t hop_limit;
 
 static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(
     struct rfc5444_reader_tlvblock_context *cont);
@@ -51,7 +55,7 @@ static struct rfc5444_reader_tlvblock_consumer _rreq_address_consumer = {
  */
 static struct rfc5444_reader_tlvblock_consumer_entry _rreq_address_consumer_entries[] = {
     [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
+    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC, .mandatory = true }
 };
 
 /*
@@ -84,7 +88,7 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
 static struct rfc5444_reader_tlvblock_consumer_entry _rrep_address_consumer_entries[] = {
     [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
     [RFC5444_MSGTLV_TARGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
-    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
+    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC, .mandatory = true }
 };
 
 /**
@@ -97,9 +101,12 @@ static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_rea
 {
     printf("[aodvv2] %s()\n", __func__);
 
-    if (cont->has_hoplimit) {
-        printf("[aodvv2] %s() \t i can has hop limit: %d\n",__func__ , &cont->hoplimit);
+    if (!cont->has_hoplimit) {
+        printf("dropped packet: missing msg-hop-limit\n");
+        return RFC5444_DROP_PACKET;
     }
+    hop_limit = &cont->hoplimit;
+    printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , hop_limit);
     return RFC5444_OKAY;
 }
 
@@ -149,10 +156,12 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_rea
 {
     printf("[aodvv2] %s()\n", __func__);
 
-    if (cont->has_hoplimit) {
-        printf("[aodvv2] %s() \t i can has hop limit: %d\n",__func__ , &cont->hoplimit);
+    if (!cont->has_hoplimit) {
+        DEBUG("dropped packet: missing msg-hop-limit\n");
+        return RFC5444_DROP_PACKET;
     }
-    return RFC5444_OKAY;
+    hop_limit = &cont->hoplimit;
+    printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , hop_limit);
 }
 
 /**
