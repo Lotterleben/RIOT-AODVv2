@@ -51,5 +51,5 @@ OBACHT: sicher stellen dass immer nur 1 thread diesen entry
 elegantesten an?
 */
 aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr);
-int delete_routing_entry(ipv6_addr_t* addr);
+void delete_routing_entry(ipv6_addr_t* addr);
 void print_rt(void);

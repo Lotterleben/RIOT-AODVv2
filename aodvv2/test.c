@@ -9,6 +9,7 @@ void test_rt(void)
     uint8_t success;
     init_routingtable();
     ipv6_addr_t address, next_hop;
+    char addr_str[IPV6_MAX_ADDR_STR_LEN];
 
     /* init data */
     ipv6_addr_set_loopback_addr(&address);
@@ -25,4 +26,6 @@ void test_rt(void)
     printf("Deleting first entry...\n");
     delete_routing_entry(&address);
     print_rt();
+    printf("getting next hop of second entry:\n");
+    printf("\t%s\n",ipv6_addr_to_str(get_next_hop(&next_hop), addr_str));
 }

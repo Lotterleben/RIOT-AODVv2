@@ -23,12 +23,8 @@ void init_routingtable(void)
 
 ipv6_addr_t* get_next_hop(ipv6_addr_t* addr)
 {
-    for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (ipv6_addr_is_equal(&routing_table[i].address, addr) && !(&routing_table[i].broken)) {
-            return &routing_table[i].nextHopAddress;
-        }
-    }
-    return NULL;
+    aodvv2_routing_entry_t* entry = get_routing_entry(addr);
+    return(&entry->nextHopAddress);
 }
 
 int add_routing_entry(ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum,
@@ -70,7 +66,7 @@ int add_routing_entry(ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum
  * retrieve pointer to a routing table entry. To edit, simply follow the pointer.
  */
 aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
-{
+{   
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
             return &routing_table[i];
@@ -79,15 +75,14 @@ aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
     return NULL;
 }
 
-int delete_routing_entry(ipv6_addr_t* addr)
+void delete_routing_entry(ipv6_addr_t* addr)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
-            return 0;
+            return;
         }
     }
-    return -1;
 }
 
 void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
@@ -118,5 +113,4 @@ void print_rt(void)
         }
     }
     printf("===== END ROUTING TABLE =====================\n");
-
 }
