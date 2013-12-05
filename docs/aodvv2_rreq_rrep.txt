@@ -23,6 +23,81 @@ successful implementation if everything in the document.
 
 ================================================================================
 
+5.  Data Structures
+
+5.1.  Route Table Entry
+
+   The route table entry is a conceptual data structure.
+   Implementations may use any internal representation so long as it
+   provides access to the information specified below.
+
+   Conceptually, a route table entry has the following fields:
+
+   Route.Address
+      The (host or network) destination address of the node(s)
+      associated with the routing table entry
+   Route.PrefixLength
+      The length of the netmask/prefix.  If the value of the
+      Route.PrefixLength is less than the length of addresses in the
+      address family used by the AODVv2 routers, the associated address
+      is a routing prefix, rather than a host address.  A PrefixLength
+      is stored for every route in the route table.
+   Route.SeqNum
+      The Sequence Number associated with a route table entry
+   Route.NextHopAddress
+      An IP address of the adjacent AODVv2 router on the path toward the
+      Route.Address
+   Route.NextHopInterface
+      The interface used to send packets toward the Route.Address
+   Route.LastUsed
+      The time that this route was last used
+   Route.ExpirationTime
+      The time at which this route must expire
+   Route.Broken
+      A flag indicating whether this Route is broken.  This flag is set
+      to true if the next-hop becomes unreachable or in response to
+      processing to a RERR (see Section 8.4)
+   Route.MetricType
+      The type of the metric for the route towards Route.Address
+   Route.Metric
+      The cost of the route towards Route.Address
+
+   A route table entry (i.e., a route) may be in one of the following
+   states:
+
+   Active
+      An Active route is in current use for forwarding packets
+   Idle
+      An Idle route can be used for forwarding packets, even though it
+      is not in current use
+   Expired
+      After a route has been idle for too long, it expires, and may no
+      longer be used for forwarding packets
+   Broken
+      A route marked as Broken cannot be used for forwarding packets but
+      still has valid destination sequence number information.
+   Timed
+      The expiration of a Timed route is controlled by the
+      Route.ExpirationTime time of the route table entry (instead of
+      MAX_IDLETIME).  Until that time, a Timed route can be used for
+      forwarding packets.  Afterwards, the route must be Expired (or
+      expunged).
+
+   The route's state determines the operations that can be performed on
+   the route table entry.  During use, an Active route is maintained
+   continuously by AODVv2 and is considered to remain active as long as
+   it is used at least once during every ACTIVE_INTERVAL.  When a route
+   is no longer Active, it becomes an Idle route.  After an idle route
+   remains Idle for MAX_IDLETIME, it becomes an Expired route.  An
+   Expired route is not used for forwarding, but the sequence number
+   information can be maintained until the destination sequence number
+   has had no updates for MAX_SEQNUM_LIFETIME; after that time, old
+   sequence number information is considered no longer valuable and the
+   Expired route MUST BE expunged.
+
+   When the link to a route's next hop is broken, the route is marked as
+   being Broken, and the route may no longer be used.
+
 5.5.  Sequence Numbers
    Each AODVv2 router in the network MUST maintain its own sequence
    number.  An AODVv2 router increments its SeqNum as follows.  Most of
