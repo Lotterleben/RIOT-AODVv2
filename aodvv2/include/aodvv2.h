@@ -1,6 +1,7 @@
 /* beware, for these are dummy values */
-#define AODVV2_MAX_HOPCOUNT 255
+#define AODVV2_MAX_HOPCOUNT 20
 #define AODVV2_ROUTE_VALIDITY_TIME 10000
+#define AODVV2_MAX_ROUTING_ENTRIES 255
 
 /* RFC5498 */
 #define MANET_PORT  269
