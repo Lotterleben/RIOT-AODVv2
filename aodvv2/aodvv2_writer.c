@@ -115,10 +115,9 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 
     /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
-    int origNode_seqNum = htonl(get_seqNum());
+    int origNode_seqNum = get_seqNum();
     mutex_unlock(&m_seqnum);
     
-    int targNode_seqNum = 13;
     int origNode_hopCt = htonl(9);
 
     if (netaddr_from_string(&na_origNode, "::1")) {

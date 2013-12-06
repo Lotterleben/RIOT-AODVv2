@@ -188,7 +188,7 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     while (tlv) {
         /* values of TLVs are not aligned well in memory, so we have to copy them */
         memcpy(&value, tlv->single_value, sizeof(value));
-        printf("\ttlv RFC5444_MSGTLV_ORIGNODE_SEQNUM: %d\n", ntohl(value));
+        printf("\ttlv RFC5444_MSGTLV_ORIGNODE_SEQNUM: %d\n", value);
         tlv = tlv->next_entry;
     }
 
