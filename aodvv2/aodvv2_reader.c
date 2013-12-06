@@ -14,7 +14,7 @@
 static struct rfc5444_reader reader;
 
 /* Needed in the address callback, but retrieved in the packet callback */
-static uint16_t hop_limit;
+static uint8_t hop_limit;
 
 static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(
     struct rfc5444_reader_tlvblock_context *cont);
@@ -105,7 +105,8 @@ static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_rea
         printf("dropped packet: missing msg-hop-limit\n");
         return RFC5444_DROP_PACKET;
     }
-    hop_limit = &cont->hoplimit;
+
+    hop_limit = cont->hoplimit;
     printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , hop_limit);
     return RFC5444_OKAY;
 }
@@ -160,8 +161,10 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_rea
         DEBUG("dropped packet: missing msg-hop-limit\n");
         return RFC5444_DROP_PACKET;
     }
-    hop_limit = &cont->hoplimit;
+
+    hop_limit = cont->hoplimit;
     printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , hop_limit);
+
 }
 
 /**

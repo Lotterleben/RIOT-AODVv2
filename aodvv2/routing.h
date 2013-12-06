@@ -6,11 +6,6 @@
 
 #include "ipv6.h"
 
-/*
- * could I also just use oonf's autobuf...?
- */
-
-#define AODVV2_MAX_ROUTING_ENTRIES 255
 
 /*
  * A route table entry (i.e., a route) may be in one of the following
