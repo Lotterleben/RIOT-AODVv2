@@ -200,18 +200,19 @@ void send_udp(void *buffer, size_t length)
     destiny_socket_close(sock);
 }
 
+/* NOTE: lock on m_seqnum before using this function! */
 void inc_seqNum(void)
-{
-    mutex_lock(&m_seqnum);
-    //printf("[aodvv2] %s(): seqNum = %i\n", __func__, seqNum);
-    seqNum++;
-    //printf("[aodvv2] %s(): seqNum = %i\n", __func__, seqNum);
-    mutex_unlock(&m_seqnum);
+{   
+    if (seqNum == 65535 )
+        seqNum = 1;
+    else if (seqNum == 0)
+        printf("ERROR: SeqNum shouldn't be 0! \n"); // TODO handle properly
+    else 
+        seqNum++;
+
 }
 
-/* if I use a mutex here, that smells like race conditions, doesn't it?
-Am Besten m_seqNum doch static machen und dann drauf locken wenn 
-ich seqnum auslese... */
+/* NOTE: lock on m_seqnum before using this function! */
 uint16_t get_seqNum(void)
 {
     return seqNum;
