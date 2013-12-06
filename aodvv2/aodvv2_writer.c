@@ -115,7 +115,7 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 
     /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
-    int origNode_seqNum = get_seqNum();
+    int origNode_seqNum = htonl(get_seqNum());
     mutex_unlock(&m_seqnum);
     
     int origNode_hopCt = htonl(9);
