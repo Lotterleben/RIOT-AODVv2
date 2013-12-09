@@ -105,7 +105,7 @@ successful implementation if everything in the document.
    increment SeqNum when it has the value of the largest possible number
    representable as a 16-bit unsigned integer (i.e., 65,535), it MUST be
    set to one (1).  In other words, the sequence number after 65,535 is
-   1.
+   1. [DONE]
 
 6.2.  Applying Route Updates To Route Table Entries
    To apply the route update, the route table entry is populated with
@@ -166,7 +166,14 @@ successful implementation if everything in the document.
    1. RREQ_Gen MUST increment its SeqNum by one (1) according to the
       rules specified in Section 5.5.  This assures that each node
       receiving the RREQ will update its route table using the
-      information in the RREQ.
+      information in the RREQ. [DONE]
+
+   3.  <msg-hop-limit> SHOULD be set to MAX_HOPCOUNT. [DONE]
+
+   5. RREQ.AddrBlk := {OrigNode.Addr, TargNode.Addr}
+
+      Let OrigNodeNdx and TargNodeNdx denote the indexes of OrigNode
+      and TargNode respectively in the RREQ.AddrBlk list.
 
    An example RREQ message format is illustrated in Appendix A.1.
 
