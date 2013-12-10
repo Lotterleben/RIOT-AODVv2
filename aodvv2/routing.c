@@ -25,39 +25,24 @@ ipv6_addr_t* get_next_hop(ipv6_addr_t* addr)
     return(&entry->nextHopAddress);
 }
 
-int add_routing_entry(ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum,
-    ipv6_addr_t* nextHopAddress, bool broken, uint8_t metricType, uint8_t metric, uint8_t state)
-{
-    timex_t now, validity_t;
-    rtc_time(&now);
-    validity_t = timex_set(AODVV2_ROUTE_VALIDITY_TIME, 0);
 
+void add_routing_entry(struct aodvv2_routing_entry_t* entry)
+{
     /* only update if we don't already know the address
      * TODO: does this always make sense?
      */
-    if (!(get_routing_entry(address))){ // na ob das so stimmt...
+    if (!(get_routing_entry(&(entry->address)))){ // na ob das so stimmt...
         /*find free spot in RT and place rt_entry there */
         for (uint8_t i = 0; i< AODVV2_MAX_ROUTING_ENTRIES; i++){
             /* seqNum can't be 0 so this has to work as an indicator of 
                an "empty" struct for now*/
             if (!routing_table[i].seqNum) {
                 /* TODO: sanity check? */
-                routing_table[i].address = *address;
-                routing_table[i].prefixLength = prefixLength;
-                routing_table[i].seqNum = seqNum;
-                routing_table[i].nextHopAddress = *nextHopAddress;
-                routing_table[i].lastUsed = now;
-                routing_table[i].expirationTime = timex_add(now, validity_t);
-                routing_table[i].broken = broken;
-                routing_table[i].metricType = metricType;
-                routing_table[i].metric = metric;
-                routing_table[i].state = state;
-                return 0;
+                routing_table[i] = *entry; 
+                return;
             }
         }
-        return -1;
     }
-    return -1;
 }
 
 /*

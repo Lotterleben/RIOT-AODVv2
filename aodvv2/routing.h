@@ -6,7 +6,6 @@
 
 #include "ipv6.h"
 
-
 /*
  * A route table entry (i.e., a route) may be in one of the following
    states:
@@ -35,8 +34,8 @@ struct aodvv2_routing_entry_t {
 
 void init_routingtable(void);
 ipv6_addr_t* get_next_hop(ipv6_addr_t* addr);
-int add_routing_entry( ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum,
-    ipv6_addr_t* nextHopAddress, bool broken, uint8_t metricType, uint8_t metric, uint8_t state);
+void add_routing_entry(struct aodvv2_routing_entry_t* entry);
+
 /* 
 OBACHT: sicher stellen dass immer nur 1 thread diesen entry
 (andere entries sind unaffected, oder?) bearbeitet! wie stell ich das am 
