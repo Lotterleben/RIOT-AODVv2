@@ -34,9 +34,7 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
     if (!(get_routing_entry(&(entry->address)))){ // na ob das so stimmt...
         /*find free spot in RT and place rt_entry there */
         for (uint8_t i = 0; i< AODVV2_MAX_ROUTING_ENTRIES; i++){
-            /* seqNum can't be 0 so this has to work as an indicator of 
-               an "empty" struct for now*/
-            if (!routing_table[i].seqNum) {
+            if (is_null_address(&routing_table[i].address)) {
                 /* TODO: sanity check? */
                 routing_table[i] = *entry; 
                 return;
@@ -97,4 +95,12 @@ void print_rt(void)
         }
     }
     printf("===== END ROUTING TABLE =====================\n");
+}
+
+bool is_null_address(ipv6_addr_t* addr)
+{
+    ipv6_addr_t zero_addr;
+    ipv6_addr_init(&zero_addr, 0x0, 0x0, 0x0, 0x0, 0x0,0x0, 0x0, 0x0);
+
+    return ipv6_addr_is_equal(&zero_addr, addr);
 }
