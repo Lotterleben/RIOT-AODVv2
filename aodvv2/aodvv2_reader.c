@@ -55,7 +55,7 @@ static struct rfc5444_reader_tlvblock_consumer _rreq_address_consumer = {
  */
 static struct rfc5444_reader_tlvblock_consumer_entry _rreq_address_consumer_entries[] = {
     [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC, .mandatory = true }
+    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC}
 };
 
 /*
@@ -88,7 +88,7 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
 static struct rfc5444_reader_tlvblock_consumer_entry _rrep_address_consumer_entries[] = {
     [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
     [RFC5444_MSGTLV_TARGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
-    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC, .mandatory = true }
+    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC }
 };
 
 /**

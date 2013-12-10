@@ -171,7 +171,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
-    int origNode_seqNum = htonl(13);
+    int targNode_seqNum = htonl(13);
     
     /* get seqNum and increment it, ensuring monotonically increasing seqNums */
     mutex_lock(&m_seqnum);
