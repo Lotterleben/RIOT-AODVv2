@@ -10,7 +10,7 @@
 #include "include/aodvv2.h"
 #include "common/netaddr.h"
 
-static aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
+static struct aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
 
 void init_routingtable(void)
 {   
@@ -21,7 +21,7 @@ void init_routingtable(void)
 
 ipv6_addr_t* get_next_hop(ipv6_addr_t* addr)
 {
-    aodvv2_routing_entry_t* entry = get_routing_entry(addr);
+    struct aodvv2_routing_entry_t* entry = get_routing_entry(addr);
     return(&entry->nextHopAddress);
 }
 
@@ -63,7 +63,7 @@ int add_routing_entry(ipv6_addr_t* address, uint8_t prefixLength, uint8_t seqNum
 /*
  * retrieve pointer to a routing table entry. To edit, simply follow the pointer.
  */
-aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
+struct aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
@@ -83,7 +83,7 @@ void delete_routing_entry(ipv6_addr_t* addr)
     }
 }
 
-void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
+void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry, int index)
 {   
     char addr_str[IPV6_MAX_ADDR_STR_LEN];
 
@@ -103,7 +103,7 @@ void print_rt_entry(aodvv2_routing_entry_t* rt_entry, int index)
 
 void print_rt(void)
 {   
-    aodvv2_routing_entry_t curr_entry;
+    struct aodvv2_routing_entry_t curr_entry;
 
     printf("===== BEGIN ROUTING TABLE ===================\n");
     for(int i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {

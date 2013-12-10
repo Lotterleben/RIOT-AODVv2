@@ -20,10 +20,7 @@ enum aodvv2_routing_states {
 };
 
 /* contains all fields of a routing table entry */
-/*TODO: 
-- eliminate unnecessary fields (telweise schon erledigt)
-- determine correct type for everything that's void*/
-typedef struct {
+struct aodvv2_routing_entry_t {
     ipv6_addr_t address; 
     uint8_t prefixLength; //should be long enough, no?
     uint8_t seqNum;
@@ -34,7 +31,7 @@ typedef struct {
     uint8_t metricType;
     uint8_t metric;
     uint8_t state; /* see aodvv2_routing_states */
-} aodvv2_routing_entry_t;
+};
 
 void init_routingtable(void);
 ipv6_addr_t* get_next_hop(ipv6_addr_t* addr);
@@ -45,7 +42,7 @@ OBACHT: sicher stellen dass immer nur 1 thread diesen entry
 (andere entries sind unaffected, oder?) bearbeitet! wie stell ich das am 
 elegantesten an?
 */
-aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr);
+struct aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr);
 void delete_routing_entry(ipv6_addr_t* addr);
 void print_rt(void);
 char* ipv6_stringify(ipv6_addr_t* addr);
