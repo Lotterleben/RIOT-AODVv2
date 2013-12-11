@@ -63,4 +63,9 @@ void test_rt(void)
     print_rt();
     printf("getting next hop of second entry:\n");
     printf("\t%s\n", netaddr_to_string(&nbuf, get_next_hop(&next_hop)));
+    printf("getting next hop of first (deleted) entry:\n");
+    if (get_next_hop(&address) == NULL)
+        printf("\tSuccess: address not in routing table, get_next_hop() returned NULL\n");
+    else
+        printf("\tSomething went wrong, get_next_hop() should've returned NULL\n");
 }

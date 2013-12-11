@@ -19,9 +19,12 @@ void init_routingtable(void)
     }
 }
 
+/* returns NULL if addr is not in routing table */
 struct netaddr* get_next_hop(struct netaddr* addr)
 {
     struct aodvv2_routing_entry_t* entry = get_routing_entry(addr);
+    if (!entry)
+        return NULL;
     return(&entry->nextHopAddress);
 }
 
