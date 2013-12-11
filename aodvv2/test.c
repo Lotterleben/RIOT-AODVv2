@@ -8,14 +8,14 @@ void test_rt(void)
 {
     timex_t now, validity_t;
     uint8_t success;
-    ipv6_addr_t address, next_hop;
-    char addr_str[IPV6_MAX_ADDR_STR_LEN];
+    struct netaddr address, next_hop;
+    struct netaddr_str nbuf;
 
     init_routingtable();
 
     /* init data */
-    ipv6_addr_set_loopback_addr(&address);
-    ipv6_addr_set_all_nodes_addr(&next_hop);
+    netaddr_from_string(&address, "::23");
+    netaddr_from_string(&next_hop, "::42");
 
     rtc_time(&now);
     validity_t = timex_set(AODVV2_ROUTE_VALIDITY_TIME, 0);
@@ -51,16 +51,16 @@ void test_rt(void)
 
     /* start testing */
     print_rt();
-    printf("Adding first entry: %s ...\n", ipv6_addr_to_str(addr_str, &address));
+    printf("Adding first entry: %s ...\n", netaddr_to_string(&nbuf, &address));
     //add_routing_entry(&address, 1, 2, &next_hop, 0, 13, 0, ROUTE_STATE_IDLE);
     add_routing_entry(&entry_1);
     print_rt();
-    printf("Adding second entry: %s ...\n", ipv6_addr_to_str(addr_str, &next_hop));
+    printf("Adding second entry: %s ...\n", netaddr_to_string(&nbuf, &next_hop));
     add_routing_entry(&entry_2);
     print_rt();
-    printf("Deleting first entry: %s ...\n", ipv6_addr_to_str(addr_str, & address));
+    printf("Deleting first entry: %s ...\n", netaddr_to_string(&nbuf, & address));
     delete_routing_entry(&address);
     print_rt();
     printf("getting next hop of second entry:\n");
-    printf("\t%s\n",ipv6_addr_to_str(addr_str, get_next_hop(&next_hop)));
+    printf("\t%s\n", netaddr_to_string(&nbuf, get_next_hop(&next_hop)));
 }

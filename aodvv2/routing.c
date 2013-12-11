@@ -19,7 +19,7 @@ void init_routingtable(void)
     }
 }
 
-ipv6_addr_t* get_next_hop(ipv6_addr_t* addr)
+struct netaddr* get_next_hop(struct netaddr* addr)
 {
     struct aodvv2_routing_entry_t* entry = get_routing_entry(addr);
     return(&entry->nextHopAddress);
@@ -34,7 +34,7 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
     if (!(get_routing_entry(&(entry->address)))){ // na ob das so stimmt...
         /*find free spot in RT and place rt_entry there */
         for (uint8_t i = 0; i< AODVV2_MAX_ROUTING_ENTRIES; i++){
-            if (is_null_address(&routing_table[i].address)) {
+            if (routing_table[i].address._type == AF_UNSPEC) {
                 /* TODO: sanity check? */
                 routing_table[i] = *entry; 
                 return;
@@ -46,7 +46,7 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
 /*
  * retrieve pointer to a routing table entry. To edit, simply follow the pointer.
  */
-struct aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
+struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
@@ -56,7 +56,7 @@ struct aodvv2_routing_entry_t* get_routing_entry(ipv6_addr_t* addr)
     return NULL;
 }
 
-void delete_routing_entry(ipv6_addr_t* addr)
+void delete_routing_entry(struct netaddr* addr)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
@@ -68,14 +68,13 @@ void delete_routing_entry(ipv6_addr_t* addr)
 
 void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry, int index)
 {   
-    char addr_str[IPV6_MAX_ADDR_STR_LEN];
-
+    struct netaddr_str nbuf;
 
     printf("routing table entry at %i:\n", index );
-    printf("\t address: %s\n", ipv6_addr_to_str(addr_str, &(rt_entry->address))); 
+    printf("\t address: %s\n", netaddr_to_string(&nbuf, &(rt_entry->address))); 
     printf("\t prefixLength: %i\n", rt_entry->prefixLength);
     printf("\t seqNum: %i\n", rt_entry->seqNum);
-    printf("\t nextHopAddress: %s\n", ipv6_addr_to_str(addr_str, &(rt_entry->nextHopAddress)));
+    printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddress)));
     printf("\t lastUsed: %i\n", rt_entry->lastUsed);
     printf("\t expirationTime: %i\n", rt_entry->expirationTime);
     printf("\t broken: %d\n", rt_entry->broken);
@@ -95,12 +94,4 @@ void print_rt(void)
         }
     }
     printf("===== END ROUTING TABLE =====================\n");
-}
-
-bool is_null_address(ipv6_addr_t* addr)
-{
-    ipv6_addr_t zero_addr;
-    ipv6_addr_init(&zero_addr, 0x0, 0x0, 0x0, 0x0, 0x0,0x0, 0x0, 0x0);
-
-    return ipv6_addr_is_equal(&zero_addr, addr);
 }
