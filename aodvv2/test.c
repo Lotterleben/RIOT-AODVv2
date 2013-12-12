@@ -18,7 +18,7 @@ void test_rt(void)
     netaddr_from_string(&next_hop, "::42");
 
     rtc_time(&now);
-    validity_t = timex_set(AODVV2_ROUTE_VALIDITY_TIME, 0);
+    validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
     struct aodvv2_routing_entry_t entry_1 = {
         .address = address,
@@ -26,7 +26,7 @@ void test_rt(void)
         .seqNum = 6,
         .nextHopAddress = next_hop,
         .lastUsed = now,
-        .expirationTime = validity_t,
+        .expirationTime = timex_add(now, validity_t),
         .broken = false,
         .metricType = 0,
         .metric = 20,
@@ -34,7 +34,6 @@ void test_rt(void)
     };
 
     rtc_time(&now);
-    validity_t = timex_set(AODVV2_ROUTE_VALIDITY_TIME, 0);
 
     struct aodvv2_routing_entry_t entry_2 = {
         .address = next_hop,
@@ -42,7 +41,7 @@ void test_rt(void)
         .seqNum = 0, // illegal, but what the hell. for testing purposes. ahum.
         .nextHopAddress = next_hop,
         .lastUsed = now,
-        .expirationTime = validity_t,
+        .expirationTime = timex_add(now, validity_t),
         .broken = false,
         .metricType = 0,
         .metric = 10,

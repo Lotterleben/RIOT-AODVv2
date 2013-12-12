@@ -52,6 +52,7 @@ struct aodvv2_packet_data {
     uint8_t targNode_addr_prefixlen;
     struct netaddr origNode_addr; 
     struct netaddr targNode_addr; 
+    struct netaddr sender;
     uint8_t metric;
     uint16_t origNode_seqNum;
     uint16_t targNode_seqNum;
@@ -59,6 +60,5 @@ struct aodvv2_packet_data {
 
 void reader_init(void);
 void reader_cleanup(void);
-int reader_handle_packet(void* buffer, size_t length);
-
+int reader_handle_packet(void* buffer, size_t length, struct netaddr sender);
 #endif /* READER_H_ */

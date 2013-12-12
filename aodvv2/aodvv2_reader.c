@@ -11,8 +11,6 @@
 #include "aodvv2_reader.h"
 #include "routing.h"
 
-static struct rfc5444_reader reader;
-
 /* This is where we store data gathered from packets */
 static struct aodvv2_packet_data packet_data;
 
@@ -31,6 +29,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
 static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry);
 
+static struct rfc5444_reader reader;
+static timex_t validity_t;
 
 /*
  * Message consumer, will be called once for every message of
@@ -200,6 +200,10 @@ static enum rfc5444_result _cb_rreq_end_callback(
             printf("Packet offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
+
+        timex_t now;
+        rtc_time(&now);
+        
         printf("old entry:\n");
         print_rt_entry(rt_entry);
         /* The incoming routing information is better than existing routing 
@@ -207,10 +211,14 @@ static enum rfc5444_result _cb_rreq_end_callback(
         rt_entry->address = packet_data.origNode_addr;
         rt_entry->prefixlen = packet_data.origNode_addr_prefixlen;
         rt_entry->seqNum = packet_data.origNode_seqNum;
-        //rt_entry->nextHopAddress = NULL; // TODO: how do i get this?
+        rt_entry->nextHopAddress = packet_data.sender;
+        rt_entry->lastUsed = now;
+        rt_entry->expirationTime = timex_add(now, validity_t);
         rt_entry->broken = false;
-        // TODO: metric & lastUsed
+        rt_entry->metricType = AODVV2_DEFAULT_METRIC_TYPE; // TODO: deduct from packet
+        // TODO: metric (WTF)
         //rt_entry->metric = packet_data.metric + ???; // ??? = Cost(L) ... whatever that means..
+
         printf("new entry:\n");
         print_rt_entry(rt_entry);
 
@@ -279,6 +287,8 @@ void reader_init(void)
 {
     printf("%s()\n", __func__);
 
+    validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
+
     /* initialize reader */
     rfc5444_reader_init(&reader);
 
@@ -302,7 +312,13 @@ void reader_cleanup(void)
     rfc5444_reader_cleanup(&reader);
 }
 
-int reader_handle_packet(void* buffer, size_t length) {
+/**
+ * 
+ * @param sender Address of the node from which the packet was received (TODO: should this be a pointer?)
+ */
+int reader_handle_packet(void* buffer, size_t length, struct netaddr sender)
+{
+    packet_data.sender = sender;
     return rfc5444_reader_handle_packet(&reader, buffer, length);
 }
 
