@@ -45,6 +45,18 @@
 #include "common/common_types.h"
 #include "rfc5444/rfc5444_reader.h"
 
+/* contains all fields of a routing table entry */
+struct aodvv2_packet_data {
+    uint8_t hoplimit;
+    uint8_t origNode_addr_prefixlen;
+    uint8_t targNode_addr_prefixlen;
+    struct netaddr origNode_addr; 
+    struct netaddr targNode_addr; 
+    uint8_t metric;
+    uint16_t origNode_seqNum;
+    uint16_t targNode_seqNum;
+};
+
 void reader_init(void);
 void reader_cleanup(void);
 int reader_handle_packet(void* buffer, size_t length);

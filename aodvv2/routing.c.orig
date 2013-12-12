@@ -19,7 +19,10 @@ void init_routingtable(void)
     }
 }
 
+<<<<<<< HEAD
+=======
 /* returns NULL if addr is not in routing table */
+>>>>>>> routing
 struct netaddr* get_next_hop(struct netaddr* addr)
 {
     struct aodvv2_routing_entry_t* entry = get_routing_entry(addr);
@@ -69,13 +72,13 @@ void delete_routing_entry(struct netaddr* addr)
     }
 }
 
-void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry)
+void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry, int index)
 {   
     struct netaddr_str nbuf;
 
-    printf(".................................\n");
+    printf("routing table entry at %i:\n", index );
     printf("\t address: %s\n", netaddr_to_string(&nbuf, &(rt_entry->address))); 
-    printf("\t prefixlen: %i\n", rt_entry->prefixlen);
+    printf("\t prefixLength: %i\n", rt_entry->prefixLength);
     printf("\t seqNum: %i\n", rt_entry->seqNum);
     printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddress)));
     printf("\t lastUsed: %i\n", rt_entry->lastUsed);
@@ -93,7 +96,7 @@ void print_rt(void)
     printf("===== BEGIN ROUTING TABLE ===================\n");
     for(int i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         if (routing_table[i].seqNum) {
-            print_rt_entry(&routing_table[i]); // fuck it, I'm tired.
+            print_rt_entry(&routing_table[i], i); // fuck it, I'm tired.
         }
     }
     printf("===== END ROUTING TABLE =====================\n");

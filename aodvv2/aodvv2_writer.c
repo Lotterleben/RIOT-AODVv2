@@ -66,8 +66,8 @@ static struct rfc5444_writer_content_provider _rreq_message_content_provider = {
 
 /* declaration of all address TLVs added to the RREQ message */
 static struct rfc5444_writer_tlvtype _rreq_addrtlvs[] = {
-    [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC },
+    [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_SEQNUM, .exttype = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
+    [RFC5444_MSGTLV_METRIC] = { .type = AODVV2_DEFAULT_METRIC_TYPE },
 };
 
 /*
@@ -81,9 +81,9 @@ static struct rfc5444_writer_content_provider _rrep_message_content_provider = {
 
 /* declaration of all address TLVs added to the RREP message */
 static struct rfc5444_writer_tlvtype _rrep_addrtlvs[] = {
-    [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
-    [RFC5444_MSGTLV_TARGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_TARGNODE_SEQNUM },
-    [RFC5444_MSGTLV_METRIC] = { .type = RFC5444_MSGTLV_METRIC },
+    [RFC5444_MSGTLV_ORIGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_SEQNUM, .exttype = RFC5444_MSGTLV_ORIGNODE_SEQNUM },
+    [RFC5444_MSGTLV_TARGNODE_SEQNUM] = { .type = RFC5444_MSGTLV_SEQNUM, .exttype = RFC5444_MSGTLV_TARGNODE_SEQNUM },
+    [RFC5444_MSGTLV_METRIC] = { .type = AODVV2_DEFAULT_METRIC_TYPE },
 };
 
 /**
@@ -108,23 +108,23 @@ _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 static void
 _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 {
-    printf("[aodvv2] hellohello %s()\n", __func__);
+    printf("[aodvv2] %s()\n", __func__);
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
-    /* get seqNum and increment it, ensuring monotonically increasing seqNums */
+    /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
-    int origNode_seqNum = htonl(get_seqNum());
+    uint16_t origNode_seqNum = get_seqNum();
     inc_seqNum();
     mutex_unlock(&m_seqnum);
     
-    int origNode_hopCt = htonl(9);
+    uint8_t origNode_hopCt = 9;
 
-    if (netaddr_from_string(&na_origNode, "::1")) {
+    if (netaddr_from_string(&na_origNode, "::42")) {
         return;
     }
-    if (netaddr_from_string(&na_targNode, "::42")) {
+    if (netaddr_from_string(&na_targNode, "::23")) {
         return;
     }
 
@@ -171,15 +171,15 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
-    int targNode_seqNum = htonl(13);
+    uint16_t origNode_seqNum = 13;
     
-    /* get seqNum and increment it, ensuring monotonically increasing seqNums */
+    /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
-    int origNode_seqNum = htonl(get_seqNum());
+    uint16_t targNode_seqNum = get_seqNum();
     inc_seqNum();
     mutex_unlock(&m_seqnum);
 
-    int targNode_hopCt = htonl(9);
+    uint8_t targNode_hopCt = 9;
 
     if (netaddr_from_string(&na_origNode, "::42")) {
         return;

@@ -123,7 +123,7 @@ successful implementation if everything in the document.
       If RteMsg.SeqNum < Route.SeqNum the incoming information is stale.
       Using stale routing information is not allowed, since that might
       result in routing loops.  HandlingRtr MUST NOT update the route
-      table entry using the routing information for RteMsg.Addr.
+      table entry using the routing information for RteMsg.Addr. [DONE]
    2.  Unsafe against loops::  (TRUE != LoopFree (RteMsg, Route)) :
       If RteMsg is not Stale (as in (1) above), RteMsg.Cost is next
       considered to insure loop freedom.  If (TRUE != LoopFree (RteMsg,
@@ -137,23 +137,29 @@ successful implementation if everything in the document.
       information still does not offer any improvement over the existing
       route table information if RteMsg.Cost >= Route.Metric.  Using
       such incoming routing information to update a route table entry is
-      not recommended.
+      not recommended. [DONE]
    4.  Offers improvement::
       Incoming routing information that does not match any of the above
       criteria is better than existing routing table information and
       SHOULD be used to improve the route table.  The following pseudo-
       code illustrates whether incoming routing information should be
       used to update an existing route table entry as described in
-      Section 6.2.
+      Section 6.2. [DONE]
 
 6.2.  Applying Route Updates To Route Table Entries
    To apply the route update, the route table entry is populated with
    the following information:
 
    o  Route.Address := RteMsg.Addr
+   o  If RteMsg.PrefixLength exists, then Route.PrefixLength :=
+      RteMsg.PrefixLength.  Otherwise, Route.PrefixLength := maximum
+      length for address family (either 32 or 128).
    o  Route.SeqNum := RteMsg.SeqNum
    o  Route.NextHopAddress := IP.SourceAddress (i.e., an address of the
       node from which the RteMsg was received)
+   o  Route.Broken flag := FALSE
+   o  Route.Metric := (RteMsg.Metric + Cost(L)), where L is the incoming
+      link.
 
 7.2.  RteMsg Structure
    
@@ -257,7 +263,7 @@ successful implementation if everything in the document.
 
    3. If RteMsg.<msg-hop-limit> is zero (0), no further action is
       taken, and the RteMsg is not retransmitted.  Otherwise, the
-      router MUST decrement RteMsg.<msg-hop-limit>.
+      router MUST decrement RteMsg.<msg-hop-limit>. [DONE]
 
 7.5.1.  Additional Handling for Incoming RREQ
 

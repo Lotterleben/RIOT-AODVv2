@@ -1,7 +1,7 @@
-/* No proper tests, just some methods to check routine things */
+/* No real/proper tests, just some methods to check rotine things */
 
-#include "include/aodvv2.h"
-#include "routing.h"
+#import "include/aodvv2.h"
+#import "routing.h"
 #include "common/netaddr.h"
 
 void test_rt(void)
@@ -22,7 +22,7 @@ void test_rt(void)
 
     struct aodvv2_routing_entry_t entry_1 = {
         .address = address,
-        .prefixlen = 5,
+        .prefixLength = 5,
         .seqNum = 6,
         .nextHopAddress = next_hop,
         .lastUsed = now,
@@ -38,8 +38,8 @@ void test_rt(void)
 
     struct aodvv2_routing_entry_t entry_2 = {
         .address = next_hop,
-        .prefixlen = 5,
-        .seqNum = 0, // illegal, but what the hell. for testing purposes. ahum.
+        .prefixLength = 5,
+        .seqNum = 12,
         .nextHopAddress = next_hop,
         .lastUsed = now,
         .expirationTime = validity_t,
@@ -63,14 +63,12 @@ void test_rt(void)
     print_rt();
     printf("getting next hop of second entry:\n");
     printf("\t%s\n", netaddr_to_string(&nbuf, get_next_hop(&next_hop)));
+<<<<<<< HEAD
+=======
     printf("getting next hop of first (deleted) entry:\n");
     if (get_next_hop(&address) == NULL)
         printf("\tSuccess: address not in routing table, get_next_hop() returned NULL\n");
     else
         printf("\tSomething went wrong, get_next_hop() should've returned NULL\n");
-    printf("getting first (deleted) entry:\n");
-    if (get_routing_entry(&address) == NULL)
-        printf("\tSuccess: address not in routing table, add_routing_entry() returned NULL\n");
-    else
-        printf("\tSomething went wrong, get_routing_entry() should've returned NULL\n");
+>>>>>>> routing
 }

@@ -209,7 +209,6 @@ void inc_seqNum(void)
         printf("ERROR: SeqNum shouldn't be 0! \n"); // TODO handle properly
     else 
         seqNum++;
-
 }
 
 /* NOTE: lock on m_seqnum before using this function! */
