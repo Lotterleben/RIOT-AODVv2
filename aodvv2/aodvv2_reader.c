@@ -14,21 +14,21 @@
 /* This is where we store data gathered from packets */
 static struct aodvv2_packet_data packet_data;
 
-static enum rfc5444_result _cb_rreq_rrep_blocktlv_addresstlvs_okay(
+static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(
     struct rfc5444_reader_tlvblock_context *cont);
-
 static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(
     struct rfc5444_reader_tlvblock_context *cont);
 static enum rfc5444_result _cb_rreq_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped);
 
+static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(
+    struct rfc5444_reader_tlvblock_context *cont);
 static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(
     struct rfc5444_reader_tlvblock_context *cont);
 static enum rfc5444_result _cb_rrep_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped);
 
-static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry);
-
+static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
 static struct rfc5444_reader reader;
 static timex_t validity_t;
 
@@ -49,9 +49,9 @@ static struct rfc5444_reader_tlvblock_consumer _rreq_consumer = {
 static struct rfc5444_reader_tlvblock_consumer _rreq_address_consumer = {
     .msg_id = RFC5444_MSGTYPE_RREQ,
     .addrblock_consumer = true,
-    .block_callback = _cb_rreq_rrep_blocktlv_addresstlvs_okay,
+    .block_callback = _cb_rreq_blocktlv_addresstlvs_okay,
 };
-
+ 
 /*
  * Message consumer, will be called once for every message of
  * type RFC5444_MSGTYPE_RREP that contains all the mandatory message TLVs
@@ -69,7 +69,7 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_consumer = {
 static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
     .msg_id = RFC5444_MSGTYPE_RREP,
     .addrblock_consumer = true,
-    .block_callback = _cb_rreq_rrep_blocktlv_addresstlvs_okay,
+    .block_callback = _cb_rrep_blocktlv_addresstlvs_okay,
 };
 
 /*
@@ -82,16 +82,16 @@ static struct rfc5444_reader_tlvblock_consumer_entry _rreq_rrep_address_consumer
 };
 
 /**
- * This block callback is called for every address. Since the basic structure of
- * RREQ and RREP is the same, they both use this callback.
+ * This block callback is called for every address of a RREQ Message.
  *
  * @param cont
  * @return
  */
-static enum rfc5444_result _cb_rreq_rrep_blocktlv_addresstlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
+static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
 {
     struct netaddr_str nbuf;
     struct rfc5444_reader_tlvblock_entry* tlv;
+    bool is_origNode_addr;
 
     printf("[aodvv2] %s()\n", __func__);
     printf("\tmessage type: %d\n", cont->type);
@@ -101,20 +101,23 @@ static enum rfc5444_result _cb_rreq_rrep_blocktlv_addresstlvs_okay(struct rfc544
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
     if (!tlv) {
         /* assume that tlv missing => targNode Address */
-        packet_data.targNode_addr = cont->addr;
-        packet_data.targNode_addr_prefixlen = cont->addr._prefix_len; 
+        is_origNode_addr = false;
+        packet_data.targNode.addr = cont->addr;
+        packet_data.targNode.prefixlen = cont->addr._prefix_len; 
     }
     while (tlv) {
         if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
             printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
-            packet_data.origNode_addr = cont->addr;
-            packet_data.origNode_seqNum = *tlv->single_value;
-            packet_data.origNode_addr_prefixlen = cont->addr._prefix_len; 
+            is_origNode_addr = true;
+            packet_data.origNode.addr = cont->addr;
+            packet_data.origNode.seqNum = *tlv->single_value;
+            packet_data.origNode.prefixlen = cont->addr._prefix_len; 
         } else if (tlv->type_ext == RFC5444_MSGTLV_TARGNODE_SEQNUM) {
             printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
-            packet_data.targNode_addr = cont->addr;
-            packet_data.targNode_seqNum = *tlv->single_value;
-            packet_data.targNode_addr_prefixlen = cont->addr._prefix_len; 
+            is_origNode_addr = false;
+            packet_data.targNode.addr = cont->addr;
+            packet_data.targNode.seqNum = *tlv->single_value;
+            packet_data.targNode.prefixlen = cont->addr._prefix_len; 
         } else {
             printf("ERROR: illegal extension type.\n");
             return RFC5444_DROP_PACKET;
@@ -124,13 +127,18 @@ static enum rfc5444_result _cb_rreq_rrep_blocktlv_addresstlvs_okay(struct rfc544
 
     /* handle Metric TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_METRIC].tlv;
-    if (!tlv){
+    if (!tlv && is_origNode_addr){
         printf("\tERROR: Missing metric TLV.\n");
         return RFC5444_DROP_PACKET;
     }
+    if (tlv && !is_origNode_addr){
+        printf("\tERROR: metric TLV belongs to wrong address.\n");
+        return RFC5444_DROP_PACKET;
+    }
     while (tlv) {
-        printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d\n", *tlv->single_value);
-        packet_data.metric = *tlv->single_value;
+        printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
+        packet_data.metricType = tlv->type;
+        packet_data.origNode.metric = *tlv->single_value;
         tlv = tlv->next_entry;
     }
     return RFC5444_OKAY;
@@ -175,11 +183,11 @@ static enum rfc5444_result _cb_rreq_end_callback(
         printf("Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
-    if ((packet_data.origNode_addr._type == AF_UNSPEC) || !packet_data.origNode_seqNum) {
+    if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum) {
         printf("ERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
-    if (packet_data.targNode_addr._type == AF_UNSPEC) {
+    if (packet_data.targNode.addr._type == AF_UNSPEC) {
         printf("ERROR: missing TargNode Address. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
@@ -195,8 +203,8 @@ static enum rfc5444_result _cb_rreq_end_callback(
      * of the RteMsg, matching RteMsg.Addr.
      */
 
-    if (rt_entry = get_routing_entry(&packet_data.origNode_addr)) {
-        if(!offers_improvement(rt_entry)){
+    if (rt_entry = get_routing_entry(&packet_data.origNode.addr)) {
+        if(!offers_improvement(rt_entry, &packet_data.origNode.addr)){
             printf("Packet offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
@@ -208,14 +216,14 @@ static enum rfc5444_result _cb_rreq_end_callback(
         print_rt_entry(rt_entry);
         /* The incoming routing information is better than existing routing 
          * table information and SHOULD be used to improve the route table. */ 
-        rt_entry->address = packet_data.origNode_addr;
-        rt_entry->prefixlen = packet_data.origNode_addr_prefixlen;
-        rt_entry->seqNum = packet_data.origNode_seqNum;
+        rt_entry->address = packet_data.origNode.addr;
+        rt_entry->prefixlen = packet_data.origNode.prefixlen;
+        rt_entry->seqNum = packet_data.origNode.seqNum;
         rt_entry->nextHopAddress = packet_data.sender;
         rt_entry->lastUsed = now;
         rt_entry->expirationTime = timex_add(now, validity_t);
         rt_entry->broken = false;
-        rt_entry->metricType = AODVV2_DEFAULT_METRIC_TYPE; // TODO: deduct from packet
+        rt_entry->metricType = packet_data.metricType;
         // TODO: metric (WTF)
         //rt_entry->metric = packet_data.metric + ???; // ??? = Cost(L) ... whatever that means..
 
@@ -230,6 +238,67 @@ static enum rfc5444_result _cb_rreq_end_callback(
 }
 
 /**
+ * This block callback is called for every address of a RREP Message.
+ *
+ * @param cont
+ * @return
+ */
+static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
+{
+    struct netaddr_str nbuf;
+    struct rfc5444_reader_tlvblock_entry* tlv;
+    bool is_targNode_addr = false;
+
+    printf("[aodvv2] %s()\n", __func__);
+    printf("\tmessage type: %d\n", cont->type);
+    printf("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
+
+    /* handle SeqNum TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
+    if (!tlv) {
+        printf("ERROR: missing SeqNum TLV.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    while (tlv) {
+        if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
+            printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+            is_targNode_addr = false;
+            packet_data.origNode.addr = cont->addr;
+            packet_data.origNode.seqNum = *tlv->single_value;
+            packet_data.origNode.prefixlen = cont->addr._prefix_len; 
+        } else if (tlv->type_ext == RFC5444_MSGTLV_TARGNODE_SEQNUM) {
+            printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+            is_targNode_addr = true;
+            packet_data.targNode.addr = cont->addr;
+            packet_data.targNode.seqNum = *tlv->single_value;
+            packet_data.targNode.prefixlen = cont->addr._prefix_len; 
+        } else {
+            printf("ERROR: illegal extension type.\n");
+            return RFC5444_DROP_PACKET;
+        }
+        tlv = tlv->next_entry;
+    }
+
+    /* handle Metric TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_METRIC].tlv;
+    if (!tlv && is_targNode_addr){
+        printf("\tERROR: Missing metric TLV.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    if (tlv && !is_targNode_addr){
+        printf("\tERROR: metric TLV belongs to wrong address.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    while (tlv) {
+        printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
+        packet_data.metricType = tlv->type;
+        packet_data.origNode.metric = *tlv->single_value;
+        tlv = tlv->next_entry;
+    }
+    return RFC5444_OKAY;
+}
+
+/**
  * This block callback is called for every address
  *
  * @param cont
@@ -240,11 +309,12 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_rea
     printf("[aodvv2] %s()\n", __func__);
 
     if (!cont->has_hoplimit) {
-        printf("ERROR: missing hop limit\n");
+        printf("\tERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
     }
 
     printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    packet_data.hoplimit = cont->hoplimit;
     return RFC5444_OKAY;
 }
 
@@ -262,19 +332,19 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
     /* Check if packet contains the rquired information */
     if (dropped) {
-        printf("Dropping packet.\n");
+        printf("\tDropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
-    if ((packet_data.origNode_addr._type == AF_UNSPEC) || !packet_data.origNode_seqNum) {
-        printf("ERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
+    if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum) {
+        printf("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
-    if ((packet_data.targNode_addr._type == AF_UNSPEC) || !packet_data.targNode_seqNum) {
-        printf("ERROR: missing TargNode Address. Dropping packet.\n");
+    if ((packet_data.targNode.addr._type == AF_UNSPEC) || !packet_data.targNode.seqNum) {
+        printf("\tERROR: missing TargNode Address. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
     if (packet_data.hoplimit == 0) {
-        printf("ERROR: Hoplimit is 0. Dropping packet.\n");
+        printf("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
     packet_data.hoplimit-- ;
@@ -327,13 +397,13 @@ int reader_handle_packet(void* buffer, size_t length, struct netaddr sender)
 /*
  * handle collected data as described in Section 6.1 
  */
-static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry)
+static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
 {
     /* Check if new info is stale */    
-    if (packet_data.origNode_seqNum < rt_entry->seqNum )
+    if (node_data->seqNum < rt_entry->seqNum )
         return false;
     /* Check if new info is more costly */
-    if ((packet_data.metric >= rt_entry->metric) && !(rt_entry->broken))
+    if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken))
         return false;
     return true;
 }

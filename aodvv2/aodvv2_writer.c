@@ -119,7 +119,7 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     inc_seqNum();
     mutex_unlock(&m_seqnum);
     
-    uint8_t origNode_hopCt = 9;
+    uint8_t origNode_hopCt = AODVV2_MAX_HOPCOUNT;
 
     if (netaddr_from_string(&na_origNode, "::42")) {
         return;
@@ -134,14 +134,10 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     /* add origNode address (has no address tlv); is mandatory address */
     targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_targNode, true);
 
-    /* add SeqNum TLVs */
+    /* add SeqNum TLV and metric TLV to origNode */
     // TODO: allow_dup true or false?
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_ORIGNODE_SEQNUM], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-
-    /* Add Metric TLVs to both addresses, effectively turning it into an
-       AddressBlockTLV. */
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_ORIGNODE_SEQNUM], &origNode_seqNum, sizeof(origNode_seqNum), false);
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_METRIC], &origNode_hopCt, sizeof(origNode_hopCt), false);
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_METRIC], &origNode_hopCt, sizeof(origNode_hopCt), false );
 }
 
 /**
@@ -156,7 +152,7 @@ _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, (uint16_t) AODVV2_MAX_HOPCOUNT);
+    rfc5444_writer_set_msg_hoplimit(wr, message, AODVV2_MAX_HOPCOUNT);
 }
 
 /**
@@ -194,15 +190,12 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     /* add origNode address (has no address tlv); is mandatory address */
     targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &na_targNode, true);
 
-
     /* add OrigNode and TargNode SeqNum TLVs */
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_ORIGNODE_SEQNUM], &origNode_seqNum, sizeof(origNode_seqNum), false  );
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_TARGNODE_SEQNUM], &targNode_seqNum, sizeof(targNode_seqNum), false  );
 
-    /* Add Metric TLVs to both addresses, effectively turning it into an
-       AddressBlockTLV. */
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_METRIC], &targNode_hopCt, sizeof(targNode_hopCt), false);
+    /* Add Metric TLV to targNode Address */
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_METRIC], &targNode_hopCt, sizeof(targNode_hopCt), false );
 }
 
