@@ -175,26 +175,31 @@ static enum rfc5444_result _cb_rreq_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped)
 {
     struct aodvv2_routing_entry_t* rt_entry;
+    timex_t now;
 
     printf("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
     /* Check if packet contains the rquired information */
     if (dropped) {
-        printf("Dropping packet.\n");
+        printf("\tDropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
     if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum) {
-        printf("ERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
+        printf("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
     if (packet_data.targNode.addr._type == AF_UNSPEC) {
-        printf("ERROR: missing TargNode Address. Dropping packet.\n");
+        printf("\tERROR: missing TargNode Address. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
     if (packet_data.hoplimit == 0) {
-        printf("ERROR: Hoplimit is 0. Dropping packet.\n");
+        printf("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
+    if () {
+        
+    }
+
     packet_data.hoplimit-- ;
  
     /* for every relevant
@@ -203,38 +208,40 @@ static enum rfc5444_result _cb_rreq_end_callback(
      * of the RteMsg, matching RteMsg.Addr.
      */
 
-    if (rt_entry = get_routing_entry(&packet_data.origNode.addr)) {
-        if(!offers_improvement(rt_entry, &packet_data.origNode.addr)){
-            printf("Packet offers no improvement over known route. Dropping Packet.\n");
+    rt_entry = get_routing_entry(&packet_data.origNode.addr);
+
+    if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
+    //if(true){
+        printf("\tCreating new Routing Table entry...\n");
+        /* de-NULL rt_entry */
+        rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
+        memset(rt_entry, 0, sizeof(rt_entry));
+        /* add empty rt_entry so that we can fill it later */
+        add_routing_entry(rt_entry);
+    } else {
+        if (!offers_improvement(rt_entry, &packet_data.origNode.addr)){
+            printf("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
-
-        timex_t now;
-        rtc_time(&now);
-        
-        printf("old entry:\n");
-        print_rt_entry(rt_entry);
-        /* The incoming routing information is better than existing routing 
-         * table information and SHOULD be used to improve the route table. */ 
-        rt_entry->address = packet_data.origNode.addr;
-        rt_entry->prefixlen = packet_data.origNode.prefixlen;
-        rt_entry->seqNum = packet_data.origNode.seqNum;
-        rt_entry->nextHopAddress = packet_data.sender;
-        rt_entry->lastUsed = now;
-        rt_entry->expirationTime = timex_add(now, validity_t);
-        rt_entry->broken = false;
-        rt_entry->metricType = packet_data.metricType;
-        // TODO: metric (WTF)
-        //rt_entry->metric = packet_data.metric + ???; // ??? = Cost(L) ... whatever that means..
-
-        printf("new entry:\n");
-        print_rt_entry(rt_entry);
-
-    } else {
-
     }
+    
+    printf("old entry:\n");
+    print_rt_entry(rt_entry);
+    /* The incoming routing information is better than existing routing 
+     * table information and SHOULD be used to improve the route table. */ 
+    rt_entry->address = packet_data.origNode.addr;
+    rt_entry->prefixlen = packet_data.origNode.prefixlen;
+    rt_entry->seqNum = packet_data.origNode.seqNum;
+    rt_entry->nextHopAddress = packet_data.sender;
+    rt_entry->lastUsed = now;
+    rt_entry->expirationTime = timex_add(now, validity_t);
+    rt_entry->broken = false;
+    rt_entry->metricType = packet_data.metricType;
+    rt_entry->metric = packet_data.origNode.metric + 1; // TODO: determine cost(L) properly
+    // TODO: state 
 
-
+    printf("new entry:\n");
+    print_rt_entry(rt_entry);
 }
 
 /**
@@ -328,6 +335,9 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_rea
 static enum rfc5444_result _cb_rrep_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped)
 {
+    struct aodvv2_routing_entry_t* rt_entry;
+    timex_t now;
+    
     printf("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
     /* Check if packet contains the rquired information */
@@ -340,7 +350,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
         return RFC5444_DROP_PACKET;
     }
     if ((packet_data.targNode.addr._type == AF_UNSPEC) || !packet_data.targNode.seqNum) {
-        printf("\tERROR: missing TargNode Address. Dropping packet.\n");
+        printf("\tERROR: missing TargNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
     if (packet_data.hoplimit == 0) {
@@ -349,7 +359,28 @@ static enum rfc5444_result _cb_rrep_end_callback(
     }
     packet_data.hoplimit-- ;
 
-    /* handle collected data as described in Section 6.1 */
+    /* for every relevant
+     * address (RteMsg.Addr) in the RteMsg, HandlingRtr searches its route
+     * table to see if there is a route table entry with the same MetricType
+     * of the RteMsg, matching RteMsg.Addr.
+     */
+
+    rt_entry = get_routing_entry(&packet_data.targNode.addr);
+
+    if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
+    //if(true){
+        printf("\tCreating new Routing Table entry...\n");
+        /* de-NULL rt_entry */
+        rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
+        memset(rt_entry, 0, sizeof(rt_entry));
+        /* add empty rt_entry so that we can fill it later */
+        add_routing_entry(rt_entry);
+    } else {
+        if (!offers_improvement(rt_entry, &packet_data.targNode.addr)){
+            printf("\tPacket offers no improvement over known route. Dropping Packet.\n");
+            return RFC5444_DROP_PACKET; 
+        }
+    }
 
 }
 

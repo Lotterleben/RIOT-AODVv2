@@ -160,6 +160,7 @@ successful implementation if everything in the document.
    o  Route.Broken flag := FALSE
    o  Route.Metric := (RteMsg.Metric + Cost(L)), where L is the incoming
       link.
+   o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME).
 
 7.2.  RteMsg Structure
    
@@ -264,6 +265,17 @@ successful implementation if everything in the document.
    3. If RteMsg.<msg-hop-limit> is zero (0), no further action is
       taken, and the RteMsg is not retransmitted.  Otherwise, the
       router MUST decrement RteMsg.<msg-hop-limit>. [DONE]
+
+   4.  The router checks the Metric Type MsgTLV (if present) to assure
+       that the Metric Type associated with the Metric AddrTLV
+       information in the RREQ or RREP is known, and that Cost(L) can be
+       computed, where 'L' is the incoming link.  If not, the message is
+       disregarded. [DONE]
+
+   5.  If (MAX_METRIC[RteMsg.MetricType] - Cost(L)) <= RteMsg.Metric,
+       the RteMsg is disregarded, where Cost(L) denotes the cost of
+       traversing the incoming link (i.e., as measured by the network
+       interface receiving the incoming RteMsg).
 
 7.5.1.  Additional Handling for Incoming RREQ
 
