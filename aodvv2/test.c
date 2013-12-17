@@ -28,8 +28,8 @@ void test_rt(void)
         .lastUsed = now,
         .expirationTime = timex_add(now, validity_t),
         .broken = false,
-        .metricType = 0,
-        .metric = 20,
+        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
+        .metric = 12,
         .state = ROUTE_STATE_IDLE
     };
 
@@ -43,8 +43,8 @@ void test_rt(void)
         .lastUsed = now,
         .expirationTime = timex_add(now, validity_t),
         .broken = false,
-        .metricType = 0,
-        .metric = 10,
+        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
+        .metric = 13,
         .state = ROUTE_STATE_ACTIVE
     };
 

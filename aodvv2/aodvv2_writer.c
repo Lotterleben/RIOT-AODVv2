@@ -119,7 +119,7 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     inc_seqNum();
     mutex_unlock(&m_seqnum);
     
-    uint8_t origNode_hopCt = AODVV2_MAX_HOPCOUNT;
+    uint8_t origNode_hopCt = 0;
 
     if (netaddr_from_string(&na_origNode, "::42")) {
         return;

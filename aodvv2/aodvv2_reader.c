@@ -210,11 +210,10 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry = get_routing_entry(&packet_data.origNode.addr);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
-    //if(true){
         printf("\tCreating new Routing Table entry...\n");
         /* de-NULL rt_entry */
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
-        memset(rt_entry, 0, sizeof(rt_entry));
+        memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern amcht uint8_ts zu 48s.. o0 TODO
         /* add empty rt_entry so that we can fill it later */
         add_routing_entry(rt_entry);
     } else {
@@ -236,7 +235,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->expirationTime = timex_add(now, validity_t);
     rt_entry->broken = false;
     rt_entry->metricType = packet_data.metricType;
-    rt_entry->metric = packet_data.origNode.metric + 1; // TODO: determine cost(L) properly
+    rt_entry->metric = packet_data.origNode.metric + link_cost(packet_data.metricType, &packet_data); // TODO: determine cost(L) properly
     // TODO: state 
 
     printf("new entry:\n");
