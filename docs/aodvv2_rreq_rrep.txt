@@ -290,6 +290,8 @@ successful implementation if everything in the document.
       router generates a RREP message as specified in Section 7.4, and
       subsequently processing for the RREQ is complete.  Otherwise,
       processing continues as follows.
+   o  RREQ.MetricType := Route[OrigNode].MetricType
+   o  RREQ.MetricTLV[OrigNodeNdx] := Route[OrigNode].Metric
    o  The RREQ (with updated fields as specified above>) SHOULD be sent
       to the IP multicast address LL-MANET-Routers [RFC5498].  If the
       RREQ is unicast, the IP.DestinationAddress is set to
