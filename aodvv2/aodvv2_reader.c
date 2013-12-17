@@ -28,7 +28,11 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(
 static enum rfc5444_result _cb_rrep_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped);
 
-static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
+/* helper functions */
+bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
+uint8_t link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
+uint8_t max_metric(uint8_t metricType);
+
 static struct rfc5444_reader reader;
 static timex_t validity_t;
 
@@ -105,7 +109,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.prefixlen = cont->addr._prefix_len; 
     }
-    while (tlv) {
+    else {
         if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
             printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
             is_origNode_addr = true;
@@ -122,24 +126,22 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
             printf("ERROR: illegal extension type.\n");
             return RFC5444_DROP_PACKET;
         }
-        tlv = tlv->next_entry;
     }
 
     /* handle Metric TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_METRIC].tlv;
     if (!tlv && is_origNode_addr){
-        printf("\tERROR: Missing metric TLV.\n");
+        printf("\tERROR: Missing or unknown metric TLV.\n");
         return RFC5444_DROP_PACKET;
     }
-    if (tlv && !is_origNode_addr){
-        printf("\tERROR: metric TLV belongs to wrong address.\n");
-        return RFC5444_DROP_PACKET;
-    }
-    while (tlv) {
+    if (tlv) {
+        if (!is_origNode_addr){
+            printf("\tERROR: Metric TLV belongs to wrong address.\n");
+            return RFC5444_DROP_PACKET;
+        }
         printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
         packet_data.metricType = tlv->type;
         packet_data.origNode.metric = *tlv->single_value;
-        tlv = tlv->next_entry;
     }
     return RFC5444_OKAY;
 }
@@ -195,9 +197,6 @@ static enum rfc5444_result _cb_rreq_end_callback(
     if (packet_data.hoplimit == 0) {
         printf("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
-    }
-    if () {
-        
     }
 
     packet_data.hoplimit-- ;
@@ -266,7 +265,7 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
         printf("ERROR: missing SeqNum TLV.\n");
         return RFC5444_DROP_PACKET;
     }
-    while (tlv) {
+    else {
         if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
             printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
             is_targNode_addr = false;
@@ -283,24 +282,22 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
             printf("ERROR: illegal extension type.\n");
             return RFC5444_DROP_PACKET;
         }
-        tlv = tlv->next_entry;
     }
 
     /* handle Metric TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_METRIC].tlv;
     if (!tlv && is_targNode_addr){
-        printf("\tERROR: Missing metric TLV.\n");
+        printf("\tERROR: Missing or unknown metric TLV.\n");
         return RFC5444_DROP_PACKET;
     }
-    if (tlv && !is_targNode_addr){
-        printf("\tERROR: metric TLV belongs to wrong address.\n");
-        return RFC5444_DROP_PACKET;
-    }
-    while (tlv) {
+    if (tlv) {
+        if (!is_targNode_addr){
+            printf("\tERROR: metric TLV belongs to wrong address.\n");
+            return RFC5444_DROP_PACKET;
+        }
         printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
         packet_data.metricType = tlv->type;
         packet_data.origNode.metric = *tlv->single_value;
-        tlv = tlv->next_entry;
     }
     return RFC5444_OKAY;
 }
@@ -428,7 +425,7 @@ int reader_handle_packet(void* buffer, size_t length, struct netaddr sender)
 /*
  * handle collected data as described in Section 6.1 
  */
-static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
+bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
 {
     /* Check if new info is stale */    
     if (node_data->seqNum < rt_entry->seqNum )
@@ -438,3 +435,27 @@ static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct n
         return false;
     return true;
 }
+
+/*
+ * Cost(L): Get Cost of a Link regarding the specified metric.
+ * (currently only AODVV2_DEFAULT_METRIC_TYPE (HopCt) immplemented)
+ * returns cost if metric is known, NULL otherwise
+ */
+uint8_t link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
+{
+    if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
+        return 1;
+    return NULL;
+}
+
+/*
+ * MEX_METRIC[MetricType]:
+ * returns maximum value of the given metric if metric is known, NULL otherwise.
+ */
+uint8_t max_metric(uint8_t metricType)
+{
+    if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
+        return AODVV2_MAX_HOPCOUNT;
+    return NULL;
+}
+
