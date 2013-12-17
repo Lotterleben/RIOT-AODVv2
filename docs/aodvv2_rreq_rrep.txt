@@ -150,17 +150,17 @@ successful implementation if everything in the document.
    To apply the route update, the route table entry is populated with
    the following information:
 
-   o  Route.Address := RteMsg.Addr
+   o  Route.Address := RteMsg.Addr [DONE]
    o  If RteMsg.PrefixLength exists, then Route.PrefixLength :=
       RteMsg.PrefixLength.  Otherwise, Route.PrefixLength := maximum
-      length for address family (either 32 or 128).
-   o  Route.SeqNum := RteMsg.SeqNum
+      length for address family (either 32 or 128). [DONE]
+   o  Route.SeqNum := RteMsg.SeqNum [DONE]
    o  Route.NextHopAddress := IP.SourceAddress (i.e., an address of the
-      node from which the RteMsg was received)
-   o  Route.Broken flag := FALSE
+      node from which the RteMsg was received) [DONE]
+   o  Route.Broken flag := FALSE [DONE]
    o  Route.Metric := (RteMsg.Metric + Cost(L)), where L is the incoming
-      link.
-   o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME).
+      link. [DONE]
+   o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME). [DONE]
 
 7.2.  RteMsg Structure
    
@@ -260,7 +260,7 @@ successful implementation if everything in the document.
    following steps.
    
    1.  The router MUST process the routing information for OrigNode and
-       TargNode contained in the RteMsg as specified in Section 6.1.
+       TargNode contained in the RteMsg as specified in Section 6.1. [DONE]
 
    3. If RteMsg.<msg-hop-limit> is zero (0), no further action is
       taken, and the RteMsg is not retransmitted.  Otherwise, the
@@ -275,7 +275,7 @@ successful implementation if everything in the document.
    5.  If (MAX_METRIC[RteMsg.MetricType] - Cost(L)) <= RteMsg.Metric,
        the RteMsg is disregarded, where Cost(L) denotes the cost of
        traversing the incoming link (i.e., as measured by the network
-       interface receiving the incoming RteMsg).
+       interface receiving the incoming RteMsg). [DONE]
 
 7.5.1.  Additional Handling for Incoming RREQ
 
