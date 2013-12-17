@@ -34,7 +34,7 @@ struct aodvv2_routing_entry_t {
 };
 
 void init_routingtable(void);
-struct netaddr* get_next_hop(struct netaddr* addr);
+struct netaddr* get_next_hop(struct netaddr* addr, uint8_t metricType);
 void add_routing_entry(struct aodvv2_routing_entry_t* entry);
 
 /* 
@@ -42,7 +42,7 @@ OBACHT: sicher stellen dass immer nur 1 thread diesen entry
 (andere entries sind unaffected, oder?) bearbeitet! wie stell ich das am 
 elegantesten an?
 */
-struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr);
-void delete_routing_entry(struct netaddr* addr);
+struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t metricType);
+void delete_routing_entry(struct netaddr* addr, uint8_t metricType);
 void print_rt(void);
 void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry);

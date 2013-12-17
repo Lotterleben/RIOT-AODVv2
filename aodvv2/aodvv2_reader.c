@@ -211,7 +211,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
      * of the RteMsg, matching RteMsg.Addr.
      */
 
-    rt_entry = get_routing_entry(&packet_data.origNode.addr);
+    rt_entry = get_routing_entry(&packet_data.origNode.addr, packet_data.metricType);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
         printf("\tCreating new Routing Table entry...\n");
@@ -370,7 +370,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
      * of the RteMsg, matching RteMsg.Addr.
      */
 
-    rt_entry = get_routing_entry(&packet_data.targNode.addr);
+    rt_entry = get_routing_entry(&packet_data.targNode.addr, packet_data.metricType);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
         printf("\tCreating new Routing Table entry...\n");
@@ -459,6 +459,13 @@ bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_dat
     if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken))
         return false;
     return true;
+}
+
+/*
+ * Determines if a message is redundant (and thus should be discarded)
+ */
+bool is_redundant(){
+
 }
 
 /*

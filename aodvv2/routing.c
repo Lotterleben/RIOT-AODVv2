@@ -20,9 +20,9 @@ void init_routingtable(void)
 }
 
 /* returns NULL if addr is not in routing table */
-struct netaddr* get_next_hop(struct netaddr* addr)
+struct netaddr* get_next_hop(struct netaddr* addr, uint8_t metricType)
 {
-    struct aodvv2_routing_entry_t* entry = get_routing_entry(addr);
+    struct aodvv2_routing_entry_t* entry = get_routing_entry(addr, metricType);
     if (!entry)
         return NULL;
     return(&entry->nextHopAddress);
@@ -34,7 +34,7 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
     /* only update if we don't already know the address
      * TODO: does this always make sense?
      */
-    if (!(get_routing_entry(&(entry->address)))){ // na ob das so stimmt...
+    if (!(get_routing_entry(&(entry->address), entry->metricType))){ // na ob das so stimmt...
         /*find free spot in RT and place rt_entry there */
         for (uint8_t i = 0; i< AODVV2_MAX_ROUTING_ENTRIES; i++){
             if (routing_table[i].address._type == AF_UNSPEC) {
@@ -49,20 +49,22 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
 /*
  * retrieve pointer to a routing table entry. To edit, simply follow the pointer.
  */
-struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr)
+struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t metricType)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
+        if (ipv6_addr_is_equal(&routing_table[i].address, addr)
+            && routing_table[i].metricType == metricType) {
             return &routing_table[i];
         }
     }
     return NULL;
 }
 
-void delete_routing_entry(struct netaddr* addr)
+void delete_routing_entry(struct netaddr* addr, uint8_t metricType)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (ipv6_addr_is_equal(&routing_table[i].address, addr)) {
+        if (ipv6_addr_is_equal(&routing_table[i].address, addr)
+            && routing_table[i].metricType == metricType) {
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
             return;
         }

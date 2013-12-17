@@ -58,17 +58,22 @@ void test_rt(void)
     add_routing_entry(&entry_2);
     print_rt();
     printf("Deleting first entry: %s ...\n", netaddr_to_string(&nbuf, & address));
-    delete_routing_entry(&address);
+    delete_routing_entry(&address, entry_1.metricType);
     print_rt();
     printf("getting next hop of second entry:\n");
-    printf("\t%s\n", netaddr_to_string(&nbuf, get_next_hop(&next_hop)));
+    printf("\t%s\n", netaddr_to_string(&nbuf, get_next_hop(&next_hop, entry_2.metricType)));
+    printf("getting next hop of second entry, but providing different metric type:\n");
+    if (get_next_hop(&next_hop, 0)== NULL)
+        printf("\tSuccess: address in combination with metric type 0 not in routing table, get_next_hop() returned NULL\n");
+    else
+        printf("\tSomething went wrong, get_next_hop() should've returned NULL\n");
     printf("getting next hop of first (deleted) entry:\n");
-    if (get_next_hop(&address) == NULL)
+    if (get_next_hop(&address, entry_1.metricType) == NULL)
         printf("\tSuccess: address not in routing table, get_next_hop() returned NULL\n");
     else
         printf("\tSomething went wrong, get_next_hop() should've returned NULL\n");
     printf("getting first (deleted) entry:\n");
-    if (get_routing_entry(&address) == NULL)
+    if (get_routing_entry(&address, entry_1.metricType) == NULL)
         printf("\tSuccess: address not in routing table, add_routing_entry() returned NULL\n");
     else
         printf("\tSomething went wrong, get_routing_entry() should've returned NULL\n");
