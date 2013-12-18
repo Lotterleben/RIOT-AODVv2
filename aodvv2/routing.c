@@ -53,7 +53,7 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
 struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t metricType)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (ipv6_addr_is_equal(&routing_table[i].address, addr)
+        if (!netaddr_cmp(&routing_table[i].address, addr)
             && routing_table[i].metricType == metricType) {
             return &routing_table[i];
         }
@@ -64,7 +64,7 @@ struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t m
 void delete_routing_entry(struct netaddr* addr, uint8_t metricType)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
-        if (ipv6_addr_is_equal(&routing_table[i].address, addr)
+        if (!netaddr_cmp(&routing_table[i].address, addr)
             && routing_table[i].metricType == metricType) {
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
             return;

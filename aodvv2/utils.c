@@ -1,6 +1,7 @@
 /* Some aodvv2 utilities (mostly tables) */
 #include <stdio.h>
 #include "utils.h"
+#include "include/aodvv2.h"
 
 static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
@@ -48,7 +49,7 @@ void add_client(struct netaddr* addr, uint8_t prefixlen)
 bool is_client(struct netaddr* addr, uint8_t prefixlen)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        if (netaddr_cmp(&client_table[i].address, addr))
+        if (!netaddr_cmp(&client_table[i].address, addr))
             return true;
     }
     return false;
@@ -65,7 +66,7 @@ void delete_client(struct netaddr* addr, uint8_t prefixlen)
         return;
     
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        if (netaddr_cmp(&client_table[i].address, addr)) {
+        if (!netaddr_cmp(&client_table[i].address, addr)) {
             memset(&client_table[i], 0, sizeof(client_table[i]));
             return;
         }
@@ -103,10 +104,14 @@ void init_rreqtable(void)
 bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
 {
     struct aodvv2_rreq_entry* comparable_rreq;
-    if (!get_comparable_rreq(packet_data)){
 
+    /* if there is no comparable rreq stored, add one and  */
+    if (!(comparable_rreq = get_comparable_rreq(packet_data))){
+        add_rreq(packet_data);
+        return false;
     }
 
+    // TODO
 }
 
 /*
@@ -115,26 +120,23 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
  */
 struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data)
 {   
+    timex_t now, expiration_time;
+    rtc_time(&now);
+    expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
+    
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
-        if (netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
-            && netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)
+        // TODO: first, check if timestamp stale & memset in case
+        //if (timex_cmp(rreq_table[i])){
+
+        //}
+        if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
+            && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)
             && rreq_table[i].metricType == packet_data->metricType) {
             return &rreq_table[i];          
         }
     }
     return NULL;
 }
-
-
-/* contains all data contained in an aodvv2 packet 
-struct aodvv2_packet_data {
-    uint8_t hoplimit;
-    struct netaddr sender;
-    uint8_t metricType;
-    struct node_data origNode;
-    struct node_data targNode;
-};
-*/
 
 void add_rreq(struct aodvv2_packet_data* packet_data)
 {
