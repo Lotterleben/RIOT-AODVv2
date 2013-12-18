@@ -235,6 +235,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->prefixlen = packet_data.origNode.prefixlen;
     rt_entry->seqNum = packet_data.origNode.seqNum;
     rt_entry->nextHopAddress = packet_data.sender;
+    rtc_time(&now);
     rt_entry->lastUsed = now;
     rt_entry->expirationTime = timex_add(now, validity_t);
     rt_entry->broken = false;
@@ -394,6 +395,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry->prefixlen = packet_data.targNode.prefixlen;
     rt_entry->seqNum = packet_data.targNode.seqNum;
     rt_entry->nextHopAddress = packet_data.sender;
+    rtc_time(&now);
     rt_entry->lastUsed = now;
     rt_entry->expirationTime = timex_add(now, validity_t);
     rt_entry->broken = false;
