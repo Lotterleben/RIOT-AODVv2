@@ -8,6 +8,9 @@
 /* RFC5498 */
 #define MANET_PORT  269
 
+// I'M SO SORRY
+#define MY_IP "::42"
+
 enum msg_type {
     RFC5444_MSGTYPE_RREQ,
     RFC5444_MSGTYPE_RREP,

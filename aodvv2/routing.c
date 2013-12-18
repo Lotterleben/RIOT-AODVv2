@@ -17,6 +17,7 @@ void init_routingtable(void)
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
     }
+    printf("[aodvv2] routing table initialized.\n");
 }
 
 /* returns NULL if addr is not in routing table */
@@ -36,7 +37,7 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
      */
     if (!(get_routing_entry(&(entry->address), entry->metricType))){ // na ob das so stimmt...
         /*find free spot in RT and place rt_entry there */
-        for (uint8_t i = 0; i< AODVV2_MAX_ROUTING_ENTRIES; i++){
+        for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++){
             if (routing_table[i].address._type == AF_UNSPEC) {
                 /* TODO: sanity check? */
                 routing_table[i] = *entry; 

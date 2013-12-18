@@ -11,8 +11,6 @@ void test_rt(void)
     struct netaddr address, next_hop;
     struct netaddr_str nbuf;
 
-    init_routingtable();
-
     /* init data */
     netaddr_from_string(&address, "::23");
     netaddr_from_string(&next_hop, "::42");
