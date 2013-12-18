@@ -204,7 +204,9 @@ static enum rfc5444_result _cb_rreq_end_callback(
         return RFC5444_DROP_PACKET;
     }
     packet_data.hoplimit-- ;
- 
+    rtc_time(&now);
+    packet_data.timestamp = now;
+
     /* for every relevant
      * address (RteMsg.Addr) in the RteMsg, HandlingRtr searches its route
      * table to see if there is a route table entry with the same MetricType
@@ -235,9 +237,8 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->prefixlen = packet_data.origNode.prefixlen;
     rt_entry->seqNum = packet_data.origNode.seqNum;
     rt_entry->nextHopAddress = packet_data.sender;
-    rtc_time(&now);
-    rt_entry->lastUsed = now;
-    rt_entry->expirationTime = timex_add(now, validity_t);
+    rt_entry->lastUsed = packet_data.timestamp;
+    rt_entry->expirationTime = timex_add(packet_data.timestamp, validity_t);
     rt_entry->broken = false;
     rt_entry->metricType = packet_data.metricType;
     rt_entry->metric = packet_data.origNode.metric + link_cost;
@@ -364,6 +365,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
         return RFC5444_DROP_PACKET;
     }
     packet_data.hoplimit-- ;
+    rtc_time(&now);
+    packet_data.timestamp = now;
 
     /* for every relevant
      * address (RteMsg.Addr) in the RteMsg, HandlingRtr searches its route
@@ -395,9 +398,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry->prefixlen = packet_data.targNode.prefixlen;
     rt_entry->seqNum = packet_data.targNode.seqNum;
     rt_entry->nextHopAddress = packet_data.sender;
-    rtc_time(&now);
-    rt_entry->lastUsed = now;
-    rt_entry->expirationTime = timex_add(now, validity_t);
+    rt_entry->lastUsed = packet_data.timestamp;
+    rt_entry->expirationTime = timex_add(packet_data.timestamp, validity_t);
     rt_entry->broken = false;
     rt_entry->metricType = packet_data.metricType;
     rt_entry->metric = packet_data.targNode.metric + link_cost;

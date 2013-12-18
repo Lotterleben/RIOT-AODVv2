@@ -59,6 +59,7 @@ struct aodvv2_packet_data {
     uint8_t metricType;
     struct node_data origNode;
     struct node_data targNode;
+    timex_t timestamp;
 };
 
 void reader_init(void);
