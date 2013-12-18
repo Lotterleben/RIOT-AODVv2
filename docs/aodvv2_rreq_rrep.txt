@@ -365,6 +365,29 @@ successful implementation if everything in the document.
       earlier RREQ, and RREP processing is completed.  Any packets
       buffered for OrigNode should be transmitted.
 
+7.6.  Suppressing Redundant RREQ messages
+
+   Since RREQ messages are multicast, there are common circumstances in
+   which an AODVv2 router might transmit a redundant response (RREQ or
+   RREP), duplicating the information transmitted in response to some
+   other recent RREQ (see Section 5.7).  Before responding, an AODVv2
+   router MUST suppress such redundant RREQ messages.  This is done by
+   checking the list of recently received RREQs to determine whether the
+   incoming RREQ contains new information, as follows:
+
+   o  The AODVv2 router searches the RREQ Table for recent entries with
+      the same OrigNode, TargNode, and Metric Type.  If there is no such
+      entry, the incoming RREQ message is not suppressed.  A new entry
+      for the incoming RREQ is created in the RREQ Table.
+   o  If there is such an entry, and the incoming RREQ has a newer
+      sequence number, the incoming RREQ is not suppressed, and the
+      existing table entry MUST be updated to reflect the new Sequence
+      Number and Metric.
+   o  Similarly, if the Sequence Numbers are the same, and the incoming
+      RREQ offers a better Metric, the incoming RREQ is not suppressed,
+      and the RREQ Table entry MUST be updated to reflect the new
+      Metric.
+   o  Otherwise, the incoming RREQ is suppressed.
 
 ========== APPENDIX ============================================================
 
