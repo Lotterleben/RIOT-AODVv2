@@ -4,6 +4,9 @@
 
 static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
 
+/*
+ * Initialize table of clients that the router currently serves.
+ */
 void init_clienttable(void)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
@@ -11,7 +14,6 @@ void init_clienttable(void)
     }
     printf("[aodvv2] client table initialized.\n");
 }
-
 
 /*
  * Add client to the list of clients that the router currently serves. 
@@ -48,7 +50,7 @@ bool is_client(struct netaddr* addr, uint8_t prefixlen)
 }
 
 /*
- * Selete a client from the list of clients that the router currently serves. 
+ * Delete a client from the list of clients that the router currently serves. 
  * Since the current version doesn't offer support for Client Networks,
  * the prefixlen is currently ignored.
  */
