@@ -220,6 +220,18 @@ uint16_t get_seqNum(void)
     return seqNum;
 }
 
+/* TODO: implement non-naive approach 
+ * returns -1 when s1 is smaller, 0 if equal, 1 if s1 is bigger
+ */
+int cmp_seqnum(uint32_t s1, uint32_t s2)
+{
+    if (s1 < s2)
+        return -1;
+    if (s1 > s2)
+        return 1;
+    return 0;
+}
+
 void print_ipv6_addr(const ipv6_addr_t *ipv6_addr)
 {
     char addr_str[IPV6_MAX_ADDR_STR_LEN];

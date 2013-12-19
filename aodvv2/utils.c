@@ -104,37 +104,88 @@ void init_rreqtable(void)
 bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
 {
     struct aodvv2_rreq_entry* comparable_rreq;
+    int seqNum_comparison;
+    timex_t now;
 
-    /* if there is no comparable rreq stored, add one and  */
-    if (!(comparable_rreq = get_comparable_rreq(packet_data))){
+    comparable_rreq = get_comparable_rreq(packet_data);
+    
+    /* if there is no comparable rreq stored, add one and return false */
+    if (get_comparable_rreq(packet_data) == NULL){
         add_rreq(packet_data);
         return false;
     }
 
-    // TODO
+    seqNum_comparison = cmp_seqnum(packet_data->origNode.seqNum, comparable_rreq->seqNum);
+
+    /* 
+     * If two RREQs have the same
+     * metric type and OrigNode and Targnode addresses, the information from
+     * the one with the older Sequence Number is not needed in the table
+     */
+    if (seqNum_comparison == -1)
+        return true;
+
+    if (seqNum_comparison == 1)
+        /* Update RREQ table entry with new seqnum value */
+        comparable_rreq->seqNum = packet_data->origNode.seqNum;
+
+    /* 
+     * in case they have the same Sequence Number, the one with the greater
+     * Metric value is not needed
+     */
+    if (seqNum_comparison == 0){
+        if (comparable_rreq->metric <= packet_data->origNode.metric)
+            return true;
+        /* Update RREQ table entry with new metric value */
+        comparable_rreq->metric = packet_data->origNode.metric;
+    }
+
+    /* Since we've changed RREQ info, update the timestamp */
+    rtc_time(&now);
+    comparable_rreq->timestamp = now;
+    return false;
+
 }
 
 /*
  * retrieve pointer to a comparable (according to Section 6.7.) 
  * RREQ table entry. To edit, simply follow the pointer.
+ * Two AODVv2 RREQ messages are comparable if:
+
+   o  they have the same metric type
+   o  they have the same OrigNode and TargNode addresses
+   if there is no comparable RREQ, return NULL.
  */
+
+// TODO: apparently, this doesn't return NULL at     return NULL; . WTF??!!
 struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data)
 {   
-    timex_t now, expiration_time;
+    struct netaddr_str nbuf;
+
+    timex_t now, expiration_time, null_time;
     rtc_time(&now);
     expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
+    null_time = timex_set(0,0);
     
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
-        // TODO: first, check if timestamp stale & memset in case
-        //if (timex_cmp(rreq_table[i])){
+        /* Check if RREQ is super-stale and clear the space it takes up if it is
+         * (because we've implemented our table crappily) */
+        /*
+        //TODO: debug this
+        if (!timex_cmp(rreq_table[i].timestamp,null_time )
+            && timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
+            printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode) );
 
-        //}
+            memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
+        }
+        */
+
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
             && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)
-            && rreq_table[i].metricType == packet_data->metricType) {
+            && rreq_table[i].metricType == packet_data->metricType){
             return &rreq_table[i];          
         }
-    }
+    }        
     return NULL;
 }
 

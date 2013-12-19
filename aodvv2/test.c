@@ -2,10 +2,13 @@
 
 #include "include/aodvv2.h"
 #include "routing.h"
+#include "aodvv2_reader.h"
 #include "common/netaddr.h"
 
 void test_rt(void)
 {
+    init_routingtable();
+
     timex_t now, validity_t;
     uint8_t success;
     struct netaddr address, next_hop;
@@ -75,4 +78,79 @@ void test_rt(void)
         printf("\tSuccess: address not in routing table, add_routing_entry() returned NULL\n");
     else
         printf("\tSomething went wrong, get_routing_entry() should've returned NULL\n");
+}
+
+void test_rreqt(void)
+{
+    init_rreqtable();
+
+    timex_t now, validity_t;
+    uint8_t success;
+    struct netaddr address, next_hop;
+    struct netaddr_str nbuf;
+
+    /* init data */
+    netaddr_from_string(&address, "::23");
+    netaddr_from_string(&next_hop, "::42");
+
+    rtc_time(&now);
+    validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
+
+    struct aodvv2_packet_data entry_1 = {
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .sender = address,
+        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
+        .origNode = {
+            .addr = address,
+            .prefixlen = 128,
+            .metric = 12,
+            .seqNum = 13,
+        },
+        .targNode = {
+            .addr = next_hop,
+            .prefixlen = 128,
+            .metric = 12,
+            .seqNum = 0,
+        },
+        .timestamp = now,
+    };
+
+    rtc_time(&now);
+
+    printf("testing if entry_1 is redundant:\n");
+    if (rreq_is_redundant(&entry_1))
+        printf("\tSomething went wrong\n");
+    else
+        printf("\tSuccess!\n");
+
+    // debug
+    printf("testing again if entry_1 is redundant:\n");
+    if (rreq_is_redundant(&entry_1))
+        printf("\tSuccess!\n");
+    else
+        printf("\tSomething went wrong, the RREQ Table should already know entry_1\n");
+
+    entry_1.origNode.metric = 11;
+
+    printf("testing again, this time with smaller metric:\n");
+    if (rreq_is_redundant(&entry_1))
+        printf("\tSomething went wrong\n");
+    else
+        printf("\tSuccess!\n");
+
+    entry_1.origNode.seqNum = 5;
+
+    printf("testing again, this time with smaller seqNum:\n");
+    if (rreq_is_redundant(&entry_1))
+        printf("\tSuccess!\n");
+    else
+        printf("\tSomething went wrong\n");
+
+    entry_1.origNode.seqNum = 14;
+    
+    printf("testing again, this time with bigger seqNum:\n");
+    if (rreq_is_redundant(&entry_1))
+        printf("\tSomething went wrong\n");
+    else
+        printf("\tSuccess!\n");
 }
