@@ -170,7 +170,6 @@ struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
         /* Check if RREQ is super-stale and clear the space it takes up if it is
          * (because we've implemented our table crappily) */
-        /*
         //TODO: debug this
         if (!timex_cmp(rreq_table[i].timestamp,null_time )
             && timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
@@ -178,7 +177,6 @@ struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_
 
             memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
         }
-        */
 
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
             && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)

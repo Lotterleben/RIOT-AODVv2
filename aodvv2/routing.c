@@ -40,7 +40,9 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
         for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++){
             if (routing_table[i].address._type == AF_UNSPEC) {
                 /* TODO: sanity check? */
-                routing_table[i] = *entry; 
+                //free((void *)routing_table[i]);
+                //routing_table[i] = *entry;
+                memcpy(&routing_table[i], entry, sizeof(*entry));
                 return;
             }
         }

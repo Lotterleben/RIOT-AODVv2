@@ -37,7 +37,7 @@
 static struct autobuf _hexbuf;
 
 static int sock;
-static sockaddr6_t sockaddr;
+static sockaddr6_t sa_sender, sa_bcast;
 
 static uint16_t seqNum; 
 
@@ -72,13 +72,19 @@ void sender_init(void)
     reader_init();
     writer_init(write_packet);
 
-    /* init (broadcast) address */
-    sockaddr.sin6_family = AF_INET6;
-    sockaddr.sin6_port = MANET_PORT;
-    ipv6_addr_set_all_nodes_addr(&sockaddr.sin6_addr); // TODO: does this make sense?
+    /* init my own address */
+    sa_sender.sin6_family = AF_INET6;
+    sa_sender.sin6_port = HTONS(MANET_PORT);
 
-    //printf("[aodvv2] My IP address is:\n");
-    //print_ipv6_addr(&sockaddr.sin6_addr);
+    ipv6_addr_t local_addr = {0};
+    ipv6_iface_get_best_src_addr(&local_addr, &sa_sender.sin6_addr);
+
+    sa_bcast.sin6_family = AF_INET6;
+    ipv6_addr_set_all_nodes_addr(&sa_bcast.sin6_addr); // TODO: does this make sense?
+
+
+    printf("[aodvv2] My IP address is:\n");
+    print_ipv6_addr(&sa_bcast.sin6_addr);
 
     /* init socket */
     sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -123,7 +129,7 @@ void receive_udp(char *str)
 {
     sockaddr6_t sa = {0};
     sa.sin6_family = AF_INET6;
-    sa.sin6_port = MANET_PORT;
+    sa.sin6_port = HTONS(MANET_PORT);
 
     uint32_t fromlen;
     int32_t recvsize; 
@@ -142,8 +148,9 @@ void receive_udp(char *str)
     printf("ready to receive packets.\n");
 
     for(;;){
-        recvsize = destiny_socket_recvfrom(sock, (void *)buffer, sizeof(buffer), 0, 
-                                            &sa, &fromlen);
+        recvsize = destiny_socket_recvfrom(sock, &buffer, sizeof(buffer), 0, 
+                                            &sa_bcast, &fromlen);
+        //recvsize = destiny_socket_recv(sock, (void *)buffer, sizeof(buffer), 0);
 
         if(recvsize < 0) {
             printf("Error receiving data!\n");
@@ -176,7 +183,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     rfc5444_print_direct(&_hexbuf, buffer, length);
     printf("%s", abuf_getptr(&_hexbuf));
 
-    //send_udp(buffer, length);
+    send_udp(buffer, length);
 
     /* parse packet */
     // TODO: dummy solution. insert proper address.
@@ -190,8 +197,8 @@ void send_udp(void *buffer, size_t length)
     int bytes_sent;
 
     printf("sending data...\n");
-    bytes_sent = destiny_socket_sendto(sock, buffer, length, 0, &sockaddr, 
-                                       sizeof sockaddr);
+    bytes_sent = destiny_socket_sendto(sock, buffer, length, 0, &sa_bcast, 
+                                       sizeof sa_bcast);
 
     if(bytes_sent < 0) {
         printf("Error sending packet: % i\n", bytes_sent);
