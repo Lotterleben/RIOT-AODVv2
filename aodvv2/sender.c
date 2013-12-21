@@ -183,7 +183,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     rfc5444_print_direct(&_hexbuf, buffer, length);
     printf("%s", abuf_getptr(&_hexbuf));
 
-    send_udp(buffer, length);
+    //send_udp(buffer, length);
 
     /* parse packet */
     // TODO: dummy solution. insert proper address.

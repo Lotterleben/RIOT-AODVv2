@@ -87,8 +87,8 @@ void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry)
     printf("\t expirationTime: %i\n", rt_entry->expirationTime);
     printf("\t broken: %d\n", rt_entry->broken);
     printf("\t metricType: %i\n", rt_entry->metricType);
-    printf("\t metric: %i\n", rt_entry->metric);
-    printf("\t state: \n", rt_entry->state);
+    printf("\t metric: %d\n", rt_entry->metric);
+    printf("\t state: %d\n", rt_entry->state);
 }
 
 void print_rt(void)

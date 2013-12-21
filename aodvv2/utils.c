@@ -157,7 +157,6 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
    if there is no comparable RREQ, return NULL.
  */
 
-// TODO: apparently, this doesn't return NULL at     return NULL; . WTF??!!
 struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data)
 {   
     struct netaddr_str nbuf;
@@ -171,12 +170,14 @@ struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_
         /* Check if RREQ is super-stale and clear the space it takes up if it is
          * (because we've implemented our table crappily) */
         //TODO: debug this
+        /*
         if (!timex_cmp(rreq_table[i].timestamp,null_time )
             && timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
             printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode) );
 
             memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
         }
+        */
 
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
             && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)

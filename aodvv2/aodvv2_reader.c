@@ -203,6 +203,20 @@ static enum rfc5444_result _cb_rreq_end_callback(
         printf("\tMetric Limit reached. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
+
+    /*
+      The incoming RREQ MUST be checked against previously received
+      information from the RREQ Table Section 7.6.  If the information
+      in the incoming RteMsg is redundant, then then no further action
+      is taken.
+    */
+
+    // TODO: debug this
+    if (rreq_is_redundant(&packet_data)){
+        printf("Packet is redundant. Dropping Packet.");
+        return RFC5444_DROP_PACKET;
+    }
+
     packet_data.hoplimit-- ;
     rtc_time(&now);
     packet_data.timestamp = now;
@@ -242,7 +256,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->broken = false;
     rt_entry->metricType = packet_data.metricType;
     rt_entry->metric = packet_data.origNode.metric + link_cost;
-    // TODO: state 
+    rt_entry->state = ROUTE_STATE_ACTIVE;
 
     printf("new entry:\n");
     print_rt_entry(rt_entry);
@@ -403,7 +417,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry->broken = false;
     rt_entry->metricType = packet_data.metricType;
     rt_entry->metric = packet_data.targNode.metric + link_cost;
-    // TODO: state 
+    rt_entry->state = ROUTE_STATE_ACTIVE;
 
     printf("new entry:\n");
     print_rt_entry(rt_entry);
@@ -464,13 +478,6 @@ bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_dat
     if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken))
         return false;
     return true;
-}
-
-/*
- * Determines if a message is redundant (and thus should be discarded)
- */
-bool is_redundant(){
-
 }
 
 /*
