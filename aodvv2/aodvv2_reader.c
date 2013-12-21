@@ -455,11 +455,11 @@ void reader_cleanup(void)
 
 /**
  * 
- * @param sender Address of the node from which the packet was received (TODO: should this be a pointer?)
+ * @param sender Address of the node from which the packet was received
  */
-int reader_handle_packet(void* buffer, size_t length, struct netaddr sender)
+int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 {
-    packet_data.sender = sender;
+    memcpy(&packet_data.sender, sender, sizeof(sender));
     return rfc5444_reader_handle_packet(&reader, buffer, length);
 }
 

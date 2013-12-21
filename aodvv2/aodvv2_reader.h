@@ -64,5 +64,5 @@ struct aodvv2_packet_data {
 
 void reader_init(void);
 void reader_cleanup(void);
-int reader_handle_packet(void* buffer, size_t length, struct netaddr sender);
+int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender);
 #endif /* READER_H_ */

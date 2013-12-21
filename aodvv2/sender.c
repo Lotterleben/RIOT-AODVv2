@@ -189,7 +189,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     // TODO: dummy solution. insert proper address.
     struct netaddr addr;
     netaddr_from_string(&addr, "::111");
-    reader_handle_packet(buffer, length, addr);
+    reader_handle_packet(buffer, length, &addr);
 }
 
 void send_udp(void *buffer, size_t length)
