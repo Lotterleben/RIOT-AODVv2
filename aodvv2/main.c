@@ -111,7 +111,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     shell_run(&shell);
     */
     //test_rt();
-    //test_rreqt();
+    test_rreqt();
     //send_rreq("");
     send_rreq("");
     

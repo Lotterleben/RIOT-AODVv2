@@ -210,10 +210,8 @@ static enum rfc5444_result _cb_rreq_end_callback(
       in the incoming RteMsg is redundant, then then no further action
       is taken.
     */
-
-    // TODO: debug this
     if (rreq_is_redundant(&packet_data)){
-        printf("Packet is redundant. Dropping Packet.");
+        printf("Packet is redundant. Dropping Packet.\n");
         return RFC5444_DROP_PACKET;
     }
 
@@ -459,7 +457,7 @@ void reader_cleanup(void)
  */
 int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 {
-    memcpy(&packet_data.sender, sender, sizeof(sender));
+    memcpy(&packet_data.sender, sender, sizeof(*sender));
     return rfc5444_reader_handle_packet(&reader, buffer, length);
 }
 

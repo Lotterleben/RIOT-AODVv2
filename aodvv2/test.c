@@ -90,8 +90,8 @@ void test_rreqt(void)
     struct netaddr_str nbuf;
 
     /* init data */
-    netaddr_from_string(&address, "::23");
-    netaddr_from_string(&next_hop, "::42");
+    netaddr_from_string(&address, "::42");
+    netaddr_from_string(&next_hop, "::23");
 
     rtc_time(&now);
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
@@ -130,7 +130,7 @@ void test_rreqt(void)
     else
         printf("\tSomething went wrong, the RREQ Table should already know entry_1\n");
 
-    entry_1.origNode.metric = 11;
+    entry_1.origNode.metric = 1;
 
     printf("testing again, this time with smaller metric:\n");
     if (rreq_is_redundant(&entry_1))
@@ -138,7 +138,7 @@ void test_rreqt(void)
     else
         printf("\tSuccess!\n");
 
-    entry_1.origNode.seqNum = 5;
+    entry_1.origNode.seqNum = 0;
 
     printf("testing again, this time with smaller seqNum:\n");
     if (rreq_is_redundant(&entry_1))
@@ -146,7 +146,7 @@ void test_rreqt(void)
     else
         printf("\tSomething went wrong\n");
 
-    entry_1.origNode.seqNum = 14;
+    entry_1.origNode.seqNum = 1;
     
     printf("testing again, this time with bigger seqNum:\n");
     if (rreq_is_redundant(&entry_1))
