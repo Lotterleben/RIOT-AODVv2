@@ -1,31 +1,81 @@
-/* No proper tests, just some methods to check routine things */
+#include <stdio.h>
 
 #include "include/aodvv2.h"
 #include "routing.h"
 #include "aodvv2_reader.h"
 #include "common/netaddr.h"
+#include "utils.h"
 
-void test_rt(void)
+#include "cunit/cunit.h"
+
+struct netaddr_str nbuf;
+
+char* node_data_to_string(struct node_data* node_data);
+char* packet_data_to_string(struct aodvv2_packet_data* packet_data);
+
+void test_routingtable_get_entry(struct netaddr* addr, uint8_t metricType)
 {
-    init_routingtable();
+   struct aodvv2_routing_entry_t* entry_result = get_routing_entry(addr, metricType);
+   CHECK_TRUE(entry_result != NULL, "there should be an entry for %s with metrictType %i\n", netaddr_to_string(&nbuf, addr), metricType);
+}
 
+void test_routingtable_get_entry_bullshitdata(struct netaddr* addr, uint8_t metricType)
+{
+    struct aodvv2_routing_entry_t* entry_result = get_routing_entry(addr, metricType);
+    CHECK_TRUE(entry_result == NULL, "there should be no entry for %s with metrictType %i\n", netaddr_to_string(&nbuf, addr), metricType);
+}
+
+void test_routingtable_get_next_hop(struct netaddr* addr, uint8_t metricType, struct netaddr* next_hop_expected)
+{
+    int addr_equal = -1;
+    struct netaddr* next_hop_result = get_next_hop(addr, metricType);
+    
+    CHECK_TRUE(next_hop_result != NULL, "no next hop for %s with metrictType %i\n", netaddr_to_string(&nbuf, addr), metricType);
+
+    if (next_hop_result)
+        addr_equal = netaddr_cmp(next_hop_expected, next_hop_result);
+
+    CHECK_TRUE( addr_equal == 0, "unexpected next hop for %s with metrictType %i: \n\t found: %s expected: %s\n", 
+                netaddr_to_string(&nbuf, addr), metricType, netaddr_to_string(&nbuf, next_hop_result), 
+                netaddr_to_string(&nbuf, next_hop_expected));
+}
+
+void test_routingtable_get_next_hop_bullshitdata(struct netaddr* addr, uint8_t metricType)
+{
+    struct netaddr* next_hop_result = get_next_hop(addr, metricType);   
+    CHECK_TRUE(next_hop_result == NULL, "there should be no next hop for %s with metricType %i\n", 
+                netaddr_to_string(&nbuf, addr), metricType);
+}
+
+void test_rreqtable_rreq_not_redundant(struct aodvv2_packet_data* packet_data)
+{
+    bool data_is_redundant = rreq_is_redundant(packet_data);
+    CHECK_TRUE(!data_is_redundant, "the following data shouldn't be redundant:\n%s", packet_data_to_string(packet_data));
+}
+
+void test_rreqtable_rreq_redundant(struct aodvv2_packet_data* packet_data)
+{
+    bool data_is_redundant = rreq_is_redundant(packet_data);
+    CHECK_TRUE(data_is_redundant, "the following data should be redundant:\n%s", packet_data_to_string(packet_data));
+}
+
+void test_routingtable(void)
+{
     timex_t now, validity_t;
-    uint8_t success;
-    struct netaddr address, next_hop;
-    struct netaddr_str nbuf;
+    struct netaddr addr_1, addr_2;
 
     /* init data */
-    netaddr_from_string(&address, "::23");
-    netaddr_from_string(&next_hop, "::42");
+    netaddr_from_string(&addr_1, "::23");
+    netaddr_from_string(&addr_2, "::42");
 
     rtc_time(&now);
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
     struct aodvv2_routing_entry_t entry_1 = {
-        .address = address,
+        .address = addr_1,
         .prefixlen = 5,
         .seqNum = 6,
-        .nextHopAddress = next_hop,
+        .nextHopAddress = addr_2,
         .lastUsed = now,
         .expirationTime = timex_add(now, validity_t),
         .broken = false,
@@ -37,10 +87,10 @@ void test_rt(void)
     rtc_time(&now);
 
     struct aodvv2_routing_entry_t entry_2 = {
-        .address = next_hop,
+        .address = addr_2,
         .prefixlen = 5,
         .seqNum = 0, // illegal, but what the hell. for testing purposes. ahum.
-        .nextHopAddress = next_hop,
+        .nextHopAddress = addr_2,
         .lastUsed = now,
         .expirationTime = timex_add(now, validity_t),
         .broken = false,
@@ -48,46 +98,42 @@ void test_rt(void)
         .metric = 13,
         .state = ROUTE_STATE_ACTIVE
     };
+    
+    START_TEST();
 
-    /* start testing */
+    /* prepare routing table */
+    init_routingtable();
+
     print_rt();
-    printf("Adding first entry: %s ...\n", netaddr_to_string(&nbuf, &address));
-    //add_routing_entry(&address, 1, 2, &next_hop, 0, 13, 0, ROUTE_STATE_IDLE);
+    printf("Adding first entry: %s ...\n", netaddr_to_string(&nbuf, &addr_2));
     add_routing_entry(&entry_1);
     print_rt();
-    printf("Adding second entry: %s ...\n", netaddr_to_string(&nbuf, &next_hop));
+    printf("Adding second entry: %s ...\n", netaddr_to_string(&nbuf, &addr_2));
     add_routing_entry(&entry_2);
     print_rt();
-    printf("Deleting first entry: %s ...\n", netaddr_to_string(&nbuf, & address));
-    delete_routing_entry(&address, entry_1.metricType);
-    print_rt();
-    printf("getting next hop of second entry:\n");
-    printf("\t%s\n", netaddr_to_string(&nbuf, get_next_hop(&next_hop, entry_2.metricType)));
-    printf("getting next hop of second entry, but providing different metric type:\n");
-    if (get_next_hop(&next_hop, 0)== NULL)
-        printf("\tSuccess: address in combination with metric type 0 not in routing table, get_next_hop() returned NULL\n");
-    else
-        printf("\tSomething went wrong, get_next_hop() should've returned NULL\n");
-    printf("getting next hop of first (deleted) entry:\n");
-    if (get_next_hop(&address, entry_1.metricType) == NULL)
-        printf("\tSuccess: address not in routing table, get_next_hop() returned NULL\n");
-    else
-        printf("\tSomething went wrong, get_next_hop() should've returned NULL\n");
-    printf("getting first (deleted) entry:\n");
-    if (get_routing_entry(&address, entry_1.metricType) == NULL)
-        printf("\tSuccess: address not in routing table, add_routing_entry() returned NULL\n");
-    else
-        printf("\tSomething went wrong, get_routing_entry() should've returned NULL\n");
+    printf("Deleting first entry: %s ...\n", netaddr_to_string(&nbuf, & addr_2));
+    delete_routing_entry(&addr_2, entry_1.metricType);
+    print_rt();   
+    
+    /* start testing */
+    test_routingtable_get_entry(&addr_1, entry_1.metricType);
+    test_routingtable_get_entry_bullshitdata(&addr_2, entry_2.metricType); // ask for nonexisting address
+    test_routingtable_get_entry_bullshitdata(&now, entry_2.metricType);    // wrong data type for address
+    test_routingtable_get_entry_bullshitdata(&addr_1, 2);                  // right address, wrong metricType 
+
+    test_routingtable_get_next_hop(&addr_1, entry_1.metricType, &addr_2);  
+    test_routingtable_get_next_hop_bullshitdata(&addr_2, entry_2.metricType); // use nonexisting address
+    test_routingtable_get_next_hop_bullshitdata(&now, entry_2.metricType);    // wrong data type for address
+    test_routingtable_get_next_hop_bullshitdata(&addr_1, 2);                  // right address, wrong metricType 
+
+    END_TEST();
 }
 
-void test_rreqt(void)
+void test_rreq_table(void)
 {
-    init_rreqtable();
 
     timex_t now, validity_t;
-    uint8_t success;
     struct netaddr address, next_hop;
-    struct netaddr_str nbuf;
 
     /* init data */
     netaddr_from_string(&address, "::42");
@@ -117,40 +163,67 @@ void test_rreqt(void)
 
     rtc_time(&now);
 
-    printf("testing if entry_1 is redundant:\n");
-    if (rreq_is_redundant(&entry_1))
-        printf("\tSomething went wrong\n");
-    else
-        printf("\tSuccess!\n");
+    START_TEST();
+    init_rreqtable();
 
-    // debug
-    printf("testing again if entry_1 is redundant:\n");
-    if (rreq_is_redundant(&entry_1))
-        printf("\tSuccess!\n");
-    else
-        printf("\tSomething went wrong, the RREQ Table should already know entry_1\n");
+    /* start testing */
 
+    test_rreqtable_rreq_not_redundant(&entry_1);
+    test_rreqtable_rreq_redundant(&entry_1);    // the RREQ Table should already know entry_1
     entry_1.origNode.metric = 1;
+    test_rreqtable_rreq_not_redundant(&entry_1);
+    entry_1.origNode.seqNum = 1;          
+    test_rreqtable_rreq_redundant(&entry_1);
+    entry_1.origNode.seqNum = 14;               // SeqNum isn now bigger than the "newest" entry (i.e. original entry_1 with seqNum 13)
+    test_rreqtable_rreq_not_redundant(&entry_1);
 
-    printf("testing again, this time with smaller metric:\n");
-    if (rreq_is_redundant(&entry_1))
-        printf("\tSomething went wrong\n");
-    else
-        printf("\tSuccess!\n");
+    // TODO: wie überprüfe ich ob das bogus data ist? geht nicht, oder?
+    test_rreqtable_rreq_redundant(&next_hop);   // feed the rreqtable bogus data
 
-    entry_1.origNode.seqNum = 0;
+    END_TEST();
+}
 
-    printf("testing again, this time with smaller seqNum:\n");
-    if (rreq_is_redundant(&entry_1))
-        printf("\tSuccess!\n");
-    else
-        printf("\tSomething went wrong\n");
 
-    entry_1.origNode.seqNum = 1;
-    
-    printf("testing again, this time with bigger seqNum:\n");
-    if (rreq_is_redundant(&entry_1))
-        printf("\tSomething went wrong\n");
-    else
-        printf("\tSuccess!\n");
+//int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
+void test_main(void)
+{
+  BEGIN_TESTING(NULL);
+
+  test_routingtable();
+  test_rreq_table();
+
+  FINISH_TESTING();
+}
+
+char* node_data_to_string(struct node_data* node_data)
+{
+    char str[6000];
+
+    sprintf(str, "\t\taddr: %s\n\
+\t\tprefixlen: %d\n\
+\t\tmetric: %d\n\
+\t\tseqNum: %d\n", netaddr_to_string(&nbuf, &node_data->addr),
+                             node_data->prefixlen, node_data->metric,
+                             node_data->seqNum);
+    return str;
+}
+
+char* packet_data_to_string(struct aodvv2_packet_data* packet_data)
+{
+    char str[6000];
+
+    sprintf(str,"packet data :\n \
+\thoplimit: %i\n\
+\tsender: %s\n\
+\tmetricType: %i\n\
+\torigNode: \n%s\n\
+\ttargNode: \n%s\n\
+\ttimestamp: %i.%i\n", packet_data->hoplimit, 
+                                       netaddr_to_string(&nbuf, &packet_data->sender),
+                                       packet_data->metricType, 
+                                       node_data_to_string(&packet_data->origNode),
+                                       "down for maintenance",
+                                       packet_data->timestamp.seconds,
+                                       packet_data->timestamp.microseconds);
+    return str;
 }
