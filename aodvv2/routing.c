@@ -10,10 +10,17 @@
 #include "include/aodvv2.h"
 #include "common/netaddr.h"
 
+/* helper functions */
+static void reset_entry_if_stale(uint8_t i);
+
 static struct aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
+timex_t now, null_time;
+struct netaddr_str nbuf;
 
 void init_routingtable(void)
 {   
+    null_time = timex_set(0,0);
+
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
     }
@@ -55,6 +62,8 @@ void add_routing_entry(struct aodvv2_routing_entry_t* entry)
 struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t metricType)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
+        reset_entry_if_stale(i);
+
         if (!netaddr_cmp(&routing_table[i].address, addr)
             && routing_table[i].metricType == metricType) {
             return &routing_table[i];
@@ -66,10 +75,28 @@ struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t m
 void delete_routing_entry(struct netaddr* addr, uint8_t metricType)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
+        reset_entry_if_stale(i);
+
         if (!netaddr_cmp(&routing_table[i].address, addr)
             && routing_table[i].metricType == metricType) {
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
             return;
+        }
+    }
+}
+
+/* 
+ * Check if entry at index i is stale and clear the space it takes up if it is
+ * (because we've implemented our table crappily) 
+ */
+static void reset_entry_if_stale(uint8_t i)
+{
+    rtc_time(&now);
+
+    if (timex_cmp(routing_table[i].expirationTime, null_time) != 0){
+        if(timex_cmp(routing_table[i].expirationTime, now) < 1){
+            printf("\treset routing table entry %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i]), i);
+            memset(&routing_table[i], 0, sizeof(routing_table[i]));
         }
     }
 }

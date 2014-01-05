@@ -3,14 +3,16 @@
 #include "utils.h"
 #include "include/aodvv2.h"
 
+/* helper functions */
+static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
+static void add_rreq(struct aodvv2_packet_data* packet_data);
+static void reset_entry_if_stale(uint8_t i);
+
 static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
 
-timex_t null_time;
-
-/* helper functions */
-struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
-void add_rreq(struct aodvv2_packet_data* packet_data);
+struct netaddr_str nbuf;
+timex_t null_time, now, expiration_time;
 
 /*
  * Initialize table of clients that the router currently serves.
@@ -160,26 +162,11 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
    o  they have the same OrigNode and TargNode addresses
    if there is no comparable RREQ, return NULL.
  */
-
-struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data)
-{   
-    struct netaddr_str nbuf;
-
-    timex_t now, expiration_time;
-    rtc_time(&now);
-    expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
-    
+static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data)
+{       
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
-        /* Check if RREQ is super-stale and clear the space it takes up if it is
-         * (because we've implemented our table crappily) */
         
-        if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){
-            if (timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
-                printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode));
-
-                memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
-            }
-        }
+        reset_entry_if_stale(i);
 
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
             && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)
@@ -191,7 +178,7 @@ struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_
     return NULL;
 }
 
-void add_rreq(struct aodvv2_packet_data* packet_data)
+static void add_rreq(struct aodvv2_packet_data* packet_data)
 {
     if (!(get_comparable_rreq(packet_data))){
         /*find empty rreq and fill it with packet_data */
@@ -213,10 +200,20 @@ void add_rreq(struct aodvv2_packet_data* packet_data)
     }    
 }
 
+/* 
+ * Check if entry at index i is stale and clear the space it takes up if it is
+ * (because we've implemented our table crappily) 
+ */
+static void reset_entry_if_stale(uint8_t i)
+{
+    rtc_time(&now);
+    expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
 
+    if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){
+        if (timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
+            printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode));
 
-
-
-
-
-
+            memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
+        }
+    }
+}

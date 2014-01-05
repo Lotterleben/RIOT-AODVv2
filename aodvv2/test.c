@@ -126,6 +126,11 @@ void test_routingtable(void)
     test_routingtable_get_next_hop_bullshitdata(&now, entry_2.metricType);    // wrong data type for address
     test_routingtable_get_next_hop_bullshitdata(&addr_1, 2);                  // right address, wrong metricType 
 
+    vtimer_usleep((AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME +1) * 1000000); // usleeps needs milliseconds, so there
+    test_routingtable_get_entry_bullshitdata(&addr_1, entry_1.metricType);    // entry_1 should be stale & removed by now
+    test_routingtable_get_next_hop_bullshitdata(&addr_1, entry_1.metricType); // entry_1 should be stale & removed by now
+    delete_routing_entry(&addr_1, entry_1.metricType);                        // here's to hoping this blows up when something goes wrong
+
     END_TEST();
 }
 
@@ -181,8 +186,6 @@ void test_rreq_table(void)
     vtimer_usleep((AODVV2_MAX_IDLETIME+1) * 1000000); // usleeps needs milliseconds, so there
     test_rreqtable_rreq_not_redundant(&entry_1);      // entry_1 should be stale & removed by now
 
-    
-    printf("ohai\n");
     // TODO: wie überprüfe ich ob das bogus data ist? geht nicht, oder?
     //test_rreqtable_rreq_redundant(&next_hop);   // feed the rreqtable bogus data
 
