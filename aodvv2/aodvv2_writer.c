@@ -40,6 +40,10 @@ static int _packet_buffer[128];
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
 
+static struct{
+    struct netaddr origNode;
+    struct netaddr targNode;
+} rreq_packet_data;
 
 /**
  * Callback to define the packet header for a RFC5444 packet. This is actually
@@ -111,7 +115,6 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     printf("[aodvv2] %s()\n", __func__);
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
-    struct netaddr na_origNode, na_targNode;
 
     /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
@@ -121,18 +124,11 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     
     uint8_t origNode_hopCt = 0;
 
-    if (netaddr_from_string(&na_origNode, "::42")) {
-        return;
-    }
-    if (netaddr_from_string(&na_targNode, "::23")) {
-        return;
-    }
+    /* add origNode address (has no address tlv); is mandatory address */
+    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &rreq_packet_data.origNode, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_origNode, true);
-
-    /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &na_targNode, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &rreq_packet_data.targNode, true);
 
     /* add SeqNum TLV and metric TLV to origNode */
     // TODO: allow_dup true or false?
@@ -235,16 +231,20 @@ void writer_init(write_packet_func_ptr ptr)
     _rrep_msg->addMessageHeader = _cb_rrep_addMessageHeader;
 }
 
-void writer_send_rreq(void){
-
+void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
+{
     DEBUG("[RREQ]\n");
+
+    // TODO das ist doch unschön so.
+    rreq_packet_data.origNode = *na_origNode;
+    rreq_packet_data.targNode = *na_targNode;
 
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
     rfc5444_writer_flush(&writer, &interface_1, false);
 }
 
-void writer_send_rrep(void){
-
+void writer_send_rrep(void)
+{
     DEBUG("[RREP]\n");
 
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREP);

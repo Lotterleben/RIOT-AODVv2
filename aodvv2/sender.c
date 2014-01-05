@@ -33,12 +33,10 @@
 #include "sender.h"
 #include "include/aodvv2.h"
 
-
 static struct autobuf _hexbuf;
-
 static int sock;
 static sockaddr6_t sa_sender, sa_bcast;
-
+static struct netaddr origNode, targNode;
 static uint16_t seqNum; 
 
 /* helper functions */
@@ -100,8 +98,10 @@ void sender_init(void)
 void send_rreq(char *str)
 {
     printf("[aodvv2] sending RREQ...\n");
+    netaddr_from_string(&origNode, MY_IP);
+    netaddr_from_string(&targNode, "::13");
 
-    writer_send_rreq();
+    writer_send_rreq(&origNode, &targNode);
 
     /* cleanup */
     reader_cleanup();
@@ -189,7 +189,8 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     // TODO: dummy solution. insert proper address.
     struct netaddr addr;
     netaddr_from_string(&addr, "::111");
-    reader_handle_packet(buffer, length, &addr);
+    int packet_res = reader_handle_packet(buffer, length, &addr);
+    printf("packet res: %i\n");
 }
 
 void send_udp(void *buffer, size_t length)
