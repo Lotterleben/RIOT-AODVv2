@@ -178,7 +178,7 @@ void test_rreq_table(void)
     test_rreqtable_rreq_not_redundant(&entry_1);
 
     // TODO: wie überprüfe ich ob das bogus data ist? geht nicht, oder?
-    test_rreqtable_rreq_redundant(&next_hop);   // feed the rreqtable bogus data
+    //test_rreqtable_rreq_redundant(&next_hop);   // feed the rreqtable bogus data
 
     END_TEST();
 }

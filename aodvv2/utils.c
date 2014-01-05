@@ -106,9 +106,6 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
     struct aodvv2_rreq_entry* comparable_rreq;
     int seqNum_comparison;
     timex_t now;
-
-    /* first, check if the data packet_data points to is actually a aodvv2_packet_data struct */
-    // TODO
     
     comparable_rreq = get_comparable_rreq(packet_data);
     
