@@ -168,15 +168,21 @@ void test_rreq_table(void)
 
     /* start testing */
 
-    test_rreqtable_rreq_not_redundant(&entry_1);
+    test_rreqtable_rreq_not_redundant(&entry_1);    
     test_rreqtable_rreq_redundant(&entry_1);    // the RREQ Table should already know entry_1
-    entry_1.origNode.metric = 1;
+    entry_1.origNode.metric = 1;    
     test_rreqtable_rreq_not_redundant(&entry_1);
     entry_1.origNode.seqNum = 1;          
     test_rreqtable_rreq_redundant(&entry_1);
     entry_1.origNode.seqNum = 14;               // SeqNum isn now bigger than the "newest" entry (i.e. original entry_1 with seqNum 13)
     test_rreqtable_rreq_not_redundant(&entry_1);
+    test_rreqtable_rreq_redundant(&entry_1);
 
+    vtimer_usleep((AODVV2_MAX_IDLETIME+1) * 1000000); // usleeps needs milliseconds, so there
+    test_rreqtable_rreq_not_redundant(&entry_1);      // entry_1 should be stale & removed by now
+
+    
+    printf("ohai\n");
     // TODO: wie überprüfe ich ob das bogus data ist? geht nicht, oder?
     //test_rreqtable_rreq_redundant(&next_hop);   // feed the rreqtable bogus data
 

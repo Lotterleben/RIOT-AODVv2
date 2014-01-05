@@ -6,6 +6,8 @@
 static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
 
+timex_t null_time;
+
 /* helper functions */
 struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
 void add_rreq(struct aodvv2_packet_data* packet_data);
@@ -78,6 +80,8 @@ void delete_client(struct netaddr* addr, uint8_t prefixlen)
  */
 void init_rreqtable(void)
 {
+    null_time = timex_set(0,0);
+
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
         memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
     }
@@ -110,7 +114,7 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
     comparable_rreq = get_comparable_rreq(packet_data);
     
     /* if there is no comparable rreq stored, add one and return false */
-    if (get_comparable_rreq(packet_data) == NULL){
+    if (comparable_rreq == NULL){
         add_rreq(packet_data);
         return false;
     }
@@ -161,30 +165,29 @@ struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_
 {   
     struct netaddr_str nbuf;
 
-    timex_t now, expiration_time, null_time;
+    timex_t now, expiration_time;
     rtc_time(&now);
     expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
-    null_time = timex_set(0,0);
     
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
         /* Check if RREQ is super-stale and clear the space it takes up if it is
          * (because we've implemented our table crappily) */
-        //TODO: debug this
-        /*
-        if (!timex_cmp(rreq_table[i].timestamp,null_time )
-            && timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
-            printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode) );
+        
+        if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){
+            if (timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
+                printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode));
 
-            memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
+                memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
+            }
         }
-        */
 
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
             && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)
             && rreq_table[i].metricType == packet_data->metricType){
             return &rreq_table[i];          
         }
-    }        
+    }
+
     return NULL;
 }
 
