@@ -32,6 +32,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
 uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
 uint8_t get_max_metric(uint8_t metricType);
+uint8_t get_updated_metric(uint8_t metricType, uint8_t metric);
 
 static struct rfc5444_reader reader;
 static timex_t validity_t;
@@ -215,7 +216,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         return RFC5444_DROP_PACKET;
     }
 
-    packet_data.origNode.metric--;
+    packet_data.origNode.metric = get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
     rtc_time(&now);
     packet_data.timestamp = now;
 
@@ -377,7 +378,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
         return RFC5444_DROP_PACKET;
     }
 
-    packet_data.targNode.metric--;
+    packet_data.origNode.metric = get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
     rtc_time(&now);
     packet_data.timestamp = now;
 
@@ -481,7 +482,7 @@ bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_dat
 
 /*
  * Cost(L): Get Cost of a Link regarding the specified metric.
- * (currently only AODVV2_DEFAULT_METRIC_TYPE (HopCt) immplemented)
+ * (currently only AODVV2_DEFAULT_METRIC_TYPE (HopCt) implemented)
  * returns cost if metric is known, NULL otherwise
  */
 uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
@@ -499,6 +500,17 @@ uint8_t get_max_metric(uint8_t metricType)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return AODVV2_MAX_HOPCOUNT;
+    return NULL;
+}
+
+/*
+ * Calculate a metric's new value according to the specified MetricType
+ * (currently only implemented for AODVV2_DEFAULT_METRIC_TYPE (HopCt))
+ */
+uint8_t get_updated_metric(uint8_t metricType, uint8_t metric)
+{
+    if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
+        return metric++;
     return NULL;
 }
 
