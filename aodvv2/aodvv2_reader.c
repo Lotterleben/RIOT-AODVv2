@@ -170,7 +170,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_rea
  * This callback is called every time the _rreq_consumer finishes reading a
  * packet.
  * @param cont
- * @param dropped indicates wehther the packet has been dropped previously by
+ * @param dropped indicates wether the packet has been dropped previously by
  *                another callback
  */
 static enum rfc5444_result _cb_rreq_end_callback(
@@ -215,7 +215,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         return RFC5444_DROP_PACKET;
     }
 
-    packet_data.hoplimit-- ;
+    packet_data.origNode.metric--;
     rtc_time(&now);
     packet_data.timestamp = now;
 
@@ -376,7 +376,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
         printf("\tMetric Limit reached. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
-    packet_data.hoplimit-- ;
+
+    packet_data.targNode.metric--;
     rtc_time(&now);
     packet_data.timestamp = now;
 
