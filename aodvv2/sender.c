@@ -115,7 +115,30 @@ void send_rrep(char *str)
 {
     printf("[aodvv2] sending RREP...\n");
 
-    writer_send_rrep();
+    /* use bs data for now */
+    netaddr_from_string(&origNode, "::13");
+    netaddr_from_string(&targNode, MY_IP);
+
+    struct aodvv2_packet_data packet_data = {
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .sender = targNode,
+        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
+        .origNode = {
+            .addr = origNode,
+            .prefixlen = 128,
+            .metric = 0,
+            .seqNum = 13,
+        },
+        .targNode = {
+            .addr = targNode,
+            .prefixlen = 128,
+            .metric = 12,
+            .seqNum = 1,
+        },
+        .timestamp = NULL,
+    };
+
+    writer_send_rrep(&packet_data);
 
     /* cleanup */
     reader_cleanup();

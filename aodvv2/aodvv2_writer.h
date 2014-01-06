@@ -44,6 +44,7 @@
 
 #include "common/common_types.h"
 #include "rfc5444/rfc5444_writer.h"
+#include "aodvv2_reader.h"
 
 struct rfc5444_writer_target interface_1;
 struct rfc5444_writer writer;
@@ -53,5 +54,8 @@ typedef void (*write_packet_func_ptr)(
 
 void writer_init(write_packet_func_ptr ptr);
 void writer_cleanup(void);
+
+void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode);
+void writer_send_rrep(struct aodvv2_packet_data* packet_data);
 
 #endif /* WRITER_H_ */

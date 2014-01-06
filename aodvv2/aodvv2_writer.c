@@ -45,6 +45,8 @@ static struct{
     struct netaddr targNode;
 } rreq_packet_data;
 
+static struct aodvv2_packet_data rrep_packet_data;
+
 /**
  * Callback to define the packet header for a RFC5444 packet. This is actually
  * quite useless because a RREP/RREQ packet header should have no flags set, but anyway,
@@ -163,7 +165,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
-    uint16_t origNode_seqNum = 13;
+    uint16_t origNode_seqNum = rrep_packet_data.origNode.seqNum;
     
     /* make sure we don't mess up the SeqNum */
     mutex_lock(&m_seqnum);
@@ -171,28 +173,21 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     inc_seqNum();
     mutex_unlock(&m_seqnum);
 
-    uint8_t targNode_hopCt = 9;
-
-    if (netaddr_from_string(&na_origNode, "::42")) {
-        return;
-    }
-    if (netaddr_from_string(&na_targNode, "::1")) {
-        return;
-    }
+    uint8_t targNode_hopCt = rrep_packet_data.targNode.metric;
 
     /* add origNode address (has no address tlv); is mandatory address */
-    origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &na_origNode, true);
+    origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &rrep_packet_data.origNode.addr, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &na_targNode, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &rrep_packet_data.targNode.addr, true);
 
     /* add OrigNode and TargNode SeqNum TLVs */
     // TODO: allow_dup true or false?
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_ORIGNODE_SEQNUM], &origNode_seqNum, sizeof(origNode_seqNum), false  );
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_TARGNODE_SEQNUM], &targNode_seqNum, sizeof(targNode_seqNum), false  );
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_ORIGNODE_SEQNUM], &origNode_seqNum, sizeof(origNode_seqNum), false);
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_TARGNODE_SEQNUM], &targNode_seqNum, sizeof(targNode_seqNum), false);
 
     /* Add Metric TLV to targNode Address */
-    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_METRIC], &targNode_hopCt, sizeof(targNode_hopCt), false );
+    rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_METRIC], &targNode_hopCt, sizeof(targNode_hopCt), false);
 }
 
 void writer_init(write_packet_func_ptr ptr)
@@ -243,9 +238,12 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
     rfc5444_writer_flush(&writer, &interface_1, false);
 }
 
-void writer_send_rrep(void)
+void writer_send_rrep(struct aodvv2_packet_data* packet_data)
 {
     DEBUG("[RREP]\n");
+
+    // TODO das ist doch unschön so.
+    rrep_packet_data = *packet_data;
 
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREP);
     rfc5444_writer_flush(&writer, &interface_1, false);
