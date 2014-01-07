@@ -394,7 +394,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
         printf("\tCreating new Routing Table entry...\n");
         /* de-NULL rt_entry */
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
-        memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern amcht uint8_ts zu 48s.. o0 TODO
+        memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern macht uint8_ts zu 48s.. o0 TODO
         /* add empty rt_entry so that we can fill it later */
         add_routing_entry(rt_entry);
     } else {
@@ -421,6 +421,16 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
     printf("new entry:\n");
     print_rt_entry(rt_entry);
+
+    /*
+     * If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
+     * earlier RREQ, and RREP processing is completed.  Any packets
+     * buffered for OrigNode should be transmitted.
+     */
+
+    //if (!is_client(&packet_data.origNode.addr, packet_data.origNode.prefixlen))
+    //    return RFC5444_DROP_PACKET;
+    // TODO : transmit buffered data    
 
 }
 

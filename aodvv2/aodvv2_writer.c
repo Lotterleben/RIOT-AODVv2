@@ -230,7 +230,11 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
 {
     DEBUG("[RREQ]\n");
 
-    // TODO das ist doch unschön so.
+    // TODO: geht das auch eleganter?
+    if (na_origNode == NULL || na_targNode == NULL)
+        return;
+
+    // TODO das ist doch unschön so. (memcpy?!)
     rreq_packet_data.origNode = *na_origNode;
     rreq_packet_data.targNode = *na_targNode;
 
@@ -241,6 +245,9 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
 void writer_send_rrep(struct aodvv2_packet_data* packet_data)
 {
     DEBUG("[RREP]\n");
+
+    if (packet_data = NULL)
+        return;
 
     // TODO das ist doch unschön so.
     rrep_packet_data = *packet_data;

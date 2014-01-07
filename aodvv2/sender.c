@@ -56,12 +56,7 @@ void sender_init(void)
     destiny_init_transport_layer();
     sixlowpan_lowpan_init(TRANSCEIVER_NATIVE, get_node_id(), 0);
 
-    /* initialize sequence number and its mutex */
-    mutex_init(&m_seqnum);
-    // TODO: overkill?
-    mutex_lock(&m_seqnum);
-    seqNum = 1;
-    mutex_unlock(&m_seqnum);
+    init_seqNum();
 
     /* initialize buffer for hexdump */
     abuf_init(&_hexbuf);
@@ -234,6 +229,16 @@ void send_udp(void *buffer, size_t length)
     destiny_socket_close(sock);
 }
 
+void init_seqNum(void)
+{
+    /* initialize sequence number and its mutex */
+    mutex_init(&m_seqnum);
+    // TODO: overkill?
+    mutex_lock(&m_seqnum);
+    seqNum = 1;
+    mutex_unlock(&m_seqnum);
+}
+
 /* NOTE: lock on m_seqnum before using this function! */
 void inc_seqNum(void)
 {   
@@ -241,7 +246,7 @@ void inc_seqNum(void)
         seqNum = 1;
     else if (seqNum == 0)
         printf("ERROR: SeqNum shouldn't be 0! \n"); // TODO handle properly
-    else 
+    else
         seqNum++;
 }
 
@@ -251,15 +256,32 @@ uint16_t get_seqNum(void)
     return seqNum;
 }
 
-/* TODO: implement non-naive approach 
- * returns -1 when s1 is smaller, 0 if equal, 1 if s1 is bigger
+/* 
+ * returns -1 when s1 is smaller, 0 if equal, 1 if s1 is bigger.
+ * reasoning:
+    Suppose we have S1 and S2.
+    **Naive Approach:**
+    S1 < S2 : S2 is newer
+    S1 > S2 : S1 is newer
+    **but:**
+    What if S1 = 65535 and S2 = 1? With our naive approach, S1 would be assumed 
+    to be newer, which is clearly wrong.
+    So we'll need some kind of "wiggle room" around the tipping point of 65535 and 1.
  */
 int cmp_seqnum(uint32_t s1, uint32_t s2)
 {
-    if (s1 < s2)
+    int wiggle_room = 10;
+
+    if (s1 < s2){
+        if ((s1 <= wiggle_room) && (s2 >= 65535 - wiggle_room))
+            return 1;
         return -1;
-    if (s1 > s2)
+    }
+    if (s1 > s2){
+        if (s1 >= 65535 - wiggle_room && s2 <= wiggle_room)
+            return -1;
         return 1;
+    }
     return 0;
 }
 

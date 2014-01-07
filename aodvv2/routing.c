@@ -126,7 +126,7 @@ void print_rt(void)
     for(int i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         // route has been used before => non-empty entry
         if (routing_table[i].lastUsed.seconds || routing_table[i].lastUsed.microseconds) {
-            print_rt_entry(&routing_table[i]); 
+            print_rt_entry(&routing_table[i]); // fuck it, I'm tired.
         }
     }
     printf("===== END ROUTING TABLE =====================\n");

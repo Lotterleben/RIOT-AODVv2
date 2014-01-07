@@ -194,7 +194,7 @@ void test_rreq_table(void)
 
 
 //int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
-void test_main(void)
+void test_tables_main(void)
 {
   BEGIN_TESTING(NULL);
 
