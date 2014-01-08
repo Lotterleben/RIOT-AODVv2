@@ -71,6 +71,9 @@
 #include "destiny.h"
 #include "destiny/socket.h"
 
+#define ENABLE_DEBUG (1)
+#include "debug.h"
+
 #include "include/aodvv2.h"
 
 const shell_command_t shell_commands[] = {
@@ -105,13 +108,13 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
     printf("You may use the shell now.\n");
-    
+
     /*
     shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     shell_run(&shell);
     */
-    //test_tables_main();
-    test_packets_main();
+    test_tables_main();
+    //test_packets_main();
     //send_rrep("");
     //send_rreq("");
     

@@ -1,7 +1,22 @@
-#include <mutex.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-mutex_t m_seqnum; // TODO: find name that makes more sense
-int test;
+#include "common/netaddr.h"
+
+#include "rfc5444/rfc5444_reader.h"
+#include "rfc5444/rfc5444_writer.h"
+#include "rfc5444/rfc5444_print.h"
+
+#include "destiny.h"
+#include "destiny/socket.h"
+#include "transceiver.h"
+#include "net_help.h"
+
+#include "aodvv2_reader.h"
+#include "aodvv2_writer.h"
+
 
 void sender_init(void);
 void init_seqNum(void);

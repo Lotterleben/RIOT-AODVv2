@@ -1,7 +1,7 @@
 valgrind: CFLAGS += -g
 valgrind: CFLAGS += -DHAVE_VALGRIND_VALGRIND_H
 
-export CFLAGS += -DRIOT
+export CFLAGS += -DRIOT #-DENABLE_DEBUG
 
 # name of your project
 export PROJECT = aodvv2

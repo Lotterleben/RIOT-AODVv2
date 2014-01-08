@@ -15,6 +15,9 @@
 #include "include/aodvv2.h"
 #include "sender.h"
 
+#define ENABLE_DEBUG (1)
+#include "debug.h"
+
 /**
  * Writer to create aodvv2 RFC5444 RREQ and RREP messages.
  * Please note that this is work under construction, specifically:
@@ -55,7 +58,7 @@ static struct aodvv2_packet_data rrep_packet_data;
 static void
 _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface_1)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     /* set header with sequence number */
     rfc5444_writer_set_pkt_header(wr, interface_1, true);
@@ -100,7 +103,7 @@ static struct rfc5444_writer_tlvtype _rrep_addrtlvs[] = {
 static void
 _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
@@ -114,15 +117,12 @@ _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 static void
 _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
 
-    /* make sure we don't mess up the SeqNum */
-    mutex_lock(&m_seqnum);
     uint16_t origNode_seqNum = get_seqNum();
     inc_seqNum();
-    mutex_unlock(&m_seqnum);
     
     uint8_t origNode_hopCt = 0;
 
@@ -146,7 +146,7 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 static void
 _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
@@ -160,18 +160,15 @@ _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 static void
 _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
     uint16_t origNode_seqNum = rrep_packet_data.origNode.seqNum;
     
-    /* make sure we don't mess up the SeqNum */
-    mutex_lock(&m_seqnum);
     uint16_t targNode_seqNum = get_seqNum();
     inc_seqNum();
-    mutex_unlock(&m_seqnum);
 
     uint8_t targNode_hopCt = rrep_packet_data.targNode.metric;
 
@@ -192,7 +189,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 
 void writer_init(write_packet_func_ptr ptr)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     /* define interface for generating rfc5444 packets */
     interface_1.packet_buffer = _packet_buffer;
@@ -258,5 +255,5 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data)
 
 void writer_cleanup(void)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 }

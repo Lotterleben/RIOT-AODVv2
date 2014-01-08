@@ -10,6 +10,9 @@
 #include "include/aodvv2.h"
 #include "common/netaddr.h"
 
+#define ENABLE_DEBUG (1)
+#include "debug.h"
+
 /* helper functions */
 static void reset_entry_if_stale(uint8_t i);
 
@@ -24,7 +27,7 @@ void init_routingtable(void)
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
     }
-    printf("[aodvv2] routing table initialized.\n");
+    DEBUG("[aodvv2] routing table initialized.\n");
 }
 
 /* returns NULL if addr is not in routing table */
@@ -95,7 +98,7 @@ static void reset_entry_if_stale(uint8_t i)
 
     if (timex_cmp(routing_table[i].expirationTime, null_time) != 0){
         if(timex_cmp(routing_table[i].expirationTime, now) < 1){
-            printf("\treset routing table entry %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i]), i);
+            DEBUG("\treset routing table entry %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i]), i);
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
         }
     }
@@ -126,7 +129,7 @@ void print_rt(void)
     for(int i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         // route has been used before => non-empty entry
         if (routing_table[i].lastUsed.seconds || routing_table[i].lastUsed.microseconds) {
-            print_rt_entry(&routing_table[i]); // fuck it, I'm tired.
+            print_rt_entry(&routing_table[i]);
         }
     }
     printf("===== END ROUTING TABLE =====================\n");

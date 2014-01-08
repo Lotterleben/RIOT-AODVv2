@@ -11,6 +11,12 @@
 #include "aodvv2_reader.h"
 #include "routing.h"
 
+#define ENABLE_DEBUG (1)
+#include "debug.h"
+
+// xoxoxoxox todo check
+#define DISALLOW_CONSUMER_CONTEXT_DROP false
+
 /* This is where we store data gathered from packets */
 static struct aodvv2_packet_data packet_data;
 
@@ -98,9 +104,9 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     struct rfc5444_reader_tlvblock_entry* tlv;
     bool is_origNode_addr;
 
-    printf("[aodvv2] %s()\n", __func__);
-    printf("\tmessage type: %d\n", cont->type);
-    printf("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
+    DEBUG("[aodvv2] %s()\n", __func__);
+    DEBUG("\tmessage type: %d\n", cont->type);
+    DEBUG("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
     /* handle SeqNum TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
@@ -112,19 +118,19 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     }
     else {
         if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
-            printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
             is_origNode_addr = true;
             packet_data.origNode.addr = cont->addr;
             packet_data.origNode.seqNum = *tlv->single_value;
             packet_data.origNode.prefixlen = cont->addr._prefix_len; 
         } else if (tlv->type_ext == RFC5444_MSGTLV_TARGNODE_SEQNUM) {
-            printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
             is_origNode_addr = false;
             packet_data.targNode.addr = cont->addr;
             packet_data.targNode.seqNum = *tlv->single_value;
             packet_data.targNode.prefixlen = cont->addr._prefix_len; 
         } else {
-            printf("ERROR: illegal extension type.\n");
+            DEBUG("ERROR: illegal extension type.\n");
             return RFC5444_DROP_PACKET;
         }
     }
@@ -132,15 +138,15 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     /* handle Metric TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_METRIC].tlv;
     if (!tlv && is_origNode_addr){
-        printf("\tERROR: Missing or unknown metric TLV.\n");
+        DEBUG("\tERROR: Missing or unknown metric TLV.\n");
         return RFC5444_DROP_PACKET;
     }
     if (tlv) {
         if (!is_origNode_addr){
-            printf("\tERROR: Metric TLV belongs to wrong address.\n");
+            DEBUG("\tERROR: Metric TLV belongs to wrong address.\n");
             return RFC5444_DROP_PACKET;
         }
-        printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
+        DEBUG("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
         packet_data.metricType = tlv->type;
         packet_data.origNode.metric = *tlv->single_value;
     }
@@ -155,14 +161,14 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
  */
 static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     if (!cont->has_hoplimit) {
-        printf("ERROR: missing hop limit\n");
+        DEBUG("ERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
     }
 
-    printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
     packet_data.hoplimit = cont->hoplimit;
     return RFC5444_OKAY;
 }
@@ -181,27 +187,27 @@ static enum rfc5444_result _cb_rreq_end_callback(
     timex_t now;
     uint8_t link_cost = get_link_cost(packet_data.metricType, &packet_data);
 
-    printf("[aodvv2] %s() dropped: %d\n", __func__, dropped);
+    DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
     /* Check if packet contains the required information */
     if (dropped) {
-        printf("\tDropping packet.\n");
+        DEBUG("\tDropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
     if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum){
-        printf("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
+        DEBUG("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
     if (packet_data.targNode.addr._type == AF_UNSPEC){
-        printf("\tERROR: missing TargNode Address. Dropping packet.\n");
+        DEBUG("\tERROR: missing TargNode Address. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
     if (packet_data.hoplimit == 0){
-        printf("\tERROR: Hoplimit is 0. Dropping packet.\n");
+        DEBUG("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
     if ((get_max_metric(packet_data.metricType) - link_cost) <= packet_data.origNode.metric){
-        printf("\tMetric Limit reached. Dropping packet.\n");
+        DEBUG("\tMetric Limit reached. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
 
@@ -212,7 +218,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
       is taken.
     */
     if (rreq_is_redundant(&packet_data)){
-        printf("Packet is redundant. Dropping Packet.\n");
+        DEBUG("Packet is redundant. Dropping Packet. %i\n", RFC5444_DROP_PACKET);
         return RFC5444_DROP_PACKET;
     }
 
@@ -229,7 +235,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry = get_routing_entry(&packet_data.origNode.addr, packet_data.metricType);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
-        printf("\tCreating new Routing Table entry...\n");
+        DEBUG("\tCreating new Routing Table entry...\n");
         /* de-NULL rt_entry */
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
         memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern amcht uint8_ts zu 48s.. o0 TODO
@@ -237,12 +243,12 @@ static enum rfc5444_result _cb_rreq_end_callback(
         add_routing_entry(rt_entry);
     } else {
         if (!offers_improvement(rt_entry, &packet_data.origNode.addr)){
-            printf("\tPacket offers no improvement over known route. Dropping Packet.\n");
+            DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
     }
     
-    printf("old entry:\n");
+    DEBUG("old entry:\n");
     print_rt_entry(rt_entry);
     /* The incoming routing information is better than existing routing 
      * table information and SHOULD be used to improve the route table. */ 
@@ -257,7 +263,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->metric = packet_data.origNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 
-    printf("new entry:\n");
+    DEBUG("new entry:\n");
     print_rt_entry(rt_entry);
 }
 
@@ -273,31 +279,31 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     struct rfc5444_reader_tlvblock_entry* tlv;
     bool is_targNode_addr = false;
 
-    printf("[aodvv2] %s()\n", __func__);
-    printf("\tmessage type: %d\n", cont->type);
-    printf("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
+    DEBUG("[aodvv2] %s()\n", __func__);
+    DEBUG("\tmessage type: %d\n", cont->type);
+    DEBUG("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
     /* handle SeqNum TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
     if (!tlv) {
-        printf("ERROR: missing SeqNum TLV.\n");
+        DEBUG("ERROR: missing SeqNum TLV.\n");
         return RFC5444_DROP_PACKET;
     }
     else {
         if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
-            printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
             is_targNode_addr = false;
             packet_data.origNode.addr = cont->addr;
             packet_data.origNode.seqNum = *tlv->single_value;
             packet_data.origNode.prefixlen = cont->addr._prefix_len; 
         } else if (tlv->type_ext == RFC5444_MSGTLV_TARGNODE_SEQNUM) {
-            printf("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
             is_targNode_addr = true;
             packet_data.targNode.addr = cont->addr;
             packet_data.targNode.seqNum = *tlv->single_value;
             packet_data.targNode.prefixlen = cont->addr._prefix_len; 
         } else {
-            printf("ERROR: illegal extension type.\n");
+            DEBUG("ERROR: illegal extension type.\n");
             return RFC5444_DROP_PACKET;
         }
     }
@@ -305,15 +311,15 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     /* handle Metric TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_METRIC].tlv;
     if (!tlv && is_targNode_addr){
-        printf("\tERROR: Missing or unknown metric TLV.\n");
+        DEBUG("\tERROR: Missing or unknown metric TLV.\n");
         return RFC5444_DROP_PACKET;
     }
     if (tlv) {
         if (!is_targNode_addr){
-            printf("\tERROR: metric TLV belongs to wrong address.\n");
+            DEBUG("\tERROR: metric TLV belongs to wrong address.\n");
             return RFC5444_DROP_PACKET;
         }
-        printf("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
+        DEBUG("\ttlv RFC5444_MSGTLV_METRIC hopCt: %d, type: %d\n", *tlv->single_value, tlv->type);
         packet_data.metricType = tlv->type;
         packet_data.origNode.metric = *tlv->single_value;
     }
@@ -328,14 +334,14 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
  */
 static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
 {
-    printf("[aodvv2] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     if (!cont->has_hoplimit) {
-        printf("\tERROR: missing hop limit\n");
+        DEBUG("\tERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
     }
 
-    printf("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
     packet_data.hoplimit = cont->hoplimit;
     return RFC5444_OKAY;
 }
@@ -354,27 +360,27 @@ static enum rfc5444_result _cb_rrep_end_callback(
     timex_t now;
     uint8_t link_cost = get_link_cost(packet_data.metricType, &packet_data);
 
-    printf("[aodvv2] %s() dropped: %d\n", __func__, dropped);
+    DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
     /* Check if packet contains the rquired information */
     if (dropped) {
-        printf("\tDropping packet.\n");
+        DEBUG("\tDropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
     if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum) {
-        printf("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
+        DEBUG("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
     if ((packet_data.targNode.addr._type == AF_UNSPEC) || !packet_data.targNode.seqNum) {
-        printf("\tERROR: missing TargNode Address or SeqNum. Dropping packet.\n");
+        DEBUG("\tERROR: missing TargNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
     if (packet_data.hoplimit == 0) {
-        printf("\tERROR: Hoplimit is 0. Dropping packet.\n");
+        DEBUG("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
     if ((get_max_metric(packet_data.metricType) - link_cost) <= packet_data.targNode.metric){
-        printf("\tMetric Limit reached. Dropping packet.\n");
+        DEBUG("\tMetric Limit reached. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
 
@@ -391,7 +397,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry = get_routing_entry(&packet_data.targNode.addr, packet_data.metricType);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
-        printf("\tCreating new Routing Table entry...\n");
+        DEBUG("\tCreating new Routing Table entry...\n");
         /* de-NULL rt_entry */
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
         memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern macht uint8_ts zu 48s.. o0 TODO
@@ -399,12 +405,12 @@ static enum rfc5444_result _cb_rrep_end_callback(
         add_routing_entry(rt_entry);
     } else {
         if (!offers_improvement(rt_entry, &packet_data.targNode.addr)){
-            printf("\tPacket offers no improvement over known route. Dropping Packet.\n");
+            DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
     }
     
-    printf("old entry:\n");
+    DEBUG("old entry:\n");
     print_rt_entry(rt_entry);
     /* The incoming routing information is better than existing routing 
      * table information and SHOULD be used to improve the route table. */ 
@@ -419,7 +425,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry->metric = packet_data.targNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 
-    printf("new entry:\n");
+    DEBUG("new entry:\n");
     print_rt_entry(rt_entry);
 
     /*
@@ -436,7 +442,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
 void reader_init(void)
 {
-    printf("%s()\n", __func__);
+    DEBUG("%s()\n", __func__);
 
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
@@ -459,7 +465,7 @@ void reader_init(void)
 
 void reader_cleanup(void)
 {
-    printf("[aodvv2] %s() TODO\n", __func__);
+    DEBUG("[aodvv2] %s() TODO\n", __func__);
     rfc5444_reader_cleanup(&reader);
 }
 

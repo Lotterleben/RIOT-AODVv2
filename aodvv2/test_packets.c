@@ -7,8 +7,6 @@
 #include "common/netaddr.h"
 #include "rfc5444/rfc5444_context.h"
 
-#define DISALLOW_CONSUMER_CONTEXT_DROP false
-
 struct netaddr addr;
 
 static void
@@ -126,7 +124,7 @@ void test_packets_main(void)
     
     BEGIN_TESTING(NULL);
 
-    //test_rreq_dropped();
+    test_rreq_dropped();
     test_seqNum();
 
     FINISH_TESTING();

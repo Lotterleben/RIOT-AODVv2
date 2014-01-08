@@ -1,7 +1,11 @@
-/* Some aodvv2 utilities (mostly tables) */
 #include <stdio.h>
 #include "utils.h"
 #include "include/aodvv2.h"
+
+#define ENABLE_DEBUG (1)
+#include "debug.h"
+
+/* Some aodvv2 utilities (mostly tables) */
 
 /* helper functions */
 static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
@@ -22,7 +26,7 @@ void init_clienttable(void)
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
         memset(&client_table[i], 0, sizeof(client_table[i]));
     }
-    printf("[aodvv2] client table initialized.\n");
+    DEBUG("[aodvv2] client table initialized.\n");
 }
 
 /*
@@ -87,7 +91,7 @@ void init_rreqtable(void)
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
         memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
     }
-    printf("[aodvv2] RREQ table initialized.\n");
+    DEBUG("[aodvv2] RREQ table initialized.\n");
 }
 
 /*
@@ -211,7 +215,7 @@ static void reset_entry_if_stale(uint8_t i)
 
     if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){
         if (timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
-            printf("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode));
+            DEBUG("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode));
 
             memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
         }
