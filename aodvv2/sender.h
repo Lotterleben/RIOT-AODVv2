@@ -17,6 +17,10 @@
 #include "aodvv2_reader.h"
 #include "aodvv2_writer.h"
 
+#include "include/aodvv2.h"
+
+#ifndef SENDER_H_
+#define SENDER_H_
 
 void sender_init(void);
 void init_seqNum(void);
@@ -26,3 +30,5 @@ int cmp_seqnum(uint32_t s1, uint32_t s2);
 void receive_udp(char *str);
 void send_rreq(char *str);
 void send_rrep(char *str);
+
+#endif /* SENDER_H_ */

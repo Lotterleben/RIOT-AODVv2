@@ -39,11 +39,18 @@
  *
  */
 
-#ifndef READER_H_
-#define READER_H_
+#include <string.h>
+#include <stdio.h>
 
 #include "common/common_types.h"
+#include "common/netaddr.h"
 #include "rfc5444/rfc5444_reader.h"
+
+#include "routing.h"
+#include "include/aodvv2.h"
+
+#ifndef READER_H_
+#define READER_H_
 
 struct node_data {
     struct netaddr addr;

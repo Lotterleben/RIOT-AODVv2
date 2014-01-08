@@ -4,11 +4,7 @@
  * RT, this will have to do.
  */
 
-#include <string.h>
-
 #include "routing.h" 
-#include "include/aodvv2.h"
-#include "common/netaddr.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"

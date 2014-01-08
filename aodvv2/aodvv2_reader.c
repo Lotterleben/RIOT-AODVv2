@@ -1,21 +1,12 @@
-#include <string.h>
-#include <stdio.h>
+
 #ifdef RIOT
 #include "net_help.h"
 #endif
-#include "common/common_types.h"
-#include "common/netaddr.h"
-#include "rfc5444/rfc5444_reader.h"
 
-#include "include/aodvv2.h"
 #include "aodvv2_reader.h"
-#include "routing.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
-
-// xoxoxoxox todo check
-#define DISALLOW_CONSUMER_CONTEXT_DROP false
 
 /* This is where we store data gathered from packets */
 static struct aodvv2_packet_data packet_data;

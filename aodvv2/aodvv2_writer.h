@@ -46,6 +46,14 @@
 #include "rfc5444/rfc5444_writer.h"
 #include "aodvv2_reader.h"
 
+#include "common/common_types.h"
+#include "common/netaddr.h"
+#include "rfc5444/rfc5444_writer.h"
+#include "rfc5444/rfc5444_iana.h"
+
+#include "include/aodvv2.h"
+#include "sender.h"
+
 struct rfc5444_writer_target interface_1;
 struct rfc5444_writer writer;
 

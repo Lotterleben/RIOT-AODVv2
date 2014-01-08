@@ -1,8 +1,15 @@
-/* Some aodvv2 utilities */
+#include <stdio.h>
+
+#include "ipv6.h"
 
 #include "common/netaddr.h"
-#include "ipv6.h"
+
 #include "aodvv2_reader.h"
+#include "include/aodvv2.h"
+
+
+#ifndef UTILS_H_
+#define UTILS_H_
 
 #define AODVV2_MAX_CLIENTS 16 // shabby, I know
 #define AODVV2_RREQ_BUF 3   // should be enough for now...
@@ -31,3 +38,4 @@ void delete_client(struct netaddr* addr, uint8_t prefixlen);
 /* Sections 5.7. and 7.6.: RREQ table functionality */
 void init_rreqtable(void);
 bool rreq_is_redundant(struct aodvv2_packet_data* packet_data);
+#endif /* UTILS_H_ */

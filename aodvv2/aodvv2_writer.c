@@ -4,16 +4,7 @@
 #include "net_help.h"
 #endif
 
-#include "debug.h"
-
-#include "common/common_types.h"
-#include "common/netaddr.h"
-#include "rfc5444/rfc5444_writer.h"
-#include "rfc5444/rfc5444_iana.h"
-
 #include "aodvv2_writer.h"
-#include "include/aodvv2.h"
-#include "sender.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"

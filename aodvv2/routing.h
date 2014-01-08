@@ -3,9 +3,17 @@
  * This is neither efficient nor elegant, but until RIOT gets their own native
  * RT, this will have to do.
  */
+#include <string.h>
 
 #include "ipv6.h"
+
 #include "common/netaddr.h"
+
+#include "include/aodvv2.h"
+#include "common/netaddr.h"
+
+#ifndef ROUTING_H_
+#define ROUTING_H_
 
 /*
  * A route table entry (i.e., a route) may be in one of the following
@@ -46,3 +54,4 @@ struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t m
 void delete_routing_entry(struct netaddr* addr, uint8_t metricType);
 void print_rt(void);
 void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry);
+#endif /* ROUTING_H_ */ 

@@ -1,4 +1,6 @@
-/* beware, for these are dummy values */
+#ifndef AODVV2_H_
+#define AODVV2_H_
+
 #define AODVV2_MAX_HOPCOUNT 20
 #define AODVV2_MAX_ROUTING_ENTRIES 255
 #define AODVV2_DEFAULT_METRIC_TYPE 3
@@ -22,3 +24,4 @@ enum tlv_type {
     RFC5444_MSGTLV_TARGNODE_SEQNUM,
     RFC5444_MSGTLV_METRIC,
 };
+#endif /* AODVV2_H_ */
