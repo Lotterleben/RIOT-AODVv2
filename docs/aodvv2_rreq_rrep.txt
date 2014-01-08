@@ -341,31 +341,32 @@ successful implementation if everything in the document.
 
 7.5.1.  Additional Handling for Incoming RREQ
 
-   o  By sending a RREQ, a router advertises that it will route for
-      addresses contained in the RteMsg based on the information
-      enclosed.  The router MAY choose not to send the RREQ.
    o  The incoming RREQ MUST be checked against previously received
       information from the RREQ Table Section 7.6.  If the information
       in the incoming RteMsg is redundant, then then no further action
-      is taken.
+      is taken. [DONE]
    o  If TargNode is a client of the router receiving the RREQ, then the
       router generates a RREP message as specified in Section 7.4, and
       subsequently processing for the RREQ is complete.  Otherwise,
       processing continues as follows.
-   o  RREQ.MetricType := Route[OrigNode].MetricType
-   o  RREQ.MetricTLV[OrigNodeNdx] := Route[OrigNode].Metric
+   o  RREQ.MetricType := Route[OrigNode].MetricType [DONE]
+   o  RREQ.MetricTLV[OrigNodeNdx] := Route[OrigNode].Metric [DONE]
    o  The RREQ (with updated fields as specified above>) SHOULD be sent
       to the IP multicast address LL-MANET-Routers [RFC5498].  If the
       RREQ is unicast, the IP.DestinationAddress is set to
       Route[RREQ.TargNode].NextHopAddress.
 
 7.5.2.  Additional Handling for Incoming RREP
-   
+
+   o  If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
+      Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx].   
    o  If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
       earlier RREQ, and RREP processing is completed.  Any packets
       buffered for OrigNode should be transmitted.
 
 7.6.  Suppressing Redundant RREQ messages
+
+   TODO: shouldn't this be somewhere near 5.7.  RREQ Table: Received RREQ Messages?
 
    Since RREQ messages are multicast, there are common circumstances in
    which an AODVv2 router might transmit a redundant response (RREQ or
