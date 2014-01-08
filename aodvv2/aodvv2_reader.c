@@ -26,10 +26,10 @@ static enum rfc5444_result _cb_rrep_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped);
 
 /* helper functions */
-bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
-uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
-uint8_t get_max_metric(uint8_t metricType);
-uint8_t get_updated_metric(uint8_t metricType, uint8_t metric);
+static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
+static uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
+static uint8_t get_max_metric(uint8_t metricType);
+static uint8_t get_updated_metric(uint8_t metricType, uint8_t metric);
 
 static struct rfc5444_reader reader;
 static timex_t validity_t;
@@ -475,7 +475,7 @@ int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 /*
  * handle collected data as described in Section 6.1 
  */
-bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
+static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
 {
     /* Check if new info is stale */    
     if (cmp_seqnum(node_data->seqNum, rt_entry->seqNum) == -1)
@@ -491,7 +491,7 @@ bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_dat
  * (currently only AODVV2_DEFAULT_METRIC_TYPE (HopCt) implemented)
  * returns cost if metric is known, NULL otherwise
  */
-uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
+static uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return 1;
@@ -502,7 +502,7 @@ uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
  * MAX_METRIC[MetricType]:
  * returns maximum value of the given metric if metric is known, NULL otherwise.
  */
-uint8_t get_max_metric(uint8_t metricType)
+static uint8_t get_max_metric(uint8_t metricType)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return AODVV2_MAX_HOPCOUNT;
@@ -513,7 +513,7 @@ uint8_t get_max_metric(uint8_t metricType)
  * Calculate a metric's new value according to the specified MetricType
  * (currently only implemented for AODVV2_DEFAULT_METRIC_TYPE (HopCt))
  */
-uint8_t get_updated_metric(uint8_t metricType, uint8_t metric)
+static uint8_t get_updated_metric(uint8_t metricType, uint8_t metric)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return metric++;
