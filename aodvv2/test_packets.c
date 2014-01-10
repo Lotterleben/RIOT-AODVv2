@@ -12,6 +12,9 @@
 static void test_write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
+static void test_write_packet_duplicates(struct rfc5444_writer *wr __attribute__ ((unused)),
+        struct rfc5444_writer_target *iface __attribute__((unused)),
+        void *buffer, size_t length);
 static void test_packets_init(void);
 static void test_packets_cleanup(void);
 
@@ -77,18 +80,20 @@ static void test_rreq_dropped(void)
 
     START_TEST();
     printf("== Testing if no origNode data -> no RREQ: ==\n");
-    writer_send_rreq(NULL, &targNode); // right now, this won't lead to test_read_write_packet_dropped being called
+    //writer_send_rreq(NULL, &targNode); // right now, this won't lead to test_read_write_packet_dropped being called
+    
     /* fuck, kann ich dem reader iwie adressen ohne OrigNode/TargNode Adresse, metric,
      hoplimit oder OrigNode / TargNode SeqNum füttern ohne im writer rumzupfuschen
      oder noch nen extrawriter zu schreiben?  wie fake ich überhaupt daten? 
-     ich glaub ich muss die pakete bauen, buffer auslesen und speichern.. yikes*/ 
+     ich glaub ich muss die pakete bauen, buffer auslesen und speichern.. yikes*/  
 
     writer_cleanup();
-    writer_init(test_write_packet);    
+    writer_init(test_write_packet_duplicates);
 
+    /* the following isn't dropped because the seqNum is automatically incremented -.- */
     writer_send_rreq(&origNode, &targNode);
-    printf("== Testing if duplicate RREQ is dropped: ==\n");
-    writer_send_rreq(&origNode, &targNode);
+    //printf("== Testing if duplicate RREQ is dropped: ==\n");
+    //writer_send_rreq(&origNode, &targNode);
 
     END_TEST();
     test_packets_cleanup();
@@ -143,10 +148,11 @@ static void test_rrep(void)
 
     START_TEST();
     //TODO: fixme
-    //printf("== Testing if RREP to someone else is forwarded: ==\n");
-    //send_rrep(&entry_1, &targNode);
-    printf("== Testing if RREP to me is not forwarded: ==\n");
-    netaddr_from_string(&entry_1.origNode.addr, MY_IP);
+    printf("== Testing if RREP to someone else is forwarded: ==\n");
+    send_rrep(&entry_1, &targNode);
+    
+    //printf("== Testing if RREP to me is not forwarded: ==\n");
+    //netaddr_from_string(&entry_1.origNode.addr, MY_IP);
     //send_rrep(&entry_1, &targNode);
     END_TEST();
     
@@ -208,6 +214,34 @@ test_write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     /* parse packet */
     struct netaddr addr;
     netaddr_from_string(&addr, "::111");
+    reader_handle_packet(buffer, length, &addr);
+}
+
+/**
+ * Handle the output of the RFC5444 packet creation process
+ * @param wr
+ * @param iface
+ * @param buffer
+ * @param length
+ */
+static void
+test_write_packet_duplicates(struct rfc5444_writer *wr __attribute__ ((unused)),
+        struct rfc5444_writer_target *iface __attribute__((unused)),
+        void *buffer, size_t length)
+{
+
+    /* generate hexdump and human readable representation of packet
+        and print to console */
+    abuf_hexdump(&_hexbuf, "\t", buffer, length);
+    rfc5444_print_direct(&_hexbuf, buffer, length);
+
+    printf("%s", abuf_getptr(&_hexbuf));
+    abuf_clear(&_hexbuf);
+
+    /* parse packet */
+    struct netaddr addr;
+    netaddr_from_string(&addr, "::111");
+    reader_handle_packet(buffer, length, &addr);
     reader_handle_packet(buffer, length, &addr);
 }
 

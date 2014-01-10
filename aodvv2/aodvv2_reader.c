@@ -5,7 +5,7 @@
 
 #include "aodvv2_reader.h"
 
-#define ENABLE_DEBUG (0)
+#define ENABLE_DEBUG (1)
 #include "debug.h"
 
 /* This is where we store data gathered from packets */
@@ -266,7 +266,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     if (is_client(&packet_data.targNode.addr, packet_data.targNode.prefixlen)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
-        send_rrep(&packet_data, &packet_data.sender);  
+        //send_rrep(&packet_data, &packet_data.sender);  
         return RFC5444_OKAY;
     }
 
@@ -449,8 +449,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
      */
     else {
         DEBUG("[aodvv2] Not my RREP, passing it on to the next hop\n");
-        struct netaddr* next_hop = get_next_hop(&packet_data.origNode.addr, packet_data.metricType);
-        send_rrep(&packet_data, &next_hop);
+        //struct netaddr* next_hop = get_next_hop(&packet_data.origNode.addr, packet_data.metricType);
+        //send_rrep(&packet_data, &next_hop);
     }
 }
 

@@ -92,7 +92,7 @@ static void reset_entry_if_stale(uint8_t i)
 
     if (timex_cmp(routing_table[i].expirationTime, null_time) != 0){
         if(timex_cmp(routing_table[i].expirationTime, now) < 1){
-            DEBUG("\treset routing table entry %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i]), i);
+            DEBUG("\treset routing table entry for %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i].address), i);
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
         }
     }
