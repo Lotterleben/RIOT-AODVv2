@@ -28,7 +28,7 @@ uint16_t get_seqNum(void);
 void inc_seqNum(void);
 int cmp_seqnum(uint32_t s1, uint32_t s2);
 void receive_udp(char *str);
-void send_rreq(char *str);
-void send_rrep(char *str);
+void send_rreq(struct netaddr* origNode, struct netaddr* targNode);
+void send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop);
 
 #endif /* SENDER_H_ */

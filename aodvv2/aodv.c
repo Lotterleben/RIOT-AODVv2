@@ -11,8 +11,7 @@ void aodv_init(void)
     init_routingtable();
     init_clienttable();
     init_rreqtable();
-    // TODO: find out own ip (damnit...) and set properly
-    add_client(&my_ip, 0);
+
     sender_init();
 
 }

@@ -24,6 +24,11 @@ void init_clienttable(void)
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
         memset(&client_table[i], 0, sizeof(client_table[i]));
     }
+    /* Add myself to clienttable. TODO: use proper IP!!! */
+    struct netaddr my_ip;
+    netaddr_from_string(&my_ip, MY_IP);    
+    add_client(&my_ip, 0);
+
     DEBUG("[aodvv2] client table initialized.\n");
 }
 

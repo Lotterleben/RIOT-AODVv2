@@ -256,6 +256,20 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     DEBUG("new entry:\n");
     print_rt_entry(rt_entry);
+
+    /*
+     * If TargNode is a client of the router receiving the RREQ, then the
+     * router generates a RREP message as specified in Section 7.4, and
+     * subsequently processing for the RREQ is complete.  Otherwise,
+     * processing continues as follows.
+     */
+
+    if (is_client(&packet_data.targNode.addr, packet_data.targNode.prefixlen)){
+        DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
+        send_rrep(&packet_data, &packet_data.sender);  
+        return RFC5444_OKAY;
+    }
+
 }
 
 /**
@@ -425,10 +439,19 @@ static enum rfc5444_result _cb_rrep_end_callback(
      * buffered for OrigNode should be transmitted.
      */
 
-    //if (!is_client(&packet_data.origNode.addr, packet_data.origNode.prefixlen))
-    //    return RFC5444_DROP_PACKET;
-    // TODO : transmit buffered data    
-
+    if (is_client(&packet_data.origNode.addr, packet_data.origNode.prefixlen)){
+        DEBUG("This is my RREP. We are done here, thanks!\n");
+        // TODO : transmit buffered data    
+        return RFC5444_DROP_PACKET;
+    }
+    /* If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
+      Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx].   
+     */
+    else {
+        DEBUG("[aodvv2] Not my RREP, passing it on to the next hop\n");
+        struct netaddr* next_hop = get_next_hop(&packet_data.origNode.addr, packet_data.metricType);
+        send_rrep(&packet_data, &next_hop);
+    }
 }
 
 void reader_init(void)
@@ -456,7 +479,7 @@ void reader_init(void)
 
 void reader_cleanup(void)
 {
-    DEBUG("[aodvv2] %s() TODO\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
     rfc5444_reader_cleanup(&reader);
 }
 

@@ -76,11 +76,13 @@
 
 #include "include/aodvv2.h"
 
+/*
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
     {"rrep", "send rrep", send_rrep},
     {"receive_udp", "receive udp packets", receive_udp},
 };
+*/
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))
 {
@@ -113,9 +115,33 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     shell_run(&shell);
     */
-    test_tables_main();
-    //test_packets_main();
-    //send_rrep("");
+    //test_tables_main();
+    test_packets_main();
+
+    struct netaddr address, origNode, targNode;
+    netaddr_from_string(&address, "::12");
+    netaddr_from_string(&targNode, "::13");
+    netaddr_from_string(&origNode, "::14");
+    struct aodvv2_packet_data entry_1 = {
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .sender = address,
+        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
+        .origNode = {
+            .addr = origNode,
+            .prefixlen = 128,
+            .metric = 12,
+            .seqNum = 13,
+        },
+        .targNode = {
+            .addr = targNode,
+            .prefixlen = 128,
+            .metric = 12,
+            .seqNum = 0,
+        },
+        .timestamp = NULL,
+    };
+
+    //send_rrep(&entry_1, &targNode);
     //send_rreq("");
     
     return 0;

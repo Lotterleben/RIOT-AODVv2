@@ -58,15 +58,17 @@ void sender_init(void)
     }
 }
 
-/*********** COMMANDS *********************************************************/
+/* 
+  TODO
+  The RREQ (with updated fields as specified above>) SHOULD be sent
+  to the IP multicast address LL-MANET-Routers [RFC5498]
+*/
 
-void send_rreq(char *str)
+void send_rreq(struct netaddr* origNode, struct netaddr* targNode)
 {
     DEBUG("[aodvv2] sending RREQ...\n");
-    netaddr_from_string(&origNode, MY_IP);
-    netaddr_from_string(&targNode, "::13");
 
-    writer_send_rreq(&origNode, &targNode);
+    writer_send_rreq(origNode, targNode);
 
     /* cleanup */
     reader_cleanup();
@@ -76,39 +78,17 @@ void send_rreq(char *str)
     DEBUG("[aodvv2] RREQ sent\n");
 }
 
-void send_rrep(char *str)
+void send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] sending RREP...\n");
+    // TODO: use next_hop
 
-    /* use bs data for now */
-    netaddr_from_string(&origNode, "::13");
-    netaddr_from_string(&targNode, MY_IP);
-
-    struct aodvv2_packet_data packet_data = {
-        .hoplimit = AODVV2_MAX_HOPCOUNT,
-        .sender = targNode,
-        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
-        .origNode = {
-            .addr = origNode,
-            .prefixlen = 128,
-            .metric = 0,
-            .seqNum = 13,
-        },
-        .targNode = {
-            .addr = targNode,
-            .prefixlen = 128,
-            .metric = 12,
-            .seqNum = 1,
-        },
-        .timestamp = NULL,
-    };
-
-    writer_send_rrep(&packet_data);
+    writer_send_rrep(packet_data);
 
     /* cleanup */
-    reader_cleanup();
-    writer_cleanup();
-    abuf_free(&_hexbuf);
+    //reader_cleanup();
+    //writer_cleanup();
+    //abuf_free(&_hexbuf);
 
     DEBUG("[aodvv2] RREP sent\n");
 }
@@ -175,8 +155,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     // TODO: dummy solution. insert proper address.
     struct netaddr addr;
     netaddr_from_string(&addr, "::111");
-    int packet_res = reader_handle_packet(buffer, length, &addr);
-    DEBUG("packet res: %i\n");
+    reader_handle_packet(buffer, length, &addr);
 }
 
 void send_udp(void *buffer, size_t length)
