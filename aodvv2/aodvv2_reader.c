@@ -5,7 +5,7 @@
 
 #include "aodvv2_reader.h"
 
-#define ENABLE_DEBUG (1)
+#define ENABLE_DEBUG (0)
 #include "debug.h"
 
 /* This is where we store data gathered from packets */
@@ -239,8 +239,8 @@ static enum rfc5444_result _cb_rreq_end_callback(
         }
     }
     
-    DEBUG("old entry:\n");
-    print_rt_entry(rt_entry);
+    //DEBUG("old entry:\n");
+    //print_rt_entry(rt_entry);
     /* The incoming routing information is better than existing routing 
      * table information and SHOULD be used to improve the route table. */ 
     rt_entry->address = packet_data.origNode.addr;
@@ -254,8 +254,8 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->metric = packet_data.origNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 
-    DEBUG("new entry:\n");
-    print_rt_entry(rt_entry);
+    //DEBUG("new entry:\n");
+    //print_rt_entry(rt_entry);
 
     /*
      * If TargNode is a client of the router receiving the RREQ, then the
@@ -415,8 +415,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
         }
     }
     
-    DEBUG("old entry:\n");
-    print_rt_entry(rt_entry);
+    //DEBUG("old entry:\n");
+    //print_rt_entry(rt_entry);
     /* The incoming routing information is better than existing routing 
      * table information and SHOULD be used to improve the route table. */ 
     rt_entry->address = packet_data.targNode.addr;
@@ -430,8 +430,8 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry->metric = packet_data.targNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 
-    DEBUG("new entry:\n");
-    print_rt_entry(rt_entry);
+    //DEBUG("new entry:\n");
+    //print_rt_entry(rt_entry);
 
     /*
      * If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's

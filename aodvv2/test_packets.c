@@ -201,7 +201,9 @@ test_write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         and print to console */
     abuf_hexdump(&_hexbuf, "\t", buffer, length);
     rfc5444_print_direct(&_hexbuf, buffer, length);
+
     printf("%s", abuf_getptr(&_hexbuf));
+    abuf_clear(&_hexbuf);
 
     /* parse packet */
     struct netaddr addr;

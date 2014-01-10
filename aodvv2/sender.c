@@ -148,6 +148,7 @@ write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     abuf_hexdump(&_hexbuf, "\t", buffer, length);
     rfc5444_print_direct(&_hexbuf, buffer, length);
     DEBUG("%s", abuf_getptr(&_hexbuf));
+    abuf_clear(&_hexbuf);
 
     //send_udp(buffer, length);
 
