@@ -99,8 +99,22 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     DEBUG("\tmessage type: %d\n", cont->type);
     DEBUG("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
-    /* handle SeqNum TLV */
-    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
+    /* handle OrigNode SeqNum TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_ORIGSEQNUM].tlv;
+    if (!tlv) {
+        DEBUG("ERROR: mandatory TLV RFC5444_MSGTLV_ORIGSEQNUM missing.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    else {
+        DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+        is_origNode_addr = true;
+        packet_data.origNode.addr = cont->addr;
+        packet_data.origNode.seqNum = *tlv->single_value;
+        packet_data.origNode.prefixlen = cont->addr._prefix_len;         
+    }
+
+    /* handle TargNode SeqNum TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_TARGSEQNUM].tlv;
     if (!tlv) {
         /* assume that tlv missing => targNode Address */
         is_origNode_addr = false;
@@ -108,22 +122,11 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         packet_data.targNode.prefixlen = cont->addr._prefix_len; 
     }
     else {
-        if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
-            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
-            is_origNode_addr = true;
-            packet_data.origNode.addr = cont->addr;
-            packet_data.origNode.seqNum = *tlv->single_value;
-            packet_data.origNode.prefixlen = cont->addr._prefix_len; 
-        } else if (tlv->type_ext == RFC5444_MSGTLV_TARGNODE_SEQNUM) {
-            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
-            is_origNode_addr = false;
-            packet_data.targNode.addr = cont->addr;
-            packet_data.targNode.seqNum = *tlv->single_value;
-            packet_data.targNode.prefixlen = cont->addr._prefix_len; 
-        } else {
-            DEBUG("ERROR: illegal extension type.\n");
-            return RFC5444_DROP_PACKET;
-        }
+        DEBUG("\ttlv RFC5444_MSGTLV_TARGSEQNUM: %d\n", *tlv->single_value);
+        is_origNode_addr = false;
+        packet_data.targNode.addr = cont->addr;
+        packet_data.targNode.seqNum = *tlv->single_value;
+        packet_data.targNode.prefixlen = cont->addr._prefix_len;         
     }
 
     /* handle Metric TLV */
@@ -182,7 +185,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     /* Check if packet contains the required information */
     if (dropped) {
-        DEBUG("\tDropping packet.\n");
+        DEBUG("\t Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
     if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum){
@@ -288,29 +291,32 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     DEBUG("\tmessage type: %d\n", cont->type);
     DEBUG("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
-    /* handle SeqNum TLV */
-    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_SEQNUM].tlv;
+    /* handle OrigNode SeqNum TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_ORIGSEQNUM].tlv;
     if (!tlv) {
-        DEBUG("ERROR: missing SeqNum TLV.\n");
+        DEBUG("ERROR: mandatory TLV RFC5444_MSGTLV_ORIGSEQNUM missing.\n");
         return RFC5444_DROP_PACKET;
     }
     else {
-        if (tlv->type_ext == RFC5444_MSGTLV_ORIGNODE_SEQNUM) {
-            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
-            is_targNode_addr = false;
-            packet_data.origNode.addr = cont->addr;
-            packet_data.origNode.seqNum = *tlv->single_value;
-            packet_data.origNode.prefixlen = cont->addr._prefix_len; 
-        } else if (tlv->type_ext == RFC5444_MSGTLV_TARGNODE_SEQNUM) {
-            DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
-            is_targNode_addr = true;
-            packet_data.targNode.addr = cont->addr;
-            packet_data.targNode.seqNum = *tlv->single_value;
-            packet_data.targNode.prefixlen = cont->addr._prefix_len; 
-        } else {
-            DEBUG("ERROR: illegal extension type.\n");
-            return RFC5444_DROP_PACKET;
-        }
+        DEBUG("\ttlv RFC5444_MSGTLV_ORIGSEQNUM: %d\n", *tlv->single_value);
+        is_targNode_addr = false;
+        packet_data.origNode.addr = cont->addr;
+        packet_data.origNode.seqNum = *tlv->single_value;
+        packet_data.origNode.prefixlen = cont->addr._prefix_len;
+    }
+
+    /* handle TargNode SeqNum TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_TARGSEQNUM].tlv;
+    if (!tlv) {
+        DEBUG("ERROR: mandatory TLV RFC5444_MSGTLV_TARGSEQNUM missing.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    else {
+        DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+        is_targNode_addr = true;
+        packet_data.targNode.addr = cont->addr;
+        packet_data.targNode.seqNum = *tlv->single_value;
+        packet_data.targNode.prefixlen = cont->addr._prefix_len;
     }
 
     /* handle Metric TLV */
@@ -369,7 +375,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
     /* Check if packet contains the rquired information */
     if (dropped) {
-        DEBUG("\tDropping packet.\n");
+        DEBUG("\t Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
     if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum) {
@@ -409,7 +415,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
         /* add empty rt_entry so that we can fill it later */
         add_routing_entry(rt_entry);
     } else {
-        if (!offers_improvement(rt_entry, &packet_data.targNode.addr)){
+        if (!offers_improvement(rt_entry, &packet_data.targNode.addr)) {
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
