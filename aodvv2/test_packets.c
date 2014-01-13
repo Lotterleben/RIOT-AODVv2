@@ -3,6 +3,8 @@
 #include "include/aodvv2.h"
 #include "utils.h"
 #include "sender.h"
+#include "aodvv2_writer.h"
+#include "aodvv2_reader.h"
 
 #include "cunit/cunit.h"
 #include "common/common_types.h"
@@ -20,6 +22,9 @@ static void test_packets_cleanup(void);
 
 static struct netaddr addr;
 static struct autobuf _hexbuf;
+
+static void* _buffer;
+static size_t _length;
 
 /*
  * A lot of these are smoke tests; you'll have to look at the debug output to 
@@ -87,13 +92,18 @@ static void test_rreq_dropped(void)
      oder noch nen extrawriter zu schreiben?  wie fake ich überhaupt daten? 
      ich glaub ich muss die pakete bauen, buffer auslesen und speichern.. yikes*/  
 
-    writer_cleanup();
-    writer_init(test_write_packet_duplicates);
+    //writer_cleanup();
+    //writer_init(test_write_packet_duplicates);
 
     /* the following isn't dropped because the seqNum is automatically incremented -.- */
+    printf("== Testing if duplicate RREQ is dropped: ==\n");
     writer_send_rreq(&origNode, &targNode);
-    //printf("== Testing if duplicate RREQ is dropped: ==\n");
     //writer_send_rreq(&origNode, &targNode);
+    /* parse packet */
+    struct netaddr addr;
+    netaddr_from_string(&addr, "::111");
+    reader_handle_packet(_buffer, _length, &addr);
+    reader_handle_packet(_buffer, _length, &addr);    // this should be recognized as redundant
 
     END_TEST();
     test_packets_cleanup();
@@ -116,7 +126,29 @@ static void test_rreq_to_rrep(void)
 }
 
 
-// TODO: testen ob's korrekt geforwardet wurde?
+static void test_rreq(void)
+{
+    static struct netaddr address, origNode, targNode;
+    
+    netaddr_from_string(&address, "::12");
+    netaddr_from_string(&origNode, "::13");
+    netaddr_from_string(&targNode, "::14");
+
+    test_packets_init();
+
+    START_TEST();
+    //TODO: fixme
+    printf("== Testing if RREQ is built properly: ==\n");
+    writer_send_rreq(&origNode, &targNode);
+    
+    //printf("== Testing if RREP to me is not forwarded: ==\n");
+    //netaddr_from_string(&entry_1.origNode.addr, MY_IP);
+    //send_rrep(&entry_1, &targNode);
+    END_TEST();
+    
+    test_packets_cleanup();
+}
+
 static void test_rrep(void)
 {
     static struct netaddr address, origNode, targNode;
@@ -149,7 +181,10 @@ static void test_rrep(void)
     START_TEST();
     //TODO: fixme
     printf("== Testing if RREP to someone else is forwarded: ==\n");
-    send_rrep(&entry_1, &targNode);
+    writer_send_rrep(&entry_1);
+
+    /* parse packet data built in sent_rrep*/
+    // TODO  
     
     //printf("== Testing if RREP to me is not forwarded: ==\n");
     //netaddr_from_string(&entry_1.origNode.addr, MY_IP);
@@ -172,6 +207,25 @@ static void test_seqNum(void){
 
     END_TEST();
 }
+
+
+//int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
+void test_packets_main(void)
+{
+    netaddr_from_string(&addr, "::111");
+    
+    BEGIN_TESTING(NULL);
+    
+    test_rreq();
+    //test_rrep();
+    //test_rreq_dropped();
+    //test_rreq_to_rrep();
+    //test_seqNum();
+
+    FINISH_TESTING();
+}
+
+//////////////////// HELPERS ///////////////////////////////////////////////////
 
 static void test_packets_init(void)
 {
@@ -203,6 +257,7 @@ test_write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         void *buffer, size_t length)
 {
 
+    printf("test_write_packet()\n"); 
     /* generate hexdump and human readable representation of packet
         and print to console */
     abuf_hexdump(&_hexbuf, "\t", buffer, length);
@@ -211,10 +266,13 @@ test_write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     printf("%s", abuf_getptr(&_hexbuf));
     abuf_clear(&_hexbuf);
 
+    _buffer = buffer;
+    _length = length;
+
     /* parse packet */
     struct netaddr addr;
     netaddr_from_string(&addr, "::111");
-    reader_handle_packet(buffer, length, &addr);
+    reader_handle_packet(_buffer, _length, &addr);
 }
 
 /**
@@ -243,20 +301,4 @@ test_write_packet_duplicates(struct rfc5444_writer *wr __attribute__ ((unused)),
     netaddr_from_string(&addr, "::111");
     reader_handle_packet(buffer, length, &addr);
     reader_handle_packet(buffer, length, &addr);
-}
-
-
-//int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
-void test_packets_main(void)
-{
-    netaddr_from_string(&addr, "::111");
-    
-    BEGIN_TESTING(NULL);
-    
-    test_rreq_dropped();
-    //test_rreq_to_rrep();
-    //test_rrep();
-    //test_seqNum();
-
-    FINISH_TESTING();
 }

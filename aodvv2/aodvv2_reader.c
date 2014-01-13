@@ -79,7 +79,8 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
  * TLV types RFC5444_MSGTLV__SEQNUM and RFC5444_MSGTLV_METRIC
  */
 static struct rfc5444_reader_tlvblock_consumer_entry _rreq_rrep_address_consumer_entries[] = {
-    [RFC5444_MSGTLV_SEQNUM] = { .type = RFC5444_MSGTLV_SEQNUM }, 
+    [RFC5444_MSGTLV_ORIGSEQNUM] = { .type = RFC5444_MSGTLV_ORIGSEQNUM},
+    [RFC5444_MSGTLV_TARGSEQNUM] = { .type = RFC5444_MSGTLV_TARGSEQNUM},
     [RFC5444_MSGTLV_METRIC] = { .type = AODVV2_DEFAULT_METRIC_TYPE }
 };
 
@@ -93,7 +94,9 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
 {
     struct netaddr_str nbuf;
     struct rfc5444_reader_tlvblock_entry* tlv;
-    bool is_origNode_addr;
+    bool is_origNode_addr = false;
+    bool is_targNode_addr = false;
+    //int tlv_type;
 
     DEBUG("[aodvv2] %s()\n", __func__);
     DEBUG("\tmessage type: %d\n", cont->type);
@@ -101,12 +104,8 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
 
     /* handle OrigNode SeqNum TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_ORIGSEQNUM].tlv;
-    if (!tlv) {
-        DEBUG("ERROR: mandatory TLV RFC5444_MSGTLV_ORIGSEQNUM missing.\n");
-        return RFC5444_DROP_PACKET;
-    }
-    else {
-        DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+    if (tlv) {
+        DEBUG("\ttlv RFC5444_MSGTLV_ORIGSEQNUM: %d\n", *tlv->single_value);
         is_origNode_addr = true;
         packet_data.origNode.addr = cont->addr;
         packet_data.origNode.seqNum = *tlv->single_value;
@@ -115,18 +114,23 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
 
     /* handle TargNode SeqNum TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_TARGSEQNUM].tlv;
-    if (!tlv) {
-        /* assume that tlv missing => targNode Address */
-        is_origNode_addr = false;
-        packet_data.targNode.addr = cont->addr;
-        packet_data.targNode.prefixlen = cont->addr._prefix_len; 
-    }
-    else {
+    if (tlv) {
         DEBUG("\ttlv RFC5444_MSGTLV_TARGSEQNUM: %d\n", *tlv->single_value);
-        is_origNode_addr = false;
+        is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.seqNum = *tlv->single_value;
         packet_data.targNode.prefixlen = cont->addr._prefix_len;         
+    }
+    if (!tlv && !is_origNode_addr) {
+        /* assume that tlv missing => targNode Address*/
+        is_targNode_addr = true;
+        packet_data.targNode.addr = cont->addr;
+        packet_data.targNode.prefixlen = cont->addr._prefix_len; 
+    }
+
+    if (!is_origNode_addr && !is_targNode_addr) {
+        DEBUG("\tERROR: mandatory RFC5444_MSGTLV_ORIGSEQNUM TLV missing.\n");
+        return RFC5444_DROP_PACKET;        
     }
 
     /* handle Metric TLV */
@@ -158,7 +162,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_rea
     DEBUG("[aodvv2] %s()\n", __func__);
 
     if (!cont->has_hoplimit) {
-        DEBUG("ERROR: missing hop limit\n");
+        DEBUG("\tERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
     }
 
@@ -212,7 +216,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
       is taken.
     */
     if (rreq_is_redundant(&packet_data)){
-        DEBUG("Packet is redundant. Dropping Packet. %i\n", RFC5444_DROP_PACKET);
+        DEBUG("\tPacket is redundant. Dropping Packet. %i\n", RFC5444_DROP_PACKET);
         return RFC5444_DROP_PACKET;
     }
 
@@ -291,32 +295,28 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     DEBUG("\tmessage type: %d\n", cont->type);
     DEBUG("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));
 
-    /* handle OrigNode SeqNum TLV */
-    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_ORIGSEQNUM].tlv;
-    if (!tlv) {
-        DEBUG("ERROR: mandatory TLV RFC5444_MSGTLV_ORIGSEQNUM missing.\n");
-        return RFC5444_DROP_PACKET;
-    }
-    else {
-        DEBUG("\ttlv RFC5444_MSGTLV_ORIGSEQNUM: %d\n", *tlv->single_value);
-        is_targNode_addr = false;
-        packet_data.origNode.addr = cont->addr;
-        packet_data.origNode.seqNum = *tlv->single_value;
-        packet_data.origNode.prefixlen = cont->addr._prefix_len;
-    }
-
     /* handle TargNode SeqNum TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_TARGSEQNUM].tlv;
-    if (!tlv) {
-        DEBUG("ERROR: mandatory TLV RFC5444_MSGTLV_TARGSEQNUM missing.\n");
-        return RFC5444_DROP_PACKET;
-    }
-    else {
+    if (tlv) {
         DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.seqNum = *tlv->single_value;
         packet_data.targNode.prefixlen = cont->addr._prefix_len;
+    }
+
+    /* handle OrigNode SeqNum TLV */
+    tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_ORIGSEQNUM].tlv;
+    if (tlv) {
+        DEBUG("\ttlv RFC5444_MSGTLV_ORIGSEQNUM: %d\n", *tlv->single_value);
+        is_targNode_addr = false;
+        packet_data.origNode.addr = cont->addr;
+        packet_data.origNode.seqNum = *tlv->single_value;
+        packet_data.origNode.prefixlen = cont->addr._prefix_len;
+    } 
+    if (!tlv && !is_targNode_addr) {
+        DEBUG("\tERROR: mandatory SeqNum TLV missing.\n");
+        return RFC5444_DROP_PACKET;
     }
 
     /* handle Metric TLV */
