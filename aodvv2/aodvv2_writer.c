@@ -225,9 +225,7 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
     memcpy(&rreq_packet_data.targNode, na_targNode, sizeof(struct netaddr));
 
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
-    //printf("flushing RREQ\n");
     rfc5444_writer_flush(&writer, &interface_1, false);
-    //printf("xoxoxoxo done\n");
 }
 
 void writer_send_rrep(struct aodvv2_packet_data* packet_data)
@@ -240,9 +238,7 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data)
     memcpy(&rrep_packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREP);
-    //printf("flushing RREP\n");
     rfc5444_writer_flush(&writer, &interface_1, false);
-    //printf("xoxoxoxo done\n");
 }
 
 void writer_cleanup(void)

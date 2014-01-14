@@ -3,10 +3,10 @@
 #include "include/aodvv2.h"
 #include "routing.h"
 #include "aodvv2_reader.h"
-#include "common/netaddr.h"
 #include "utils.h"
-
 #include "cunit/cunit.h"
+
+#include "common/netaddr.h"
 
 struct netaddr_str nbuf;
 
@@ -196,12 +196,12 @@ void test_rreq_table(void)
 //int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))) {
 void test_tables_main(void)
 {
-  BEGIN_TESTING(NULL);
+    BEGIN_TESTING(NULL);
 
-  test_routingtable();
-  test_rreq_table();
+    test_routingtable();
+    test_rreq_table();
 
-  FINISH_TESTING();
+    FINISH_TESTING();
 }
 
 char* node_data_to_string(struct node_data* node_data)

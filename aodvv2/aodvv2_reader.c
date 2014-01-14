@@ -96,7 +96,6 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
     struct rfc5444_reader_tlvblock_entry* tlv;
     bool is_origNode_addr = false;
     bool is_targNode_addr = false;
-    //int tlv_type;
 
     DEBUG("[aodvv2] %s()\n", __func__);
     DEBUG("\tmessage type: %d\n", cont->type);
@@ -122,7 +121,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         packet_data.targNode.prefixlen = cont->addr._prefix_len;         
     }
     if (!tlv && !is_origNode_addr) {
-        /* assume that tlv missing => targNode Address*/
+        /* assume that tlv missing => targNode Address */
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.prefixlen = cont->addr._prefix_len; 
@@ -273,7 +272,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     if (is_client(&packet_data.targNode.addr, packet_data.targNode.prefixlen)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
-        //send_rrep(&packet_data, &packet_data.sender);  
+        send_rrep(&packet_data, &packet_data.sender);  
         return RFC5444_OKAY;
     }
 
