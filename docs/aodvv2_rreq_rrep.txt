@@ -361,7 +361,7 @@ successful implementation if everything in the document.
    o  If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
       Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx].   
    o  If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
-      earlier RREQ, and RREP processing is completed.  Any packets
+      earlier RREQ, and RREP processing is completed. [DONE]  Any packets
       buffered for OrigNode should be transmitted.
 
 7.6.  Suppressing Redundant RREQ messages
