@@ -48,6 +48,7 @@
 
 #include "routing.h"
 #include "include/aodvv2.h"
+#include "seqnum.h"
 
 #ifndef READER_H_
 #define READER_H_

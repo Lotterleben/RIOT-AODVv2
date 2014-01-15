@@ -52,7 +52,9 @@
 #include "rfc5444/rfc5444_iana.h"
 
 #include "include/aodvv2.h"
-#include "sender.h"
+#include "sender.h" // TODO: raus?
+#include "seqnum.h"
+
 
 struct rfc5444_writer_target interface_1;
 struct rfc5444_writer writer;

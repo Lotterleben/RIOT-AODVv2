@@ -1,11 +1,12 @@
 #include <stdio.h>
 
+#include "cunit/cunit.h"
+#include "common/netaddr.h"
+
 #include "sender.h"
 #include "aodvv2_writer.h"
 #include "aodvv2_reader.h"
-
-#include "cunit/cunit.h"
-#include "common/netaddr.h"
+#include "seqnum.h"
 
 // 2nd try.
 static struct autobuf _hexbuf;

@@ -4,8 +4,9 @@
 
 #include "common/netaddr.h"
 
-#include "aodvv2_reader.h"
 #include "include/aodvv2.h"
+#include "aodvv2_reader.h"
+#include "seqnum.h"
 
 #ifndef UTILS_H_
 #define UTILS_H_

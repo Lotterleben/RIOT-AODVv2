@@ -297,7 +297,7 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
     /* handle TargNode SeqNum TLV */
     tlv = _rreq_rrep_address_consumer_entries[RFC5444_MSGTLV_TARGSEQNUM].tlv;
     if (tlv) {
-        DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d exttype: %d\n", *tlv->single_value, tlv->type_ext );
+        DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d\n", *tlv->single_value);
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.seqNum = *tlv->single_value;
