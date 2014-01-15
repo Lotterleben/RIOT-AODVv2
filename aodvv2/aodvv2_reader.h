@@ -52,23 +52,6 @@
 #ifndef READER_H_
 #define READER_H_
 
-struct node_data {
-    struct netaddr addr;
-    uint8_t prefixlen;
-    uint8_t metric;
-    uint16_t seqNum;
-};
-
-/* contains all data contained in an aodvv2 packet */
-struct aodvv2_packet_data {
-    uint8_t hoplimit;
-    struct netaddr sender;
-    uint8_t metricType;
-    struct node_data origNode;
-    struct node_data targNode;
-    timex_t timestamp;
-};
-
 void reader_init(void);
 void reader_cleanup(void);
 int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender);

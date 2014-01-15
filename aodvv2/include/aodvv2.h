@@ -1,3 +1,5 @@
+#include "common/netaddr.h"
+
 #ifndef AODVV2_H_
 #define AODVV2_H_
 
@@ -24,4 +26,22 @@ enum tlv_type {
     RFC5444_MSGTLV_TARGSEQNUM,    
     RFC5444_MSGTLV_METRIC,
 };
+
+struct node_data {
+    struct netaddr addr;
+    uint8_t prefixlen;
+    uint8_t metric;
+    uint16_t seqNum;
+};
+
+/* contains all data contained in an aodvv2 packet */
+struct aodvv2_packet_data {
+    uint8_t hoplimit;
+    struct netaddr sender;
+    uint8_t metricType;
+    struct node_data origNode;
+    struct node_data targNode;
+    timex_t timestamp;
+};
+
 #endif /* AODVV2_H_ */
