@@ -4,8 +4,8 @@
 #include "common/netaddr.h"
 
 #include "sender.h"
-#include "aodvv2_writer.h"
-#include "aodvv2_reader.h"
+#include "writer.h"
+#include "reader.h"
 #include "seqnum.h"
 
 // 2nd try.

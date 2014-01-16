@@ -2,7 +2,7 @@
 
 #include "include/aodvv2.h"
 #include "routing.h"
-#include "aodvv2_reader.h"
+#include "reader.h"
 #include "utils.h"
 #include "cunit/cunit.h"
 

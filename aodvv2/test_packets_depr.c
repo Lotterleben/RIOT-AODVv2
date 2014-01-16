@@ -8,8 +8,8 @@
 #include "include/aodvv2.h"
 #include "utils.h"
 #include "sender.h"
-#include "aodvv2_writer.h"
-#include "aodvv2_reader.h"
+#include "writer.h"
+#include "reader.h"
 #include "seqnum.h"
 
 static void test_write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),

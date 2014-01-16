@@ -65,8 +65,8 @@
 #include "rfc5444/rfc5444_writer.h"
 #include "rfc5444/rfc5444_print.h"
 
-#include "aodvv2_reader.h"
-#include "aodvv2_writer.h"
+#include "reader.h"
+#include "writer.h"
 #include "sender.h"
 #include "destiny.h"
 #include "destiny/socket.h"

@@ -5,7 +5,6 @@
 #include "common/netaddr.h"
 
 #include "include/aodvv2.h"
-#include "aodvv2_reader.h"
 #include "seqnum.h"
 
 #ifndef UTILS_H_

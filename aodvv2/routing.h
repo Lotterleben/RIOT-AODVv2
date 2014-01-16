@@ -10,7 +10,6 @@
 #include "common/netaddr.h"
 
 #include "include/aodvv2.h"
-#include "common/netaddr.h"
 
 #ifndef ROUTING_H_
 #define ROUTING_H_

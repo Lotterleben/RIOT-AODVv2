@@ -44,7 +44,7 @@
 
 #include "common/common_types.h"
 #include "rfc5444/rfc5444_writer.h"
-#include "aodvv2_reader.h"
+#include "reader.h"
 
 #include "common/common_types.h"
 #include "common/netaddr.h"

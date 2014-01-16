@@ -15,8 +15,8 @@
 #include "net_help.h"
 
 #include "include/aodvv2.h"
-#include "aodvv2_reader.h"
-#include "aodvv2_writer.h"
+#include "reader.h"
+#include "writer.h"
 #include "seqnum.h"
 
 #ifndef SENDER_H_
