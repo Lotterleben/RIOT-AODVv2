@@ -41,16 +41,10 @@ struct aodvv2_routing_entry_t {
 };
 
 void init_routingtable(void);
-struct netaddr* get_next_hop(struct netaddr* addr, uint8_t metricType);
-void add_routing_entry(struct aodvv2_routing_entry_t* entry);
-
-/* 
-OBACHT: sicher stellen dass immer nur 1 thread diesen entry
-(andere entries sind unaffected, oder?) bearbeitet! wie stell ich das am 
-elegantesten an?
-*/
-struct aodvv2_routing_entry_t* get_routing_entry(struct netaddr* addr, uint8_t metricType);
-void delete_routing_entry(struct netaddr* addr, uint8_t metricType);
-void print_rt(void);
-void print_rt_entry(struct aodvv2_routing_entry_t* rt_entry);
+struct netaddr* routingtable_get_next_hop(struct netaddr* addr, uint8_t metricType);
+void routingtable_add_entry(struct aodvv2_routing_entry_t* entry);
+struct aodvv2_routing_entry_t* routingtable_get_entry(struct netaddr* addr, uint8_t metricType);
+void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType);
+void print_routingtable(void);
+void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry);
 #endif /* ROUTING_H_ */ 

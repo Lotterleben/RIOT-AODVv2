@@ -1,21 +1,16 @@
-#include <sixlowpan/ip.h>
+#include "aodv.h"
 
-#include "include/aodvv2.h"
-#include "seqnum.h"
-#include "routing.h" 
-#include "utils.h"
-#include "reader.h"
-#include "writer.h"
+#define ENABLE_DEBUG (1)
+#include "debug.h"
 
-static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
-    struct rfc5444_writer_target *iface __attribute__((unused)),
-    void *buffer, size_t length);
-static ipv6_addr_t* get_next_hop(ipv6_addr_t* dest);
+static char sender_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
+static char receiver_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
+static int sock;
+static sockaddr6_t sa;
 
 void aodv_init(void)
 {
-    // TODO: init transceiver etc
-    
+    DEBUG("[aodvv2] %s()\n", __func__);
     /* init ALL the things! \o, */
     init_seqNum();
     init_routingtable();
@@ -23,37 +18,70 @@ void aodv_init(void)
     init_rreqtable();
 
     reader_init();
-    writer_init(write_packet);
+    //writer_init(write_packet);
+
+    /* start sending & receiving */
 
     /* register aodv for routing */
-    ipv6_iface_set_routing_provider(get_next_hop);
+    /* aodv.c:50:37: warning: incompatible pointer types passing 'struct netaddr *(struct netaddr *, uint8_t)' to parameter of type 'ipv6_addr_t *(*)(ipv6_addr_t *)' [-Wincompatible-pointer-types]
+        why the fuck.*/
+    ipv6_iface_set_routing_provider(aodv_get_next_hop);
 }
 
-
-static void write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
-    struct rfc5444_writer_target *iface __attribute__((unused)),
-    void *buffer, size_t length)
+void aodv_send(void)
 {
-    //TODO
+    DEBUG("[aodvv2] %s()\n", __func__);
+
+    int sock;
+    sockaddr6_t sa;
+    ipv6_addr_t ipaddr;
+    int bytes_sent;
+    int address;
+    char addr_str[IPV6_MAX_ADDR_STR_LEN];
+
+    sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+
+    if(-1 == sock) {
+        printf("Error Creating Socket!");
+        return;
+    }
+
+    memset(&sa, 0, sizeof sa);
+
+    ipv6_addr_init(&ipaddr, 0xabcd, 0x0, 0x0, 0x0, 0x3612, 0x00ff, 0xfe00, (uint16_t)address);
+
+    sa.sin6_family = AF_INET;
+    memcpy(&sa.sin6_addr, &ipaddr, 16);
+    sa.sin6_port = HTONS(MANET_PORT);
+
+    bytes_sent = destiny_socket_sendto(sock, (char *)"hi",
+            strlen("hi") + 1, 0, &sa,
+            sizeof sa);
+
+    if(bytes_sent < 0) {
+        printf("Error sending packet!\n");
+    }
+    else {
+        printf("Successful deliverd %i bytes over UDP to %s to 6LoWPAN\n", bytes_sent, ipv6_addr_to_str(addr_str, &ipaddr));
+    }
+
+    destiny_socket_close(sock);
 }
 
-static ipv6_addr_t* get_next_hop(ipv6_addr_t* dest)
+static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
     // TODO
     return NULL;
 }
 
-static void aodv_sender_thread(void)
-{
-    // TODO
-}
 
-static void aodv_reciever_thread(void)
-{
-    // TODO
-}
 
-static void aodv_route_discovery_thread(void)
-{
-    // TODO
-}
+
+
+
+
+
+
+
+
+

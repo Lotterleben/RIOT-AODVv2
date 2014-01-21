@@ -15,20 +15,20 @@ char* packet_data_to_string(struct aodvv2_packet_data* packet_data);
 
 void test_routingtable_get_entry(struct netaddr* addr, uint8_t metricType)
 {
-   struct aodvv2_routing_entry_t* entry_result = get_routing_entry(addr, metricType);
+   struct aodvv2_routing_entry_t* entry_result = routingtable_get_entry(addr, metricType);
    CHECK_TRUE(entry_result != NULL, "there should be an entry for %s with metrictType %i\n", netaddr_to_string(&nbuf, addr), metricType);
 }
 
 void test_routingtable_get_entry_bullshitdata(struct netaddr* addr, uint8_t metricType)
 {
-    struct aodvv2_routing_entry_t* entry_result = get_routing_entry(addr, metricType);
+    struct aodvv2_routing_entry_t* entry_result = routingtable_get_entry(addr, metricType);
     CHECK_TRUE(entry_result == NULL, "there should be no entry for %s with metrictType %i\n", netaddr_to_string(&nbuf, addr), metricType);
 }
 
 void test_routingtable_get_next_hop(struct netaddr* addr, uint8_t metricType, struct netaddr* next_hop_expected)
 {
     int addr_equal = -1;
-    struct netaddr* next_hop_result = get_next_hop(addr, metricType);
+    struct netaddr* next_hop_result = routingtable_get_next_hop(addr, metricType);
     
     CHECK_TRUE(next_hop_result != NULL, "no next hop for %s with metrictType %i\n", netaddr_to_string(&nbuf, addr), metricType);
 
@@ -42,7 +42,7 @@ void test_routingtable_get_next_hop(struct netaddr* addr, uint8_t metricType, st
 
 void test_routingtable_get_next_hop_bullshitdata(struct netaddr* addr, uint8_t metricType)
 {
-    struct netaddr* next_hop_result = get_next_hop(addr, metricType);   
+    struct netaddr* next_hop_result = routingtable_get_next_hop(addr, metricType);   
     CHECK_TRUE(next_hop_result == NULL, "there should be no next hop for %s with metricType %i\n", 
                 netaddr_to_string(&nbuf, addr), metricType);
 }
@@ -104,16 +104,16 @@ void test_routingtable(void)
     /* prepare routing table */
     init_routingtable();
 
-    print_rt();
+    print_routingtable();
     printf("Adding first entry: %s ...\n", netaddr_to_string(&nbuf, &addr_2));
-    add_routing_entry(&entry_1);
-    print_rt();
+    routingtable_add_entry(&entry_1);
+    print_routingtable();
     printf("Adding second entry: %s ...\n", netaddr_to_string(&nbuf, &addr_2));
-    add_routing_entry(&entry_2);
-    print_rt();
+    routingtable_add_entry(&entry_2);
+    print_routingtable();
     printf("Deleting first entry: %s ...\n", netaddr_to_string(&nbuf, & addr_2));
-    delete_routing_entry(&addr_2, entry_1.metricType);
-    print_rt();   
+    routingtable_delete_entry(&addr_2, entry_1.metricType);
+    print_routingtable();   
     
     /* start testing */
     test_routingtable_get_entry(&addr_1, entry_1.metricType);
@@ -129,7 +129,7 @@ void test_routingtable(void)
     vtimer_usleep((AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME +1) * 1000000); // usleeps needs milliseconds, so there
     test_routingtable_get_entry_bullshitdata(&addr_1, entry_1.metricType);    // entry_1 should be stale & removed by now
     test_routingtable_get_next_hop_bullshitdata(&addr_1, entry_1.metricType); // entry_1 should be stale & removed by now
-    delete_routing_entry(&addr_1, entry_1.metricType);                        // here's to hoping this blows up when something goes wrong
+    routingtable_delete_entry(&addr_1, entry_1.metricType);                        // here's to hoping this blows up when something goes wrong
 
     END_TEST();
 }

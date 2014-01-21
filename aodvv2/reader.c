@@ -26,10 +26,10 @@ static enum rfc5444_result _cb_rrep_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped);
 
 /* helper functions */
-static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
-static uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
-static uint8_t get_max_metric(uint8_t metricType);
-static uint8_t get_updated_metric(uint8_t metricType, uint8_t metric);
+static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
+static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
+static uint8_t _get_max_metric(uint8_t metricType);
+static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric);
 
 static struct rfc5444_reader reader;
 static timex_t validity_t;
@@ -182,7 +182,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
 {
     struct aodvv2_routing_entry_t* rt_entry;
     timex_t now;
-    uint8_t link_cost = get_link_cost(packet_data.metricType, &packet_data);
+    uint8_t link_cost = _get_link_cost(packet_data.metricType, &packet_data);
 
     DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
@@ -203,7 +203,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         DEBUG("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
-    if ((get_max_metric(packet_data.metricType) - link_cost) <= packet_data.origNode.metric){
+    if ((_get_max_metric(packet_data.metricType) - link_cost) <= packet_data.origNode.metric){
         DEBUG("\tMetric Limit reached. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
@@ -219,7 +219,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         return RFC5444_DROP_PACKET;
     }
 
-    packet_data.origNode.metric = get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
+    packet_data.origNode.metric = _get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
     rtc_time(&now);
     packet_data.timestamp = now;
 
@@ -229,7 +229,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
      * of the RteMsg, matching RteMsg.Addr.
      */
 
-    rt_entry = get_routing_entry(&packet_data.origNode.addr, packet_data.metricType);
+    rt_entry = routingtable_get_entry(&packet_data.origNode.addr, packet_data.metricType);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
         DEBUG("\tCreating new Routing Table entry...\n");
@@ -237,9 +237,9 @@ static enum rfc5444_result _cb_rreq_end_callback(
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
         memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern amcht uint8_ts zu 48s.. o0 TODO
         /* add empty rt_entry so that we can fill it later */
-        add_routing_entry(rt_entry);
+        routingtable_add_entry(rt_entry);
     } else {
-        if (!offers_improvement(rt_entry, &packet_data.origNode.addr)){
+        if (!_offers_improvement(rt_entry, &packet_data.origNode.addr)){
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
@@ -368,7 +368,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 {
     struct aodvv2_routing_entry_t* rt_entry;
     timex_t now;
-    uint8_t link_cost = get_link_cost(packet_data.metricType, &packet_data);
+    uint8_t link_cost = _get_link_cost(packet_data.metricType, &packet_data);
 
     DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
@@ -389,12 +389,12 @@ static enum rfc5444_result _cb_rrep_end_callback(
         DEBUG("\tERROR: Hoplimit is 0. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
-    if ((get_max_metric(packet_data.metricType) - link_cost) <= packet_data.targNode.metric){
+    if ((_get_max_metric(packet_data.metricType) - link_cost) <= packet_data.targNode.metric){
         DEBUG("\tMetric Limit reached. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
 
-    packet_data.origNode.metric = get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
+    packet_data.origNode.metric = _get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
     rtc_time(&now);
     packet_data.timestamp = now;
 
@@ -404,7 +404,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
      * of the RteMsg, matching RteMsg.Addr.
      */
 
-    rt_entry = get_routing_entry(&packet_data.targNode.addr, packet_data.metricType);
+    rt_entry = routingtable_get_entry(&packet_data.targNode.addr, packet_data.metricType);
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
         DEBUG("\tCreating new Routing Table entry...\n");
@@ -412,9 +412,9 @@ static enum rfc5444_result _cb_rrep_end_callback(
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
         memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern macht uint8_ts zu 48s.. o0 TODO
         /* add empty rt_entry so that we can fill it later */
-        add_routing_entry(rt_entry);
+        routingtable_add_entry(rt_entry);
     } else {
-        if (!offers_improvement(rt_entry, &packet_data.targNode.addr)) {
+        if (!_offers_improvement(rt_entry, &packet_data.targNode.addr)) {
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
@@ -461,7 +461,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
 void reader_init(void)
 {
-    DEBUG("%s()\n", __func__);
+    DEBUG("[aodv] %s()\n", __func__);
 
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
@@ -503,7 +503,7 @@ int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 /*
  * handle collected data as described in Section 6.1 
  */
-static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
+static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
 {
     /* Check if new info is stale */    
     if (cmp_seqnum(node_data->seqNum, rt_entry->seqNum) == -1)
@@ -519,7 +519,7 @@ static bool offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct n
  * (currently only AODVV2_DEFAULT_METRIC_TYPE (HopCt) implemented)
  * returns cost if metric is known, NULL otherwise
  */
-static uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
+static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return 1;
@@ -530,7 +530,7 @@ static uint8_t get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data
  * MAX_METRIC[MetricType]:
  * returns maximum value of the given metric if metric is known, NULL otherwise.
  */
-static uint8_t get_max_metric(uint8_t metricType)
+static uint8_t _get_max_metric(uint8_t metricType)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return AODVV2_MAX_HOPCOUNT;
@@ -541,7 +541,7 @@ static uint8_t get_max_metric(uint8_t metricType)
  * Calculate a metric's new value according to the specified MetricType
  * (currently only implemented for AODVV2_DEFAULT_METRIC_TYPE (HopCt))
  */
-static uint8_t get_updated_metric(uint8_t metricType, uint8_t metric)
+static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return metric++;

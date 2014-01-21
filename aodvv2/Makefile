@@ -7,11 +7,11 @@ export CFLAGS += -DRIOT #-DENABLE_DEBUG
 export PROJECT = aodvv2
 #
 # for easy switching of boards
-export BOARD = native
+export BOARD ?= native
 
 # this has to be the absolute path of the RIOT-base dir
-export RIOTBASE =$(CURDIR)/../../riot/RIOT
-export RIOTBOARD =$(RIOTBASE)/../boards
+export RIOTBASE ?=$(CURDIR)/../../riot/RIOT
+export RIOTBOARD ?=$(RIOTBASE)/boards
 export RIOTLIBS =$(RIOTBASE)/../riot-libs
 export OONFBASE=$(CURDIR)/../../oonf_api
 
@@ -53,11 +53,19 @@ USEMODULE += compat_misc
 USEMODULE += oonf_common
 USEMODULE += oonf_rfc5444
 
-export INCLUDES +=	-I$(RIOTBASE)/sys/include -I$(RIOTBASE)/drivers/include \
-					-I$(RIOTBASE)/cpu/$(BOARD)/include \
-					-I$(RIOTBASE)/sys/net/include \
-					-I$(RIOTBASE)/sys/net/destiny \
-					-I$(OONFBASE)/src-api -I$(RIOTLIBS) \
+#export INCLUDES +=	-I${RIOTBASE}/core/include/ \
+#					-I$(RIOTBASE)/sys/include \
+#					-I$(RIOTBASE)/drivers/include \
+					#-I$(RIOTBASE)/cpu/$(BOARD)/include \
+#					-I$(RIOTBASE)/sys/net/include \
+					#-I$(RIOTBASE)/sys/net/destiny \
+#					-I$(OONFBASE)/src-api -I$(RIOTLIBS) \
+
+export INCLUDES += -I${RIOTBASE}/core/include/ \
+				   -I$(RIOTBASE)/sys/net/include \
+				   -I$(RIOTBASE)/drivers/cc110x/ \
+				   -I$(RIOTBASE)/cpu/$(BOARD)/include \
+				   -I$(OONFBASE)/src-api -I$(RIOTLIBS)
 
 include $(RIOTBASE)/Makefile.include
 valgrind: all

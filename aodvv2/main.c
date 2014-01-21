@@ -76,6 +76,17 @@
 
 #include "include/aodvv2.h"
 
+//#if defined(BOARD_NATIVE)
+//#include <unistd.h>
+static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
+
+/* gemopst von ben */
+static uint16_t get_node_id(void) {
+    DEBUG("node id is: %d \n", getpid());
+    return getpid();
+}
+//#endif
+
 /*
 const shell_command_t shell_commands[] = {
     {"rreq", "send rreq", send_rreq},
@@ -83,6 +94,14 @@ const shell_command_t shell_commands[] = {
     {"receive_udp", "receive udp packets", receive_udp},
 };
 */
+
+/* init transport layer stuff */
+void init_tlayer(void)
+{
+    destiny_init_transport_layer();
+    sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
+}
+
 
 int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))
 {
@@ -109,40 +128,16 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
-    printf("You may use the shell now.\n");
+    //aodv_send();
 
     /*
+    printf("You may use the shell now.\n");
+
     shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
     shell_run(&shell);
     */
-    //test_tables_main();
-    test_packets_main();
+    test_tables_main();
+    //test_packets_main();
 
-    struct netaddr address, origNode, targNode;
-    netaddr_from_string(&address, "::12");
-    netaddr_from_string(&targNode, "::13");
-    netaddr_from_string(&origNode, "::14");
-    struct aodvv2_packet_data entry_1 = {
-        .hoplimit = AODVV2_MAX_HOPCOUNT,
-        .sender = address,
-        .metricType = AODVV2_DEFAULT_METRIC_TYPE,
-        .origNode = {
-            .addr = origNode,
-            .prefixlen = 128,
-            .metric = 12,
-            .seqNum = 13,
-        },
-        .targNode = {
-            .addr = targNode,
-            .prefixlen = 128,
-            .metric = 12,
-            .seqNum = 0,
-        },
-        .timestamp = NULL,
-    };
-
-    //send_rrep(&entry_1, &targNode);
-    //send_rreq("");
-    
     return 0;
 }

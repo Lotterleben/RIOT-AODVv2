@@ -8,7 +8,7 @@
 /* helper functions */
 static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
 static void add_rreq(struct aodvv2_packet_data* packet_data);
-static void reset_entry_if_stale(uint8_t i);
+static void _reset_entry_if_stale(uint8_t i);
 
 static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
@@ -173,7 +173,7 @@ static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* 
 {       
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
         
-        reset_entry_if_stale(i);
+        _reset_entry_if_stale(i);
 
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
             && !netaddr_cmp(&rreq_table[i].targNode, &packet_data->targNode.addr)
@@ -211,7 +211,7 @@ static void add_rreq(struct aodvv2_packet_data* packet_data)
  * Check if entry at index i is stale and clear the space it takes up if it is
  * (because we've implemented our table crappily) 
  */
-static void reset_entry_if_stale(uint8_t i)
+static void _reset_entry_if_stale(uint8_t i)
 {
     rtc_time(&now);
     expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
