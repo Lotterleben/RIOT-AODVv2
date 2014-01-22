@@ -216,7 +216,7 @@ void writer_init(write_packet_func_ptr ptr)
 
 void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
 {
-    DEBUG("[RREQ]\n");
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     if (na_origNode == NULL || na_targNode == NULL)
         return;
@@ -230,7 +230,7 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
 
 void writer_send_rrep(struct aodvv2_packet_data* packet_data)
 {
-    DEBUG("[RREP]\n");
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     if (packet_data == NULL)
         return;

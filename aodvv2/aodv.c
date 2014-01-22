@@ -3,10 +3,20 @@
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-static char sender_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
+char addr_str[IPV6_MAX_ADDR_STR_LEN];
+char addr_str2[IPV6_MAX_ADDR_STR_LEN];
+
+static void _init_addresses(void);
+static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
+        struct rfc5444_writer_target *iface __attribute__((unused)),
+        void *buffer, size_t length);
+
 static char receiver_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
-static int sock;
-static sockaddr6_t sa;
+static int sock_snd;
+static struct autobuf _hexbuf;
+static sockaddr6_t sa_mcast;
+static ipv6_addr_t na_local;
+
 
 void aodv_init(void)
 {
@@ -15,67 +25,77 @@ void aodv_init(void)
     init_seqNum();
     init_routingtable();
     init_clienttable();
-    init_rreqtable();
+    init_rreqtable(); 
 
+    _init_addresses();
+    
+    /* init reader and writer */
     reader_init();
-    //writer_init(write_packet);
+    writer_init(_write_packet);
 
     /* start sending & receiving */
-
+    // TODO
+    
     /* register aodv for routing */
-    /* aodv.c:50:37: warning: incompatible pointer types passing 'struct netaddr *(struct netaddr *, uint8_t)' to parameter of type 'ipv6_addr_t *(*)(ipv6_addr_t *)' [-Wincompatible-pointer-types]
-        why the fuck.*/
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
+    ipv6_addr_t test_addr;
+    ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
+    aodv_get_next_hop(&test_addr);
 }
 
-void aodv_send(void)
+/* 
+ * init the multicast address all RREQs are sent to 
+ * and the local address (source address) of this node
+ */
+static void _init_addresses(void)
 {
-    DEBUG("[aodvv2] %s()\n", __func__);
+    sa_mcast.sin6_family = AF_INET6;
+    sa_mcast.sin6_port = HTONS(MANET_PORT);
+    /* set to to a link-local all nodes multicast address */
+    ipv6_addr_set_all_nodes_addr(&sa_mcast.sin6_addr);
+    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &sa_mcast.sin6_addr));
 
-    int sock;
-    sockaddr6_t sa;
-    ipv6_addr_t ipaddr;
-    int bytes_sent;
-    int address;
-    char addr_str[IPV6_MAX_ADDR_STR_LEN];
-
-    sock = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
-    if(-1 == sock) {
-        printf("Error Creating Socket!");
-        return;
-    }
-
-    memset(&sa, 0, sizeof sa);
-
-    ipv6_addr_init(&ipaddr, 0xabcd, 0x0, 0x0, 0x0, 0x3612, 0x00ff, 0xfe00, (uint16_t)address);
-
-    sa.sin6_family = AF_INET;
-    memcpy(&sa.sin6_addr, &ipaddr, 16);
-    sa.sin6_port = HTONS(MANET_PORT);
-
-    bytes_sent = destiny_socket_sendto(sock, (char *)"hi",
-            strlen("hi") + 1, 0, &sa,
-            sizeof sa);
-
-    if(bytes_sent < 0) {
-        printf("Error sending packet!\n");
-    }
-    else {
-        printf("Successful deliverd %i bytes over UDP to %s to 6LoWPAN\n", bytes_sent, ipv6_addr_to_str(addr_str, &ipaddr));
-    }
-
-    destiny_socket_close(sock);
+    // TODO: test this.
+    ipv6_iface_get_best_src_addr(&na_local, &sa_mcast.sin6_addr);
+    //DEBUG("[aodvv2] my IP addresses is:        %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
+    DEBUG("[aodvv2] My IP addresses are: \n");
+    ipv6_iface_print_addrs();
 }
 
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
-    // TODO
+    //since we're only using one metric type at the moment anyway, do this clumsily for now
+    ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(dest, AODVV2_DEFAULT_METRIC_TYPE);
+    if (next_hop)
+        return next_hop;
+    /* no route found => start route discovery */
+    writer_send_rreq((struct netaddr*) &na_local, (struct netaddr*) dest);
     return NULL;
 }
 
 
+/**
+ * Handle the output of the RFC5444 packet creation process
+ * @param wr
+ * @param iface
+ * @param buffer
+ * @param length
+ */
+static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
+        struct rfc5444_writer_target *iface __attribute__((unused)),
+        void *buffer, size_t length)
+{
+    DEBUG("[aodvv2] %s()\n", __func__);
 
+    /* generate hexdump and human readable representation of packet
+        and print to console */
+    abuf_hexdump(&_hexbuf, "\t", buffer, length);
+    rfc5444_print_direct(&_hexbuf, buffer, length);
+    DEBUG("%s", abuf_getptr(&_hexbuf));
+    abuf_clear(&_hexbuf);
+
+    DEBUG("[aodvv2] TODO: actually send this!\n");
+}
 
 
 

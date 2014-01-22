@@ -46,6 +46,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <thread.h>
+
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "vtimer.h"
 #include "rtc.h"
@@ -56,7 +60,8 @@
 #include "posix_io.h"
 #include "nativenet.h"
 #include "msg.h"
-#include <thread.h>
+#include "destiny.h"
+#include "destiny/socket.h"
 
 #include "common/common_types.h"
 #include "common/netaddr.h"
@@ -67,9 +72,8 @@
 
 #include "reader.h"
 #include "writer.h"
-#include "sender.h"
-#include "destiny.h"
-#include "destiny/socket.h"
+#include "sender_old.h"
+#include "aodv.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -89,15 +93,18 @@ static uint16_t get_node_id(void) {
 
 /*
 const shell_command_t shell_commands[] = {
-    {"rreq", "send rreq", send_rreq},
-    {"rrep", "send rrep", send_rrep},
-    {"receive_udp", "receive udp packets", receive_udp},
+    {"rreq", "send rreq", old_send_rreq},
+    {"rrep", "send rrep", old_send_rrep},
+    {"snd", "send message", aodv_send},
+    {"rcv", "receive udp packets", aodv_receive},
+    {NULL, NULL, NULL}
 };
 */
 
 /* init transport layer stuff */
 void init_tlayer(void)
 {
+    DEBUG("node id is: %d \n", getpid());
     destiny_init_transport_layer();
     sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
 }
@@ -128,15 +135,13 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
-    //aodv_send();
-
     /*
     printf("You may use the shell now.\n");
 
-    shell_init(&shell, shell_commands, uart0_readc, uart0_putc);
+    shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
     shell_run(&shell);
     */
-    test_tables_main();
+    //test_tables_main();
     //test_packets_main();
 
     return 0;

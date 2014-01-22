@@ -41,6 +41,7 @@ struct aodvv2_routing_entry_t {
 };
 
 void init_routingtable(void);
+/* returns NULL if addr is not in routing table */
 struct netaddr* routingtable_get_next_hop(struct netaddr* addr, uint8_t metricType);
 void routingtable_add_entry(struct aodvv2_routing_entry_t* entry);
 struct aodvv2_routing_entry_t* routingtable_get_entry(struct netaddr* addr, uint8_t metricType);

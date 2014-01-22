@@ -461,7 +461,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
 void reader_init(void)
 {
-    DEBUG("[aodv] %s()\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 

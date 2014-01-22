@@ -13,8 +13,8 @@ static void _reset_entry_if_stale(uint8_t i);
 static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
 
-struct netaddr_str nbuf;
-timex_t null_time, now, expiration_time;
+static struct netaddr_str nbuf;
+static timex_t null_time, now, expiration_time;
 
 /*
  * Initialize table of clients that the router currently serves.

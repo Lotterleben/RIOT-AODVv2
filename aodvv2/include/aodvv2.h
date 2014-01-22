@@ -21,7 +21,6 @@ enum msg_type {
 };
 
 enum tlv_type {
-    //RFC5444_MSGTLV_SEQNUM, // TODO: auskommentieren?
     RFC5444_MSGTLV_ORIGSEQNUM,
     RFC5444_MSGTLV_TARGSEQNUM,    
     RFC5444_MSGTLV_METRIC,

@@ -26,7 +26,6 @@ void init_routingtable(void)
     DEBUG("[aodvv2] routing table initialized.\n");
 }
 
-/* returns NULL if addr is not in routing table */
 struct netaddr* routingtable_get_next_hop(struct netaddr* addr, uint8_t metricType)
 {
     struct aodvv2_routing_entry_t* entry = routingtable_get_entry(addr, metricType);

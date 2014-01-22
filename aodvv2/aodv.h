@@ -13,7 +13,6 @@
 #ifndef AODV_H_
 #define AODV_H_
 
-void aodv_send(void);
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest);
 
 #endif /* AODV_H_ */
