@@ -7,7 +7,6 @@
 
 #include "include/aodvv2.h"
 #include "utils.h"
-#include "sender.h"
 #include "writer.h"
 #include "reader.h"
 #include "seqnum.h"

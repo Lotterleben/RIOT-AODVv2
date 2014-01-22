@@ -40,7 +40,7 @@ void routingtable_add_entry(struct aodvv2_routing_entry_t* entry)
     /* only update if we don't already know the address
      * TODO: does this always make sense?
      */
-    if (!(routingtable_get_entry(&(entry->address), entry->metricType))){ // na ob das so stimmt...
+    if (!(routingtable_get_entry(&(entry->address), entry->metricType))){
         /*find free spot in RT and place rt_entry there */
         for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++){
             if (routing_table[i].address._type == AF_UNSPEC) {

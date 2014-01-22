@@ -3,7 +3,6 @@
 #include "cunit/cunit.h"
 #include "common/netaddr.h"
 
-#include "sender.h"
 #include "writer.h"
 #include "reader.h"
 #include "seqnum.h"

@@ -272,7 +272,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     if (is_client(&packet_data.targNode.addr, packet_data.targNode.prefixlen)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
-        send_rrep(&packet_data, &packet_data.sender);  
+        //send_rrep(&packet_data, &packet_data.sender);  
         return RFC5444_OKAY;
     }
 

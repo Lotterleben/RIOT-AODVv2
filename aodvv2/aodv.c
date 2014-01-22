@@ -7,16 +7,16 @@ char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char addr_str2[IPV6_MAX_ADDR_STR_LEN];
 
 static void _init_addresses(void);
+static void _init_sock_snd(void);
 static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
 
-static char receiver_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
+static int _metric_type;
 static int sock_snd;
 static struct autobuf _hexbuf;
 static sockaddr6_t sa_mcast;
 static ipv6_addr_t na_local;
-
 
 void aodv_init(void)
 {
@@ -27,8 +27,10 @@ void aodv_init(void)
     init_clienttable();
     init_rreqtable(); 
 
+    aodv_set_metric_type(AODVV2_DEFAULT_METRIC_TYPE);
     _init_addresses();
-    
+    _init_sock_snd();
+
     /* init reader and writer */
     reader_init();
     writer_init(_write_packet);
@@ -44,6 +46,17 @@ void aodv_init(void)
 }
 
 /* 
+ * Change or set the metric type.
+ * If metric_type does not match any known metric types, no changes will be made.
+ */
+void aodv_set_metric_type(int metric_type)
+{
+    if (metric_type != AODVV2_DEFAULT_METRIC_TYPE)
+        return;
+    _metric_type = metric_type;
+}
+
+/* 
  * init the multicast address all RREQs are sent to 
  * and the local address (source address) of this node
  */
@@ -55,24 +68,33 @@ static void _init_addresses(void)
     ipv6_addr_set_all_nodes_addr(&sa_mcast.sin6_addr);
     DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &sa_mcast.sin6_addr));
 
-    // TODO: test this.
+    // TODO: fix this.
     ipv6_iface_get_best_src_addr(&na_local, &sa_mcast.sin6_addr);
     //DEBUG("[aodvv2] my IP addresses is:        %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
     DEBUG("[aodvv2] My IP addresses are: \n");
     ipv6_iface_print_addrs();
 }
 
+/* Init everything needed for socket communication */
+static void _init_sock_snd(void)
+{
+    sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+
+    if(-1 == sock_snd) {
+        printf("[aodvv2] Error Creating Socket!");
+        return;
+    }
+}
+
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
-    //since we're only using one metric type at the moment anyway, do this clumsily for now
-    ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(dest, AODVV2_DEFAULT_METRIC_TYPE);
+    ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(dest, _metric_type);
     if (next_hop)
         return next_hop;
     /* no route found => start route discovery */
     writer_send_rreq((struct netaddr*) &na_local, (struct netaddr*) dest);
     return NULL;
 }
-
 
 /**
  * Handle the output of the RFC5444 packet creation process
@@ -93,8 +115,10 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     rfc5444_print_direct(&_hexbuf, buffer, length);
     DEBUG("%s", abuf_getptr(&_hexbuf));
     abuf_clear(&_hexbuf);
+    
+    int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 0, &sa_mcast, sizeof sa_mcast);
 
-    DEBUG("[aodvv2] TODO: actually send this!\n");
+    DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
 }
 
 

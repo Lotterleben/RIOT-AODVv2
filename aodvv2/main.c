@@ -72,7 +72,6 @@
 
 #include "reader.h"
 #include "writer.h"
-#include "sender_old.h"
 #include "aodv.h"
 
 #define ENABLE_DEBUG (1)
@@ -105,7 +104,7 @@ const shell_command_t shell_commands[] = {
 void init_tlayer(void)
 {
     DEBUG("node id is: %d \n", getpid());
-    destiny_init_transport_layer();
+    //destiny_init_transport_layer();
     sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
 }
 
@@ -116,6 +115,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     struct tm localt;
 
     /* init aodv stuff */
+    init_tlayer();
     aodv_init();
 
     posix_open(uart0_handler_pid, 0);
