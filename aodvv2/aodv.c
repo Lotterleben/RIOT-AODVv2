@@ -90,7 +90,7 @@ static void _init_sock_snd(void)
     sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
     if(-1 == sock_snd) {
-        printf("[aodvv2] Error Creating Socket!");
+        DEBUG("[aodvv2] Error Creating Socket!");
         return;
     }
 }
@@ -116,10 +116,13 @@ static void _aodv_receiver_thread(void)
                                           &sa_rcv, &fromlen);
 
         if(rcv_size < 0) {
-            printf("ERROR receiving data!\n");
+            DEBUG("ERROR receiving data!\n");
         }
-
-        printf("UDP packet received, payload: %s\n", buf_rcv);
+        DEBUG("UDP packet received from %s\n", ipv6_addr_to_str(&addr_str, &sa_rcv.sin6_addr));
+        
+        struct netaddr _sender;
+        ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
+        reader_handle_packet((void*) buf_rcv, rcv_size, &_sender);
     }
 
     destiny_socket_close(sock_rcv);    
