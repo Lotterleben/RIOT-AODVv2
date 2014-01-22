@@ -8,6 +8,7 @@
 #define AODVV2_DEFAULT_METRIC_TYPE 3
 #define AODVV2_ACTIVE_INTERVAL 5 // seconds
 #define AODVV2_MAX_IDLETIME 200  // seconds // TODO: change back to proper value
+#define AODVV2_RIOT_PREFIXLEN 128  // TODO: invent better name
 
 /* RFC5498 */
 #define MANET_PORT  269

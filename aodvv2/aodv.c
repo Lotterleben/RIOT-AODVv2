@@ -11,6 +11,7 @@ static void _init_sock_snd(void);
 static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
+static void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst);
 
 static int _metric_type;
 static int sock_snd;
@@ -31,8 +32,8 @@ void aodv_init(void)
     init_routingtable();
     init_clienttable();
     /* every node is its own client. */
-    struct netaddr _tmp = {._type = AF_INET6, ._prefix_len = 128};
-    memcpy(&_tmp._addr, &na_local, sizeof _tmp._addr);
+    struct netaddr _tmp;
+    ipv6_addr_t_to_netaddr(&na_local, &_tmp);
     add_client(&_tmp, 128);
     init_rreqtable(); 
 
@@ -95,7 +96,10 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     if (next_hop)
         return next_hop;
     /* no route found => start route discovery */
-    writer_send_rreq((struct netaddr*) &na_local, (struct netaddr*) dest);
+    struct netaddr _tmp;
+    ipv6_addr_t_to_netaddr(&na_local, &_tmp);
+    writer_send_rreq(&_tmp, (struct netaddr*) dest);
+
     return NULL;
 }
 
@@ -124,7 +128,13 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
 }
 
-
+// TODO: so bauen dass es den ipv6_addr_t* direkt zurückgibt
+static void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst)
+{
+    dst->_type = AF_INET6;
+    dst->_prefix_len = AODVV2_RIOT_PREFIXLEN;
+    memcpy(dst->_addr, src , sizeof dst->_addr);
+}
 
 
 
