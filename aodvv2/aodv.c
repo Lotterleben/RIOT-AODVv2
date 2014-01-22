@@ -3,15 +3,19 @@
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-char addr_str[IPV6_MAX_ADDR_STR_LEN];
-char addr_str2[IPV6_MAX_ADDR_STR_LEN];
+#define UDP_BUFFER_SIZE     (128) // TODO öhm.
 
 static void _init_addresses(void);
 static void _init_sock_snd(void);
+static void _aodv_receiver_thread(void);
 static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
 static void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst);
+
+char addr_str[IPV6_MAX_ADDR_STR_LEN];
+char addr_str2[IPV6_MAX_ADDR_STR_LEN];
+char aodv_rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 static int _metric_type;
 static int sock_snd;
@@ -41,9 +45,10 @@ void aodv_init(void)
     reader_init();
     writer_init(_write_packet);
 
-    /* start sending & receiving */
-    // TODO
-    
+    /* start listening */
+    int aodv_receiver_thread_pid = thread_create(aodv_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _aodv_receiver_thread, "_aodv_receiver_thread");
+    printf("[aodvv2] listening on port %d (thread pid: %d)\n", HTONS(MANET_PORT), aodv_receiver_thread_pid);
+
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
     ipv6_addr_t test_addr;
@@ -88,6 +93,36 @@ static void _init_sock_snd(void)
         printf("[aodvv2] Error Creating Socket!");
         return;
     }
+}
+
+// TODO: debug. muss ich mich noch iwie für die mcast-pakete anmelden?
+static void _aodv_receiver_thread(void)
+{
+    uint32_t fromlen;
+    int32_t rcv_size;
+    char buf_rcv[UDP_BUFFER_SIZE];    
+    sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
+                           .sin6_port = HTONS(MANET_PORT) };
+
+    int sock_rcv = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    
+    if (-1 == destiny_socket_bind(sock_rcv, &sa_rcv, sizeof(sa_rcv))) {
+        DEBUG("Error: bind to recieve socket failed!\n");
+        destiny_socket_close(sock_rcv);
+    }
+
+    for(;;) {
+        rcv_size = destiny_socket_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0, 
+                                          &sa_rcv, &fromlen);
+
+        if(rcv_size < 0) {
+            printf("ERROR receiving data!\n");
+        }
+
+        printf("UDP packet received, payload: %s\n", buf_rcv);
+    }
+
+    destiny_socket_close(sock_rcv);    
 }
 
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
