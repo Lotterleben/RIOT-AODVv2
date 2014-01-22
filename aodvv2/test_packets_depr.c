@@ -119,7 +119,7 @@ static void test_rreq_to_rrep(void)
     netaddr_from_string(&targNode, MY_IP);
     netaddr_from_string(&origNode, "::14");
 
-    add_client(&targNode, 128);
+    add_client(&targNode);
     START_TEST();
     printf("== Testing if RREQ to one of my client nodes is answered with a RREP: ==\n");
     send_rreq(&origNode, &targNode);

@@ -10,7 +10,7 @@ static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* 
 static void add_rreq(struct aodvv2_packet_data* packet_data);
 static void _reset_entry_if_stale(uint8_t i);
 
-static struct aodvv2_client_addresses client_table[AODVV2_MAX_CLIENTS];
+static struct netaddr client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
 
 static struct netaddr_str nbuf;
@@ -32,15 +32,14 @@ void init_clienttable(void)
  * Since the current version doesn't offer support for Client Networks,
  * the prefixlen is currently ignored.
  */
-void add_client(struct netaddr* addr, uint8_t prefixlen)
+void add_client(struct netaddr* addr)
 {
-    if(!is_client(addr, prefixlen)){
+    if(!is_client(addr)){
         /*find free spot in client table and place client address there */
         for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++){
-            if (client_table[i].address._type == AF_UNSPEC
-                && client_table[i].prefixlen == 0) {
-                client_table[i].address = *addr;
-                client_table[i].prefixlen = prefixlen;
+            if (client_table[i]._type == AF_UNSPEC
+                && client_table[i]._prefix_len == 0) {
+                client_table[i] = *addr;
                 DEBUG("[aodvv2] clienttable: added client %s\n", netaddr_to_string(&nbuf, addr));
                 return;
             }
@@ -51,12 +50,12 @@ void add_client(struct netaddr* addr, uint8_t prefixlen)
 /*
  * Find out if a client is in the list of clients that the router currently serves. 
  * Since the current version doesn't offer support for Client Networks,
- * the prefixlen is currently ignored.
+ * the prefixlen embedded in the netaddr is currently ignored.
  */
-bool is_client(struct netaddr* addr, uint8_t prefixlen)
+bool is_client(struct netaddr* addr)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        if (!netaddr_cmp(&client_table[i].address, addr))
+        if (!netaddr_cmp(&client_table[i], addr))
             return true;
     }
     return false;
@@ -65,15 +64,15 @@ bool is_client(struct netaddr* addr, uint8_t prefixlen)
 /*
  * Delete a client from the list of clients that the router currently serves. 
  * Since the current version doesn't offer support for Client Networks,
- * the prefixlen is currently ignored.
+ * the prefixlen embedded in the netaddr is currently ignored.
  */
-void delete_client(struct netaddr* addr, uint8_t prefixlen)
+void delete_client(struct netaddr* addr)
 {
-    if (!is_client(addr, prefixlen))
+    if (!is_client(addr))
         return;
     
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        if (!netaddr_cmp(&client_table[i].address, addr)) {
+        if (!netaddr_cmp(&client_table[i], addr)) {
             memset(&client_table[i], 0, sizeof(client_table[i]));
             return;
         }

@@ -34,7 +34,7 @@ void aodv_init(void)
     /* every node is its own client. */
     struct netaddr _tmp;
     ipv6_addr_t_to_netaddr(&na_local, &_tmp);
-    add_client(&_tmp, 128);
+    add_client(&_tmp);
     init_rreqtable(); 
 
     /* init reader and writer */

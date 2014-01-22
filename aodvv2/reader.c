@@ -270,7 +270,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
      * processing continues as follows.
      */
 
-    if (is_client(&packet_data.targNode.addr, packet_data.targNode.prefixlen)){
+    if (is_client(&packet_data.targNode.addr)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
         //send_rrep(&packet_data, &packet_data.sender);  
         return RFC5444_OKAY;
@@ -444,7 +444,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
      * buffered for OrigNode should be transmitted.
      */
 
-    if (is_client(&packet_data.origNode.addr, packet_data.origNode.prefixlen)){
+    if (is_client(&packet_data.origNode.addr)){
         DEBUG("This is my RREP. We are done here, thanks!\n");
         // TODO : transmit buffered data    
         return RFC5444_DROP_PACKET;
