@@ -21,15 +21,20 @@ static ipv6_addr_t na_local;
 void aodv_init(void)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
-    /* init ALL the things! \o, */
-    init_seqNum();
-    init_routingtable();
-    init_clienttable();
-    init_rreqtable(); 
 
     aodv_set_metric_type(AODVV2_DEFAULT_METRIC_TYPE);
     _init_addresses();
     _init_sock_snd();
+
+    /* init ALL the things! \o, */
+    init_seqNum();
+    init_routingtable();
+    init_clienttable();
+    /* every node is its own client. */
+    struct netaddr _tmp = {._type = AF_INET6, ._prefix_len = 128};
+    memcpy(&_tmp._addr, &na_local, sizeof _tmp._addr);
+    add_client(&_tmp, 128);
+    init_rreqtable(); 
 
     /* init reader and writer */
     reader_init();
@@ -70,9 +75,7 @@ static void _init_addresses(void)
 
     // TODO: fix this.
     ipv6_iface_get_best_src_addr(&na_local, &sa_mcast.sin6_addr);
-    //DEBUG("[aodvv2] my IP addresses is:        %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
-    DEBUG("[aodvv2] My IP addresses are: \n");
-    ipv6_iface_print_addrs();
+    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
 }
 
 /* Init everything needed for socket communication */

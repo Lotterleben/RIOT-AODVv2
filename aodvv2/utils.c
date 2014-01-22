@@ -24,11 +24,6 @@ void init_clienttable(void)
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
         memset(&client_table[i], 0, sizeof(client_table[i]));
     }
-    /* Add myself to clienttable. TODO: use proper IP!!! */
-    struct netaddr my_ip;
-    netaddr_from_string(&my_ip, MY_IP);    
-    add_client(&my_ip, 0);
-
     DEBUG("[aodvv2] client table initialized.\n");
 }
 
@@ -45,7 +40,8 @@ void add_client(struct netaddr* addr, uint8_t prefixlen)
             if (client_table[i].address._type == AF_UNSPEC
                 && client_table[i].prefixlen == 0) {
                 client_table[i].address = *addr;
-                client_table[i].prefixlen = prefixlen; 
+                client_table[i].prefixlen = prefixlen;
+                DEBUG("[aodvv2] clienttable: added client %s\n", netaddr_to_string(&nbuf, addr));
                 return;
             }
         }
