@@ -87,7 +87,7 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
  */
 static void _reset_entry_if_stale(uint8_t i)
 {
-    rtc_time(&now);
+    vtimer_now(&now);
 
     if (timex_cmp(routing_table[i].expirationTime, null_time) != 0){
         if(timex_cmp(routing_table[i].expirationTime, now) < 1){

@@ -33,7 +33,7 @@ struct aodvv2_routing_entry_t {
     uint8_t seqNum;
     struct netaddr nextHopAddress;
     timex_t lastUsed; // use timer thingy for this?
-    timex_t expirationTime; // siehe rtc stuff. TODO: richtige wahl? Doof zu inkrementieren...
+    timex_t expirationTime;
     bool broken;
     uint8_t metricType;
     uint8_t metric;

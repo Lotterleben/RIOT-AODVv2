@@ -52,7 +52,7 @@
 #include <unistd.h>
 
 #include "vtimer.h"
-#include "rtc.h"
+//#include "rtc.h"
 #include "board_uart0.h"
 #include "shell.h"
 #include "shell_commands.h"
@@ -122,7 +122,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
-    rtc_get_localtime(&localt);
+    vtimer_get_localtime(&localt);
     printf("The time is now: %s\n", asctime(&localt));
 
     /* fancy greeting */
@@ -141,7 +141,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
     shell_run(&shell);
     */
-    //test_tables_main();
+    test_tables_main();
     //test_packets_main();
 
     return 0;

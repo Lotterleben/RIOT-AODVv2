@@ -149,7 +149,7 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
     }
 
     /* Since we've changed RREQ info, update the timestamp */
-    rtc_time(&now);
+    vtimer_now(&now);
     comparable_rreq->timestamp = now;
     return false;
 
@@ -208,7 +208,7 @@ static void add_rreq(struct aodvv2_packet_data* packet_data)
  */
 static void _reset_entry_if_stale(uint8_t i)
 {
-    rtc_time(&now);
+    vtimer_now(&now);
     expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
 
     if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){

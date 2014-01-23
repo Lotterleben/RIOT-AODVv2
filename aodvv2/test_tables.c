@@ -68,7 +68,7 @@ void test_routingtable(void)
     netaddr_from_string(&addr_1, "::23");
     netaddr_from_string(&addr_2, "::42");
 
-    rtc_time(&now);
+    vtimer_now(&now);
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
     struct aodvv2_routing_entry_t entry_1 = {
@@ -84,7 +84,7 @@ void test_routingtable(void)
         .state = ROUTE_STATE_IDLE
     };
 
-    rtc_time(&now);
+    vtimer_now(&now);
 
     struct aodvv2_routing_entry_t entry_2 = {
         .address = addr_2,
@@ -144,7 +144,7 @@ void test_rreq_table(void)
     netaddr_from_string(&address, "::42");
     netaddr_from_string(&next_hop, "::23");
 
-    rtc_time(&now);
+    vtimer_now(&now);
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
     struct aodvv2_packet_data entry_1 = {
@@ -166,7 +166,7 @@ void test_rreq_table(void)
         .timestamp = now,
     };
 
-    rtc_time(&now);
+    vtimer_now(&now);
 
     START_TEST();
     init_rreqtable();

@@ -220,7 +220,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     }
 
     packet_data.origNode.metric = _get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
-    rtc_time(&now);
+    vtimer_now(&now);
     packet_data.timestamp = now;
 
     /* for every relevant
@@ -395,7 +395,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     }
 
     packet_data.origNode.metric = _get_updated_metric(packet_data.metricType, packet_data.origNode.metric);
-    rtc_time(&now);
+    vtimer_now(&now);
     packet_data.timestamp = now;
 
     /* for every relevant
