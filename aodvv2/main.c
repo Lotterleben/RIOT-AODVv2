@@ -141,7 +141,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
     shell_run(&shell);
     */
-    test_tables_main();
+    //test_tables_main();
     //test_packets_main();
 
     return 0;
