@@ -79,6 +79,7 @@ static void _init_addresses(void)
     ipv6_addr_set_all_nodes_addr(&sa_mcast.sin6_addr);
     DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &sa_mcast.sin6_addr));
 
+    // TODO: fix this.
     ipv6_iface_get_best_src_addr(&na_local, &sa_mcast.sin6_addr);
     DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
 }
@@ -135,12 +136,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     /* no route found => start route discovery */
     struct netaddr _tmp_src;
     ipv6_addr_t_to_netaddr(&na_local, &_tmp_src);
+    
+    struct netaddr _tmp_dest;
+    ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
 
-    struct netaddr _tmp_dst;
-    ipv6_addr_t_to_netaddr(&na_local, &_tmp_dst);
-
-    writer_send_rreq(&_tmp_src, &_tmp_dst);
-
+    writer_send_rreq(&_tmp_src, &_tmp_dest);
     return NULL;
 }
 
