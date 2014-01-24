@@ -54,8 +54,10 @@
 #include "include/aodvv2.h"
 #include "seqnum.h"
 
-struct rfc5444_writer_target interface_1;
-struct rfc5444_writer writer;
+struct writer_target {
+ struct rfc5444_writer_target interface;
+ struct netaddr target_address;
+};
 
 typedef void (*write_packet_func_ptr)(
     struct rfc5444_writer *wr, struct rfc5444_writer_target *iface, void *buffer, size_t length);
@@ -63,7 +65,7 @@ typedef void (*write_packet_func_ptr)(
 void writer_init(write_packet_func_ptr ptr);
 void writer_cleanup(void);
 
-void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode);
-void writer_send_rrep(struct aodvv2_packet_data* packet_data);
+void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, struct netaddr* next_hop);
+void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop);
 
 #endif /* WRITER_H_ */

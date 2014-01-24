@@ -25,7 +25,11 @@ static void _cb_rrep_addMessageTLVs(struct rfc5444_writer *wr);
 static void _cb_rrep_addAddresses(struct rfc5444_writer *wr);
 static void _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
 
-static void _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface_1);
+static void _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface);
+
+static struct writer_target _target;
+
+struct rfc5444_writer writer;
 
 static int _msg_buffer[128];
 static int _msg_addrtlvs[1000];
@@ -33,11 +37,6 @@ static int _packet_buffer[128];
 
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
-
-//static struct{
-//    struct netaddr origNode;
-//    struct netaddr targNode;
-//} rreq_packet_data;
 
 static struct aodvv2_packet_data _packet_data;
 
@@ -47,12 +46,12 @@ static struct aodvv2_packet_data _packet_data;
  * here's how you do it in case you need to.
  */
 static void
-_cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface_1)
+_cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
     /* set header with sequence number */
-    rfc5444_writer_set_pkt_header(wr, interface_1, true);
+    rfc5444_writer_set_pkt_header(wr, interface, true);
 }
 
 /*
@@ -181,13 +180,12 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 void writer_init(write_packet_func_ptr ptr)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
-
     /* define interface for generating rfc5444 packets */
-    interface_1.packet_buffer = _packet_buffer;
-    interface_1.packet_size = sizeof(_packet_buffer);
-    interface_1.addPacketHeader = _cb_addPacketHeader;
+    _target.interface.packet_buffer = _packet_buffer;
+    _target.interface.packet_size = sizeof(_packet_buffer);
+    _target.interface.addPacketHeader = _cb_addPacketHeader;
     /* set function to send binary packet content */
-    interface_1.sendPacket = ptr;
+    _target.interface.sendPacket = ptr;
     
     /* define the rfc5444 writer */
     writer.msg_buffer = _msg_buffer;
@@ -199,7 +197,7 @@ void writer_init(write_packet_func_ptr ptr)
     rfc5444_writer_init(&writer);
 
     /* register a target (for sending messages to) in writer */
-    rfc5444_writer_register_target(&writer, &interface_1);
+    rfc5444_writer_register_target(&writer, &_target.interface);
 
     /* register a message content providers for RREQ and RREP */
     rfc5444_writer_register_msgcontentprovider(&writer, &_rreq_message_content_provider, _rreq_addrtlvs, ARRAYSIZE(_rreq_addrtlvs));
@@ -214,32 +212,38 @@ void writer_init(write_packet_func_ptr ptr)
     _rrep_msg->addMessageHeader = _cb_rrep_addMessageHeader;
 }
 
-void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode)
+void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
-    if (na_origNode == NULL || na_targNode == NULL)
+    if (na_origNode == NULL || na_targNode == NULL || next_hop == NULL)
         return;
 
     memset(&_packet_data, 0, sizeof(struct aodvv2_packet_data));
     memcpy(&_packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
     memcpy(&_packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
 
+    /* set address to which the write_packet callback should send our RREQ */
+    memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
+
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
-    rfc5444_writer_flush(&writer, &interface_1, false);
+    rfc5444_writer_flush(&writer, &_target.interface, false);
 }
 
-void writer_send_rrep(struct aodvv2_packet_data* packet_data)
+void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
-    if (packet_data == NULL)
+    if (packet_data == NULL || next_hop == NULL)
         return;
 
     memcpy(&_packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 
+    /* set address to which the write_packet callback should send our RREQ */
+    memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
+
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREP);
-    rfc5444_writer_flush(&writer, &interface_1, false);
+    rfc5444_writer_flush(&writer, &_target.interface, false);
 }
 
 void writer_cleanup(void)

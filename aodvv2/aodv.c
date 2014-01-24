@@ -20,8 +20,9 @@ char aodv_rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 static int _metric_type;
 static int sock_snd;
 static struct autobuf _hexbuf;
-static sockaddr6_t sa_mcast;
-static ipv6_addr_t na_local;
+static sockaddr6_t sa_wp;
+static ipv6_addr_t na_local, na_mcast;
+static struct writer_target* wt;
 
 void aodv_init(void)
 {
@@ -73,15 +74,17 @@ void aodv_set_metric_type(int metric_type)
  */
 static void _init_addresses(void)
 {
-    sa_mcast.sin6_family = AF_INET6;
-    sa_mcast.sin6_port = HTONS(MANET_PORT);
-    /* set to to a link-local all nodes multicast address */
-    ipv6_addr_set_all_nodes_addr(&sa_mcast.sin6_addr);
-    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &sa_mcast.sin6_addr));
+    /* init multicast address: set to to a link-local all nodes multicast address */
+    ipv6_addr_set_all_nodes_addr(&na_mcast);
+    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &na_mcast));
 
-    // TODO: fix this.
-    ipv6_iface_get_best_src_addr(&na_local, &sa_mcast.sin6_addr);
+    /* init node's own IP */
+    ipv6_iface_get_best_src_addr(&na_local, &na_mcast);
     DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
+
+    /* init sockaddr that write_packet will use to send data */
+    sa_wp.sin6_family = AF_INET6;
+    sa_wp.sin6_port = HTONS(MANET_PORT);
 }
 
 /* Init everything needed for socket communication */
@@ -130,6 +133,7 @@ static void _aodv_receiver_thread(void)
 
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
+    // TODO: routingtable_get_next_hop() bekommt ne netaddr! umwandeln!!
     ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(dest, _metric_type);
     if (next_hop)
         return next_hop;
@@ -140,7 +144,10 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     struct netaddr _tmp_dest;
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
 
-    writer_send_rreq(&_tmp_src, &_tmp_dest);
+    struct netaddr _tmp_mcast;
+    ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast);
+
+    writer_send_rreq(&_tmp_src, &_tmp_dest, &_tmp_mcast);
     return NULL;
 }
 
@@ -164,7 +171,11 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     DEBUG("%s", abuf_getptr(&_hexbuf));
     abuf_clear(&_hexbuf);
     
-    int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 0, &sa_mcast, sizeof sa_mcast);
+    wt = container_of(iface, struct writer_target, interface);
+    //sa_wp.sin6_addr = (ipv6_addr_t) wt->target_address;
+    memcpy(&sa_wp.sin6_addr, &wt->target_address, sizeof (ipv6_addr_t));
+
+    int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 0, &sa_wp, sizeof sa_wp);
 
     DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
 }
