@@ -171,8 +171,10 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     DEBUG("%s", abuf_getptr(&_hexbuf));
     abuf_clear(&_hexbuf);
     
+    /* fetch the address the packet is supposed to be sent to (i.e. to a 
+    specific node or the multicast address) from the writer_target struct
+    iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
-    //sa_wp.sin6_addr = (ipv6_addr_t) wt->target_address;
     memcpy(&sa_wp.sin6_addr, &wt->target_address, sizeof (ipv6_addr_t));
 
     int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 0, &sa_wp, sizeof sa_wp);
