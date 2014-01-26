@@ -36,6 +36,7 @@ void aodv_init(void)
     init_seqNum();
     init_routingtable();
     init_clienttable();
+
     /* every node is its own client. */
     struct netaddr _tmp;
     ipv6_addr_t_to_netaddr(&na_local, &_tmp);
@@ -52,6 +53,8 @@ void aodv_init(void)
 
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
+
+    /* testtest */
     ipv6_addr_t test_addr;
     ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
     aodv_get_next_hop(&test_addr);
@@ -172,12 +175,21 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     abuf_clear(&_hexbuf);
     
     /* fetch the address the packet is supposed to be sent to (i.e. to a 
-    specific node or the multicast address) from the writer_target struct
-    iface* is stored in. This is a bit hacky, but it does the trick. */
+       specific node or the multicast address) from the writer_target struct
+       iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
     memcpy(&sa_wp.sin6_addr, &wt->target_address, sizeof (ipv6_addr_t));
 
-    int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 0, &sa_wp, sizeof sa_wp);
+    /* This is a sketch! todo: turn into actual code */
+    /*
+    if (sa_wp.sin6_addr == na_mcast) {
+        fetch _packet_data from wt;
+        add_rreq(); // implement!!!
+    }
+    */
+
+    int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 
+                                            0, &sa_wp, sizeof sa_wp);
 
     DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
 }

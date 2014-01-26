@@ -38,7 +38,7 @@ static int _packet_buffer[128];
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
 
-static struct aodvv2_packet_data _packet_data;
+//static struct aodvv2_packet_data _packet_data;
 
 /**
  * Callback to define the packet header for a RFC5444 packet. This is actually
@@ -112,15 +112,17 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
 
     uint16_t origNode_seqNum = get_seqNum();
+    _target._packet_data.origNode.seqNum = origNode_seqNum;
     inc_seqNum();
     
     uint8_t origNode_hopCt = 0;
+   _target._packet_data.origNode.metric = origNode_hopCt;
 
     /* add origNode address (has no address tlv); is mandatory address */
-    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &_packet_data.origNode.addr, true);
+    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &_target._packet_data.origNode.addr, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &_packet_data.targNode.addr, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &_target._packet_data.targNode.addr, true);
 
     /* add SeqNum TLV and metric TLV to origNode */
     // TODO: allow_dup true or false?
@@ -155,18 +157,18 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
     struct netaddr na_origNode, na_targNode;
 
-    uint16_t origNode_seqNum = _packet_data.origNode.seqNum;
+    uint16_t origNode_seqNum = _target._packet_data.origNode.seqNum;
     
     uint16_t targNode_seqNum = get_seqNum();
     inc_seqNum();
 
-    uint8_t targNode_hopCt = _packet_data.targNode.metric;
+    uint8_t targNode_hopCt = _target._packet_data.targNode.metric;
 
     /* add origNode address (has no address tlv); is mandatory address */
-    origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_packet_data.origNode.addr, true);
+    origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target._packet_data.origNode.addr, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_packet_data.targNode.addr, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target._packet_data.targNode.addr, true);
 
     /* add OrigNode and TargNode SeqNum TLVs */
     // TODO: allow_dup true or false?
@@ -219,9 +221,9 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
     if (na_origNode == NULL || na_targNode == NULL || next_hop == NULL)
         return;
 
-    memset(&_packet_data, 0, sizeof(struct aodvv2_packet_data));
-    memcpy(&_packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
-    memcpy(&_packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
+    memset(&_target._packet_data, 0, sizeof(struct aodvv2_packet_data));
+    memcpy(&_target._packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
+    memcpy(&_target._packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
 
     /* set address to which the write_packet callback should send our RREQ */
     memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
@@ -237,7 +239,7 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
     if (packet_data == NULL || next_hop == NULL)
         return;
 
-    memcpy(&_packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+    memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 
     /* set address to which the write_packet callback should send our RREQ */
     memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
