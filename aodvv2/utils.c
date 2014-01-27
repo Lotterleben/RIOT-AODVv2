@@ -6,7 +6,7 @@
 /* Some aodvv2 utilities (mostly tables) */
 
 /* helper functions */
-static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
+static struct aodvv2_rreq_entry* _get_comparable_rreq(struct aodvv2_packet_data* packet_data);
 static void _add_rreq(struct aodvv2_packet_data* packet_data);
 static void _reset_entry_if_stale(uint8_t i);
 
@@ -19,7 +19,7 @@ static timex_t null_time, now, expiration_time;
 /*
  * Initialize table of clients that the router currently serves.
  */
-void init_clienttable(void)
+void clienttable_init(void)
 {   
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
         memset(&client_table[i], 0, sizeof(client_table[i]));
@@ -32,9 +32,9 @@ void init_clienttable(void)
  * Since the current version doesn't offer support for Client Networks,
  * the prefixlen is currently ignored.
  */
-void add_client(struct netaddr* addr)
+void clienttable_add_client(struct netaddr* addr)
 {
-    if(!is_client(addr)){
+    if(!clienttable_is_client(addr)){
         /*find free spot in client table and place client address there */
         for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++){
             if (client_table[i]._type == AF_UNSPEC
@@ -52,7 +52,7 @@ void add_client(struct netaddr* addr)
  * Since the current version doesn't offer support for Client Networks,
  * the prefixlen embedded in the netaddr is currently ignored.
  */
-bool is_client(struct netaddr* addr)
+bool clienttable_is_client(struct netaddr* addr)
 {
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
         if (!netaddr_cmp(&client_table[i], addr))
@@ -66,9 +66,9 @@ bool is_client(struct netaddr* addr)
  * Since the current version doesn't offer support for Client Networks,
  * the prefixlen embedded in the netaddr is currently ignored.
  */
-void delete_client(struct netaddr* addr)
+void clienttable_delete_client(struct netaddr* addr)
 {
-    if (!is_client(addr))
+    if (!clienttable_is_client(addr))
         return;
     
     for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
@@ -82,7 +82,7 @@ void delete_client(struct netaddr* addr)
 /*
  * Initialize table of clients that the router currently serves.
  */
-void init_rreqtable(void)
+void rreqtable_init(void)
 {
     null_time = timex_set(0,0);
 
@@ -109,13 +109,13 @@ void init_rreqtable(void)
  *
  * 
  */
-bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
+bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
 {
     struct aodvv2_rreq_entry* comparable_rreq;
     int seqNum_comparison;
     timex_t now;
     
-    comparable_rreq = get_comparable_rreq(packet_data);
+    comparable_rreq = _get_comparable_rreq(packet_data);
     
     /* if there is no comparable rreq stored, add one and return false */
     if (comparable_rreq == NULL){
@@ -163,7 +163,7 @@ void rreqtable_add(struct aodvv2_packet_data* packet_data)
     DEBUG("[aodvv2] RREQtable: Adding %s\n", netaddr_to_string(&nbuf, &packet_data->origNode.addr));
     timex_t now;
 
-    struct aodvv2_rreq_entry* comparable_rreq = get_comparable_rreq(packet_data);
+    struct aodvv2_rreq_entry* comparable_rreq = _get_comparable_rreq(packet_data);
     /* Seems like we already sent a similar RREQ, just update the timestamp */
     if (comparable_rreq) {
         vtimer_now(&now);
@@ -183,7 +183,7 @@ void rreqtable_add(struct aodvv2_packet_data* packet_data)
    o  they have the same OrigNode and TargNode addresses
    if there is no comparable RREQ, return NULL.
  */
-static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data)
+static struct aodvv2_rreq_entry* _get_comparable_rreq(struct aodvv2_packet_data* packet_data)
 {       
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
         
@@ -201,7 +201,7 @@ static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* 
 
 static void _add_rreq(struct aodvv2_packet_data* packet_data)
 {
-    if (!(get_comparable_rreq(packet_data))){
+    if (!(_get_comparable_rreq(packet_data))){
         /*find empty rreq and fill it with packet_data */
 
         for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++){

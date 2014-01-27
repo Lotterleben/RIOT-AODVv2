@@ -35,13 +35,13 @@ void aodv_init(void)
     /* init ALL the things! \o, */
     init_seqNum();
     init_routingtable();
-    init_clienttable();
+    clienttable_init();
 
     /* every node is its own client. */
     struct netaddr _tmp;
     ipv6_addr_t_to_netaddr(&na_local, &_tmp);
-    add_client(&_tmp);
-    init_rreqtable(); 
+    clienttable_add_client(&_tmp);
+    rreqtable_init(); 
 
     /* init reader and writer */
     reader_init();

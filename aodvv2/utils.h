@@ -24,14 +24,14 @@ struct aodvv2_rreq_entry {
 
 /* Section 5.3.: Client Table functionality */
 // TODO: make naming more clear? (-> reference to client table)
-void init_clienttable(void);
-void add_client(struct netaddr* addr);
-bool is_client(struct netaddr* addr);
-void delete_client(struct netaddr* addr);
+void clienttableinit(void);
+void clienttable_add_client(struct netaddr* addr);
+bool clienttable_is_client(struct netaddr* addr);
+void clienttable_delete_client(struct netaddr* addr);
 
 /* Sections 5.7. and 7.6.: RREQ table functionality */
-void init_rreqtable(void);
-bool rreq_is_redundant(struct aodvv2_packet_data* packet_data);
+void rreqtable_init(void);
+bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data);
 void rreqtable_add(struct aodvv2_packet_data* packet_data);
 
 #endif /* UTILS_H_ */

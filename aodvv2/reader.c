@@ -214,7 +214,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
       in the incoming RteMsg is redundant, then then no further action
       is taken.
     */
-    if (rreq_is_redundant(&packet_data)){
+    if (rreqtable_is_redundant(&packet_data)){
         DEBUG("\tPacket is redundant. Dropping Packet. %i\n", RFC5444_DROP_PACKET);
         return RFC5444_DROP_PACKET;
     }
@@ -270,7 +270,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
      * processing continues as follows.
      */
 
-    if (is_client(&packet_data.targNode.addr)){
+    if (clienttable_is_client(&packet_data.targNode.addr)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
         //send_rrep(&packet_data, &packet_data.sender);  
         return RFC5444_OKAY;
@@ -439,19 +439,18 @@ static enum rfc5444_result _cb_rrep_end_callback(
     //print_rt_entry(rt_entry);
 
     /*
-     * If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
-     * earlier RREQ, and RREP processing is completed.  Any packets
-     * buffered for OrigNode should be transmitted.
-     */
-
-    if (is_client(&packet_data.origNode.addr)){
+    If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
+    earlier RREQ, and RREP processing is completed.  Any packets
+    buffered for OrigNode should be transmitted. */
+    if (clienttable_is_client(&packet_data.origNode.addr)){
         DEBUG("This is my RREP. We are done here, thanks!\n");
         // TODO : transmit buffered data    
         return RFC5444_DROP_PACKET;
     }
-    /* If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
-      Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx].   
-     */
+
+    /* 
+    If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
+    Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx]. */
     else {
         DEBUG("[aodvv2] Not my RREP, passing it on to the next hop\n");
         //struct netaddr* next_hop = get_next_hop(&packet_data.origNode.addr, packet_data.metricType);
