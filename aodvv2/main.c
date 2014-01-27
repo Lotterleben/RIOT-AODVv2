@@ -122,9 +122,6 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
-    vtimer_get_localtime(&localt);
-    printf("The time is now: %s\n", asctime(&localt));
-
     /* fancy greeting */
     printf("Hold on half a second...\n");
     LED_RED_TOGGLE;
