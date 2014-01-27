@@ -7,7 +7,7 @@
 
 /* helper functions */
 static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* packet_data);
-static void add_rreq(struct aodvv2_packet_data* packet_data);
+static void _add_rreq(struct aodvv2_packet_data* packet_data);
 static void _reset_entry_if_stale(uint8_t i);
 
 static struct netaddr client_table[AODVV2_MAX_CLIENTS];
@@ -119,7 +119,7 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
     
     /* if there is no comparable rreq stored, add one and return false */
     if (comparable_rreq == NULL){
-        add_rreq(packet_data);
+        _add_rreq(packet_data);
         return false;
     }
 
@@ -155,6 +155,25 @@ bool rreq_is_redundant(struct aodvv2_packet_data* packet_data)
 
 }
 
+/* TODO: was mach ich wenn ein vergleichbare rreq schon drin steht (zB weil ich 
+    2 route discoveries für die gleiche dest hinterienander gestartet hab)? entry
+    updaten? ja, oder? */
+void rreqtable_add(struct aodvv2_packet_data* packet_data)
+{   
+    DEBUG("[aodvv2] RREQtable: Adding %s\n", netaddr_to_string(&nbuf, &packet_data->origNode.addr));
+    timex_t now;
+
+    struct aodvv2_rreq_entry* comparable_rreq = get_comparable_rreq(packet_data);
+    /* Seems like we already sent a similar RREQ, just update the timestamp */
+    if (comparable_rreq) {
+        vtimer_now(&now);
+        comparable_rreq->timestamp = now;
+        return;
+    }
+    
+    _add_rreq(packet_data);
+}
+
 /*
  * retrieve pointer to a comparable (according to Section 6.7.) 
  * RREQ table entry. To edit, simply follow the pointer.
@@ -180,11 +199,10 @@ static struct aodvv2_rreq_entry* get_comparable_rreq(struct aodvv2_packet_data* 
     return NULL;
 }
 
-static void add_rreq(struct aodvv2_packet_data* packet_data)
+static void _add_rreq(struct aodvv2_packet_data* packet_data)
 {
     if (!(get_comparable_rreq(packet_data))){
         /*find empty rreq and fill it with packet_data */
-        timex_t now;
 
         for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++){
             if (!rreq_table[i].timestamp.seconds

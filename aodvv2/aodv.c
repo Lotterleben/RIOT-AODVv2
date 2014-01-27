@@ -181,12 +181,13 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     memcpy(&sa_wp.sin6_addr, &wt->target_address, sizeof (ipv6_addr_t));
 
     /* This is a sketch! todo: turn into actual code */
-    /*
-    if (sa_wp.sin6_addr == na_mcast) {
-        fetch _packet_data from wt;
-        add_rreq(); // implement!!!
+    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
+        printf("HALLOHALLOHALLO\n");
+        //fetch _packet_data from wt;
+        //add_rreq(); // implement!!!
+        rreqtable_add(&wt->_packet_data);
+        rreqtable_add(&wt->_packet_data);
     }
-    */
 
     int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 
                                             0, &sa_wp, sizeof sa_wp);

@@ -32,4 +32,6 @@ void delete_client(struct netaddr* addr);
 /* Sections 5.7. and 7.6.: RREQ table functionality */
 void init_rreqtable(void);
 bool rreq_is_redundant(struct aodvv2_packet_data* packet_data);
+void rreqtable_add(struct aodvv2_packet_data* packet_data);
+
 #endif /* UTILS_H_ */
