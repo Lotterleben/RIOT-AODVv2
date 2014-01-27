@@ -180,12 +180,8 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     wt = container_of(iface, struct writer_target, interface);
     memcpy(&sa_wp.sin6_addr, &wt->target_address, sizeof (ipv6_addr_t));
 
-    /* This is a sketch! todo: turn into actual code */
+    /* When sending a RREQ, add it to our RREQ table */
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
-        printf("HALLOHALLOHALLO\n");
-        //fetch _packet_data from wt;
-        //add_rreq(); // implement!!!
-        rreqtable_add(&wt->_packet_data);
         rreqtable_add(&wt->_packet_data);
     }
 
