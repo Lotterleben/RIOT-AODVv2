@@ -505,7 +505,7 @@ int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
 {
     /* Check if new info is stale */    
-    if (cmp_seqnum(node_data->seqNum, rt_entry->seqNum) == -1)
+    if (seqnum_cmp(node_data->seqNum, rt_entry->seqNum) == -1)
         return false;
     /* Check if new info is more costly */
     if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken))

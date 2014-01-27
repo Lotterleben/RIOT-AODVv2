@@ -111,9 +111,9 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
 
-    uint16_t origNode_seqNum = get_seqNum();
+    uint16_t origNode_seqNum = seqNum_get();
     _target._packet_data.origNode.seqNum = origNode_seqNum;
-    inc_seqNum();
+    seqNum_inc();
     
     uint8_t origNode_hopCt = 0;
    _target._packet_data.origNode.metric = origNode_hopCt;
@@ -159,8 +159,8 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 
     uint16_t origNode_seqNum = _target._packet_data.origNode.seqNum;
     
-    uint16_t targNode_seqNum = get_seqNum();
-    inc_seqNum();
+    uint16_t targNode_seqNum = seqNum_get();
+    seqNum_inc();
 
     uint8_t targNode_hopCt = _target._packet_data.targNode.metric;
 

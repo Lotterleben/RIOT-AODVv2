@@ -123,7 +123,7 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
         return false;
     }
 
-    seqNum_comparison = cmp_seqnum(packet_data->origNode.seqNum, comparable_rreq->seqNum);
+    seqNum_comparison = seqnum_cmp(packet_data->origNode.seqNum, comparable_rreq->seqNum);
 
     /* 
      * If two RREQs have the same
@@ -155,9 +155,7 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
 
 }
 
-/* TODO: was mach ich wenn ein vergleichbare rreq schon drin steht (zB weil ich 
-    2 route discoveries für die gleiche dest hinterienander gestartet hab)? entry
-    updaten? ja, oder? */
+
 void rreqtable_add(struct aodvv2_packet_data* packet_data)
 {   
     DEBUG("[aodvv2] RREQtable: Adding %s\n", netaddr_to_string(&nbuf, &packet_data->origNode.addr));
@@ -221,8 +219,7 @@ static void _add_rreq(struct aodvv2_packet_data* packet_data)
 }
 
 /* 
- * Check if entry at index i is stale and clear the space it takes up if it is
- * (because we've implemented our table crappily) 
+ * Check if entry at index i is stale and clear the struct it fills if it is
  */
 static void _reset_entry_if_stale(uint8_t i)
 {

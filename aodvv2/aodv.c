@@ -33,8 +33,8 @@ void aodv_init(void)
     _init_sock_snd();
 
     /* init ALL the things! \o, */
-    init_seqNum();
-    init_routingtable();
+    seqNum_init();
+    routingtable_init();
     clienttable_init();
 
     /* every node is its own client. */

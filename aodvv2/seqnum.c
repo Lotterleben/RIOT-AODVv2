@@ -5,14 +5,14 @@
 
 static uint16_t seqNum; 
 
-void init_seqNum(void)
+void seqNum_init(void)
 {
     seqNum = 1;
 }
 
 /* NOTE: lock on m_seqnum before using this function! */
 
-void inc_seqNum(void)
+void seqNum_inc(void)
 {   
     if (seqNum == 65535)
         seqNum = 1;
@@ -23,7 +23,7 @@ void inc_seqNum(void)
 }
 
 /* NOTE: lock on m_seqnum before using this function! */
-uint16_t get_seqNum(void)
+uint16_t seqNum_get(void)
 {
     return seqNum;
 }
@@ -40,7 +40,7 @@ uint16_t get_seqNum(void)
     to be newer, which is clearly wrong.
     So we'll need some kind of "wiggle room" around the tipping point of 65535 and 1.
  */
-int cmp_seqnum(uint32_t s1, uint32_t s2)
+int seqnum_cmp(uint32_t s1, uint32_t s2)
 {
     int wiggle_room = 10;
 

@@ -52,7 +52,6 @@
 #include <unistd.h>
 
 #include "vtimer.h"
-//#include "rtc.h"
 #include "board_uart0.h"
 #include "shell.h"
 #include "shell_commands.h"

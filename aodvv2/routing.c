@@ -16,7 +16,7 @@ static struct aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
 timex_t now, null_time;
 struct netaddr_str nbuf;
 
-void init_routingtable(void)
+void routingtable_init(void)
 {   
     null_time = timex_set(0,0);
 
@@ -82,8 +82,7 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
 }
 
 /* 
- * Check if entry at index i is stale and clear the space it takes up if it is
- * (because we've implemented our table crappily) 
+ * Check if entry at index i is stale and clear the struct it fills if it is
  */
 static void _reset_entry_if_stale(uint8_t i)
 {
