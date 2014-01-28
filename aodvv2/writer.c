@@ -155,7 +155,6 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     DEBUG("[aodvv2] %s()\n", __func__);
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
-    struct netaddr na_origNode, na_targNode;
 
     uint16_t origNode_seqNum = _target._packet_data.origNode.seqNum;
     

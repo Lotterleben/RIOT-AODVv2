@@ -7,7 +7,7 @@
 #include "net_help.h"
 #include "mutex.h"
 
-#include "include/aodvv2.h"
+#include "constants.h"
 #include "seqnum.h"
 #include "routing.h" 
 #include "utils.h"

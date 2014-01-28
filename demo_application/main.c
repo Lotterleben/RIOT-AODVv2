@@ -1,12 +1,3 @@
-/*
- * Copyright (C) 2008, 2009, 2010  Kaspar Schleiser <kaspar@schleiser.de>
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
- *
- * This file subject to the terms and conditions of the GNU Lesser General
- * Public License. See the file LICENSE in the top level directory for more
- * details.
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h> // for getting the pid
@@ -29,8 +20,40 @@ const shell_command_t shell_commands[] = {
     {NULL, NULL, NULL}
 };
 
+//#if defined(BOARD_NATIVE)
+//#include <unistd.h>
+static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
+
+/* gemopst von ben */
+static uint16_t get_node_id(void) {
+    DEBUG("node id is: %d \n", getpid());
+    return getpid();
+}
+//#endif
+
+/*
+const shell_command_t shell_commands[] = {
+    {"rreq", "send rreq", old_send_rreq},
+    {"rrep", "send rrep", old_send_rrep},
+    {"snd", "send message", aodv_send},
+    {"rcv", "receive udp packets", aodv_receive},
+    {NULL, NULL, NULL}
+};
+*/
+
+/* init transport layer stuff */
+void init_tlayer(void)
+{
+    DEBUG("node id is: %d \n", getpid());
+    //destiny_init_transport_layer();
+    sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
+}
+
 int main(void)
 {
+    init_tlayer();
+    aodv_init();
+
     /* start shell */
     posix_open(uart0_handler_pid, 0);
 

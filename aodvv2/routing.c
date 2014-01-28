@@ -98,8 +98,6 @@ static void _reset_entry_if_stale(uint8_t i)
 
 void print_routingtable(void)
 {   
-    struct aodvv2_routing_entry_t curr_entry;
-
     printf("===== BEGIN ROUTING TABLE ===================\n");
     for(int i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         // route has been used before => non-empty entry

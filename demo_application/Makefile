@@ -1,4 +1,4 @@
-export CFLAGS += -DRIOT -DENABLE_DEBUG
+export CFLAGS += -DRIOT #-DENABLE_DEBUG
 
 # name of your project
 export PROJECT = aodvv2_node
@@ -11,8 +11,6 @@ export RIOTBASE =$(CURDIR)/../../riot/RIOT
 export RIOTLIBS =$(RIOTBASE)/../riot-libs
 export OONFBASE =$(CURDIR)/../../oonf_api
 export AODV_NODE =$(CURDIR)/../aodvv2 
-
-
 
 EXTERNAL_MODULES +=$(OONFBASE)
 EXTERNAL_MODULES +=$(RIOTLIBS)
@@ -44,31 +42,6 @@ export EXTERNAL_MODULES
 export QUIET ?= 1
 
 # Modules to include:
-#USEMODULE += auto_init
-
-#USEMODULE += config
-#USEMODULE += hwtimer
-#USEMODULE += nativenet
-#USEMODULE += posix
-#USEMODULE += ps
-#USEMODULE += shell
-#USEMODULE += shell_commands
-#USEMODULE += uart0
-#USEMODULE += vtimer
-
-#tlayer
-#USEMODULE += destiny
-#USEMODULE += posix
-#USEMODULE += ltc4150
-
-# oonf
-#USEMODULE += net_help 
-#USEMODULE += sixlowpan
-#USEMODULE += cunit
-#USEMODULE += compat_misc
-#USEMODULE += oonf_common
-#USEMODULE += oonf_rfc5444
-
 USEMODULE += auto_init
 USEMODULE += shell
 USEMODULE += shell_commands
@@ -94,7 +67,7 @@ USEMODULE += oonf_common
 USEMODULE += oonf_rfc5444
 
 #aodv
-#USEMODULE += aodvv2
+USEMODULE += aodvv2
 
 export INCLUDES += -I${RIOTBASE}/core/include/         \
 				   -I$(RIOTBASE)/sys/net/include       \
@@ -102,6 +75,5 @@ export INCLUDES += -I${RIOTBASE}/core/include/         \
 				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
 				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
 				   -I$(AODV_NODE)                      \
-
 
 include $(RIOTBASE)/Makefile.include

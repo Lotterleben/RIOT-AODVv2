@@ -40,17 +40,18 @@ uint16_t seqNum_get(void)
     to be newer, which is clearly wrong.
     So we'll need some kind of "wiggle room" around the tipping point of 65535 and 1.
  */
-int seqnum_cmp(uint32_t s1, uint32_t s2)
+int seqnum_cmp(uint16_t s1, uint16_t s2)
 {
-    int wiggle_room = 10;
+    uint8_t wiggle_room = 10;
+    uint16_t max_seqnum = 65535;
 
     if (s1 < s2){
-        if ((s1 <= wiggle_room) && (s2 >= 65535 - wiggle_room))
+        if ((s1 <= wiggle_room) && (s2 >= max_seqnum - wiggle_room))
             return 1;
         return -1;
     }
     if (s1 > s2){
-        if (s1 >= 65535 - wiggle_room && s2 <= wiggle_room)
+        if (s1 >= max_seqnum - wiggle_room && s2 <= wiggle_room)
             return -1;
         return 1;
     }

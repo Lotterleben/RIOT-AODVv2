@@ -22,13 +22,13 @@ EXTERNAL_MODULES +=$(RIOTLIBS)
 EXTERNAL_MODULES +=$(AODV_NODE)
 export EXTERNAL_MODULES
 
-export CFLAGS = -DRIOT -DENABLE_NAME -ggdb
+export CFLAGS = -DRIOT -DENABLE_NAME -ggdb -DENABLE_DEBUG
 
 ## Modules to include. 
 
 # use auto_init with care, some modules still need to be initialized
 # and most get confused if initialized twice
-USEMODULE += auto_init
+#USEMODULE += auto_init
 
 USEMODULE += config
 USEMODULE += hwtimer
@@ -61,7 +61,7 @@ export INCLUDES += -I${RIOTBASE}/core/include/ \
 				   -I$(RIOTBASE)/drivers/cc110x/ \
 				   -I$(RIOTBASE)/cpu/$(BOARD)/include \
 				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
-				   #-I$(AODV_NODE)/include
+				   -I$(AODV_NODE)/include
 
 include $(RIOTBASE)/Makefile.include
 valgrind: all

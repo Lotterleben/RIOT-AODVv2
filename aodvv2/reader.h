@@ -41,13 +41,15 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "common/common_types.h"
 #include "common/netaddr.h"
 #include "rfc5444/rfc5444_reader.h"
 
+#include "utils.h"
 #include "routing.h"
-#include "include/aodvv2.h"
+#include "constants.h"
 #include "seqnum.h"
 
 #ifndef READER_H_

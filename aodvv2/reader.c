@@ -235,11 +235,11 @@ static enum rfc5444_result _cb_rreq_end_callback(
         DEBUG("\tCreating new Routing Table entry...\n");
         /* de-NULL rt_entry */
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
-        memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern amcht uint8_ts zu 48s.. o0 TODO
+        memset(rt_entry, 0, sizeof(*rt_entry)); // nullt nicht, sondern amcht uint8_ts zu 48s.. o0 TODO
         /* add empty rt_entry so that we can fill it later */
         routingtable_add_entry(rt_entry);
     } else {
-        if (!_offers_improvement(rt_entry, &packet_data.origNode.addr)){
+        if (!_offers_improvement(rt_entry, &packet_data.origNode)){
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
@@ -273,9 +273,9 @@ static enum rfc5444_result _cb_rreq_end_callback(
     if (clienttable_is_client(&packet_data.targNode.addr)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
         //send_rrep(&packet_data, &packet_data.sender);  
-        return RFC5444_OKAY;
     }
 
+    return RFC5444_OKAY;
 }
 
 /**
@@ -410,11 +410,11 @@ static enum rfc5444_result _cb_rrep_end_callback(
         DEBUG("\tCreating new Routing Table entry...\n");
         /* de-NULL rt_entry */
         rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
-        memset(rt_entry, 0, sizeof(rt_entry)); // nullt nicht, sondern macht uint8_ts zu 48s.. o0 TODO
+        memset(rt_entry, 0, sizeof(*rt_entry)); // nullt nicht, sondern macht uint8_ts zu 48s.. o0 TODO
         /* add empty rt_entry so that we can fill it later */
         routingtable_add_entry(rt_entry);
     } else {
-        if (!_offers_improvement(rt_entry, &packet_data.targNode.addr)) {
+        if (!_offers_improvement(rt_entry, &packet_data.targNode)) {
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
@@ -456,6 +456,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
         //struct netaddr* next_hop = get_next_hop(&packet_data.origNode.addr, packet_data.metricType);
         //send_rrep(&packet_data, &next_hop);
     }
+    return RFC5444_OKAY;
 }
 
 void reader_init(void)
@@ -518,7 +519,7 @@ static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct 
  * (currently only AODVV2_DEFAULT_METRIC_TYPE (HopCt) implemented)
  * returns cost if metric is known, NULL otherwise
  */
-static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data)
+static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* packet_data)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return 1;

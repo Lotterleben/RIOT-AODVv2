@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "include/aodvv2.h"
+#include "constants.h"
 #include "routing.h"
 #include "reader.h"
 #include "utils.h"
@@ -9,6 +9,8 @@
 #include "common/netaddr.h"
 
 struct netaddr_str nbuf;
+char str[6000];
+
 
 char* node_data_to_string(struct node_data* node_data);
 char* packet_data_to_string(struct aodvv2_packet_data* packet_data);
@@ -206,8 +208,6 @@ void test_tables_main(void)
 
 char* node_data_to_string(struct node_data* node_data)
 {
-    char str[6000];
-
     sprintf(str, "\t\taddr: %s\n\
 \t\tprefixlen: %d\n\
 \t\tmetric: %d\n\
@@ -219,8 +219,6 @@ char* node_data_to_string(struct node_data* node_data)
 
 char* packet_data_to_string(struct aodvv2_packet_data* packet_data)
 {
-    char str[6000];
-
     sprintf(str,"packet data :\n \
 \thoplimit: %i\n\
 \tsender: %s\n\

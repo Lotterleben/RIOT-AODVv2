@@ -4,7 +4,7 @@
 
 #include "common/netaddr.h"
 
-#include "include/aodvv2.h"
+#include "constants.h"
 #include "seqnum.h"
 
 #ifndef UTILS_H_
@@ -25,7 +25,7 @@ struct aodvv2_rreq_entry {
 
 /* Section 5.3.: Client Table functionality */
 // TODO: make naming more clear? (-> reference to client table)
-void clienttableinit(void);
+void clienttable_init(void);
 void clienttable_add_client(struct netaddr* addr);
 bool clienttable_is_client(struct netaddr* addr);
 void clienttable_delete_client(struct netaddr* addr);

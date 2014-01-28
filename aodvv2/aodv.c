@@ -1,4 +1,5 @@
 #include "aodv.h"
+#include "include/aodvv2.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -137,15 +138,16 @@ static void _aodv_receiver_thread(void)
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
     // TODO: routingtable_get_next_hop() bekommt ne netaddr! umwandeln!!
-    ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(dest, _metric_type);
+
+    struct netaddr _tmp_dest;
+    ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
+
+    ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(&_tmp_dest, _metric_type);
     if (next_hop)
         return next_hop;
     /* no route found => start route discovery */
     struct netaddr _tmp_src;
     ipv6_addr_t_to_netaddr(&na_local, &_tmp_src);
-    
-    struct netaddr _tmp_dest;
-    ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
 
     struct netaddr _tmp_mcast;
     ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast);

@@ -9,7 +9,7 @@
 
 #include "common/netaddr.h"
 
-#include "include/aodvv2.h"
+#include "constants.h"
 
 #ifndef ROUTING_H_
 #define ROUTING_H_

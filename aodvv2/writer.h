@@ -52,7 +52,7 @@
 #include "rfc5444/rfc5444_iana.h"
 #include "mutex.h"
 
-#include "include/aodvv2.h"
+#include "constants.h"
 #include "seqnum.h"
 
 struct writer_target {
