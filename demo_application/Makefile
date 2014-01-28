@@ -1,16 +1,18 @@
-export CFLAGS += -DRIOT
+export CFLAGS += -DRIOT -DENABLE_DEBUG
 
 # name of your project
-export PROJECT = default
+export PROJECT = aodvv2_node
 
 # If no BOARD is found in the environment, use this default:
 export BOARD ?= native
 
 # This has to be the absolute path to the RIOT base directory:
-export RIOTBASE ?=$(CURDIR)/../../riot/RIOT
+export RIOTBASE =$(CURDIR)/../../riot/RIOT
 export RIOTLIBS =$(RIOTBASE)/../riot-libs
 export OONFBASE =$(CURDIR)/../../oonf_api
 export AODV_NODE =$(CURDIR)/../aodvv2 
+
+
 
 EXTERNAL_MODULES +=$(OONFBASE)
 EXTERNAL_MODULES +=$(RIOTLIBS)
@@ -42,52 +44,64 @@ export EXTERNAL_MODULES
 export QUIET ?= 1
 
 # Modules to include:
+#USEMODULE += auto_init
 
-USEMODULE += posix
-USEMODULE += uart0
+#USEMODULE += config
+#USEMODULE += hwtimer
+#USEMODULE += nativenet
+#USEMODULE += posix
+#USEMODULE += ps
+#USEMODULE += shell
+#USEMODULE += shell_commands
+#USEMODULE += uart0
+#USEMODULE += vtimer
+
+#tlayer
+#USEMODULE += destiny
+#USEMODULE += posix
+#USEMODULE += ltc4150
+
+# oonf
+#USEMODULE += net_help 
+#USEMODULE += sixlowpan
+#USEMODULE += cunit
+#USEMODULE += compat_misc
+#USEMODULE += oonf_common
+#USEMODULE += oonf_rfc5444
+
+USEMODULE += auto_init
 USEMODULE += shell
 USEMODULE += shell_commands
-USEMODULE += ps
-USEMODULE += vtimer
-USEMODULE += auto_init
-ifneq (,$(findstring msb-430,$(BOARD)))
-	USEMODULE += sht11
-endif
-ifneq (,$(findstring chronos,$(BOARD)))
-	USEMODULE += cc110x_ng
-	export INCLUDES += -I$(RIOTBASE)/drivers/cc110x_ng/include
-endif
-ifneq (,$(findstring wsn430-v1_3b,$(BOARD)))
-	USEMODULE += cc110x_ng
-	export INCLUDES += -I$(RIOTBASE)/drivers/cc110x_ng/include
-endif
-ifneq (,$(findstring wsn430-v1_4,$(BOARD)))
-	USEMODULE += cc2420
-	export INCLUDES += -I$(RIOTBASE)/drivers/cc2420/include
-endif
-ifneq (,$(findstring msb-430h,$(BOARD)))
-	USEMODULE += cc110x_ng
-	export INCLUDES += -I$(RIOTBASE)/drivers/cc110x_ng/include
-endif
-ifneq (,$(findstring msba2,$(BOARD)))
-	USEMODULE += sht11
-	USEMODULE += ltc4150
-	USEMODULE += rtc
-	USEMODULE += mci
-	USEMODULE += cc110x_ng
-	USEMODULE += config
-	export INCLUDES += -I$(RIOTBASE)/drivers/cc110x_ng/include
-endif
-ifneq (,$(findstring native,$(BOARD)))
-	USEMODULE += ltc4150
-	USEMODULE += rtc
+USEMODULE += uart0
+USEMODULE += posix
+USEMODULE += ps 
+USEMODULE += vtimer 
+ifeq ($(strip $(BOARD)),native)
 	USEMODULE += nativenet
-	USEMODULE += transceiver
-	USEMODULE += config
+else
+	USEMODULE += cc110x
 endif
+USEMODULE += sixlowpan
+USEMODULE += rpl
+USEMODULE += destiny
 
-export INCLUDES += -I${RIOTBASE}/core/include/ \
-				   -I${RIOTBASE}/sys/include/ \
-				   -I${RIOTBASE}/drivers/include/
+# oonf
+USEMODULE += net_help 
+USEMODULE += sixlowpan
+USEMODULE += cunit
+USEMODULE += compat_misc
+USEMODULE += oonf_common
+USEMODULE += oonf_rfc5444
+
+#aodv
+#USEMODULE += aodvv2
+
+export INCLUDES += -I${RIOTBASE}/core/include/         \
+				   -I$(RIOTBASE)/sys/net/include       \
+				   -I$(RIOTBASE)/drivers/cc110x/       \
+				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
+				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
+				   -I$(AODV_NODE)                      \
+
 
 include $(RIOTBASE)/Makefile.include
