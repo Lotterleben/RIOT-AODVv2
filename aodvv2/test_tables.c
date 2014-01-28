@@ -49,13 +49,13 @@ void test_routingtable_get_next_hop_bullshitdata(struct netaddr* addr, uint8_t m
 
 void test_rreqtable_rreq_not_redundant(struct aodvv2_packet_data* packet_data)
 {
-    bool data_is_redundant = rreq_is_redundant(packet_data);
+    bool data_is_redundant = rreqtable_is_redundant(packet_data);
     CHECK_TRUE(!data_is_redundant, "the following data shouldn't be redundant:\n%s", packet_data_to_string(packet_data));
 }
 
 void test_rreqtable_rreq_redundant(struct aodvv2_packet_data* packet_data)
 {
-    bool data_is_redundant = rreq_is_redundant(packet_data);
+    bool data_is_redundant = rreqtable_is_redundant(packet_data);
     CHECK_TRUE(data_is_redundant, "the following data should be redundant:\n%s", packet_data_to_string(packet_data));
 }
 
@@ -102,7 +102,7 @@ void test_routingtable(void)
     START_TEST();
 
     /* prepare routing table */
-    init_routingtable();
+    routingtable_init();
 
     print_routingtable();
     printf("Adding first entry: %s ...\n", netaddr_to_string(&nbuf, &addr_2));
@@ -169,7 +169,7 @@ void test_rreq_table(void)
     vtimer_now(&now);
 
     START_TEST();
-    init_rreqtable();
+    rreqtable_init();
 
     /* start testing */
 

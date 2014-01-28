@@ -150,7 +150,10 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     struct netaddr _tmp_mcast;
     ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast);
 
-    writer_send_rreq(&_tmp_src, &_tmp_dest, &_tmp_mcast);
+    if (mutex_lock(&writer_mutex) == 1){
+        writer_send_rreq(&_tmp_src, &_tmp_dest, &_tmp_mcast);
+        mutex_unlock(&writer_mutex);
+    } // TODO: handle mutex_lock() = -1?
     return NULL;
 }
 

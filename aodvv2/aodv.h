@@ -5,6 +5,7 @@
 #include "destiny/socket.h"
 #include "transceiver.h"
 #include "net_help.h"
+#include "mutex.h"
 
 #include "include/aodvv2.h"
 #include "seqnum.h"

@@ -10,8 +10,9 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#define AODVV2_MAX_CLIENTS 1 // multiple clients are currently not supported.
-#define AODVV2_RREQ_BUF 128    // should be enough for now...
+#define AODVV2_MAX_CLIENTS 1    // multiple clients are currently not supported.
+#define AODVV2_RREQ_BUF 128     // should be enough for now...
+#define AODVV2_RREQ_WAIT_TIME 2 // seconds
 
 struct aodvv2_rreq_entry {
     struct netaddr origNode;

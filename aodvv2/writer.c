@@ -182,6 +182,9 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 void writer_init(write_packet_func_ptr ptr)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
+
+    mutex_init(&writer_mutex);
+
     /* define interface for generating rfc5444 packets */
     _target.interface.packet_buffer = _packet_buffer;
     _target.interface.packet_size = sizeof(_packet_buffer);
@@ -214,6 +217,9 @@ void writer_init(write_packet_func_ptr ptr)
     _rrep_msg->addMessageHeader = _cb_rrep_addMessageHeader;
 }
 
+/**
+ * Lock on writer_mutex if you want to use this function 
+ */
 void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
@@ -232,6 +238,9 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
     rfc5444_writer_flush(&writer, &_target.interface, false);
 }
 
+/**
+ * Lock on writer_mutex if you want to use this function 
+ */
 void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
