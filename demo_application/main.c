@@ -16,9 +16,7 @@
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-const shell_command_t shell_commands[] = {
-    {NULL, NULL, NULL}
-};
+radio_address_t _id;
 
 //#if defined(BOARD_NATIVE)
 //#include <unistd.h>
@@ -31,29 +29,43 @@ static uint16_t get_node_id(void) {
 }
 //#endif
 
-/*
+void demo_set_id(char *id_str)
+{
+    int res = sscanf(id_str, "set %hu", &_id);
+
+    if (res < 1) {
+        printf("Usage: init address\n");
+        printf("\taddress must be an 8 bit integer\n");
+        printf("\n\t(Current ID is %u)\n", _id);
+        return;
+    }
+
+    printf("Set node ID to %u\n", _id);
+}
+
+/* init transport layer stuff and aodv*/
+void init_tlayer(char *str)
+{
+    if (!_id) {
+        printf("Error: set node id with 'set' command first!\n");
+        return;
+    }
+
+    //destiny_init_transport_layer();
+    printf("\tinitializing sixlowpan...\n");
+    sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
+    printf("\tinitializing aodv...\n");
+    aodv_init();
+}
+
 const shell_command_t shell_commands[] = {
-    {"rreq", "send rreq", old_send_rreq},
-    {"rrep", "send rrep", old_send_rrep},
-    {"snd", "send message", aodv_send},
-    {"rcv", "receive udp packets", aodv_receive},
+    {"set", "set node ID", demo_set_id},
+    {"init", "init transport layer and aodv", init_tlayer},
     {NULL, NULL, NULL}
 };
-*/
-
-/* init transport layer stuff */
-void init_tlayer(void)
-{
-    DEBUG("node id is: %d \n", getpid());
-    //destiny_init_transport_layer();
-    sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
-}
 
 int main(void)
 {
-    init_tlayer();
-    aodv_init();
-
     /* start shell */
     posix_open(uart0_handler_pid, 0);
 
