@@ -23,9 +23,6 @@
 //#if defined(BOARD_NATIVE)
 //#include <unistd.h>
 static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
-static uint16_t get_node_id(void) {
-    return getpid();
-}
 //#endif
 
 static int _sock_snd;
