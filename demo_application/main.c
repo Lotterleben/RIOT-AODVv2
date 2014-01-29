@@ -44,7 +44,7 @@ void demo_send(char *id_str)
     printf("sending...\n");
 
     // turn dest_ip into ipv6_addr_t
-    inet_pton(AF_INET6, dest_str, &dest_ip);
+    inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
 
     int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
                                             0, &_sockaddr, sizeof _sockaddr);
