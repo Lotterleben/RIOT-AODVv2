@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h> // for getting the pid
+#include <inet_pton.h>
 
 #include "thread.h"
 #include "posix_io.h"
@@ -8,6 +9,7 @@
 #include "shell_commands.h"
 #include "board_uart0.h"
 #include "destiny.h"
+#include "net_help.h"
 
 #include "kernel.h"
 
@@ -15,6 +17,8 @@
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
+
+#define RANDOM_PORT 1337
 
 //#if defined(BOARD_NATIVE)
 //#include <unistd.h>
@@ -24,21 +28,44 @@ static uint16_t get_node_id(void) {
 }
 //#endif
 
+static int _sock_snd;
+static sockaddr6_t _sockaddr;
+
+
 void demo_send(char *id_str)
 {
-    char* dest_ip, msg;
+    char dest_str[39];  // assuming we're dealing with "full" IPs
+    char msg[25];
+    ipv6_addr_t dest_ip;
 
-    int res = sscanf(id_str, "send %s %s", &dest_ip, &msg);
+    int res = sscanf(id_str, "send %s %s", dest_str, msg);
 
-    printf("res: %i\n", res); 
     if (res != 2) {
         printf("Usage: send <destination ip> <message>\n");
         return;
     }
+    printf("sending...\n");
 
     // turn dest_ip into ipv6_addr_t
-    // todo: check if valid IP
-    printf("TODO: init socket & send!\n");
+    inet_pton(AF_INET6, dest_str, &dest_ip);
+
+    int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
+                                            0, &_sockaddr, sizeof _sockaddr);
+
+    printf("%d bytes sent.\n", bytes_sent);
+}
+
+void demo_init_socket(void)
+{
+    _sockaddr.sin6_family = AF_INET6;
+    _sockaddr.sin6_port = HTONS(RANDOM_PORT);
+
+    _sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+
+    if(-1 == _sock_snd) {
+        printf(" Error Creating Socket!");
+        return;
+    }
 }
 
 /* init transport layer & routing stuff*/
@@ -49,6 +76,7 @@ void init_tlayer(char *str)
     sixlowpan_lowpan_init(transceiver_type, getpid(), 0);
     printf("initializing AODVv2...\n");
     aodv_init();
+    demo_init_socket();
 }
 
 const shell_command_t shell_commands[] = {
