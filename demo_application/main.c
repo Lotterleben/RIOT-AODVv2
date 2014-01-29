@@ -16,56 +16,51 @@
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-radio_address_t _id;
-
 //#if defined(BOARD_NATIVE)
 //#include <unistd.h>
 static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
-
-/* gemopst von ben */
 static uint16_t get_node_id(void) {
-    DEBUG("node id is: %d \n", getpid());
     return getpid();
 }
 //#endif
 
-void demo_set_id(char *id_str)
+void demo_send(char *id_str)
 {
-    int res = sscanf(id_str, "set %hu", &_id);
+    char* dest_ip, msg;
 
-    if (res < 1) {
-        printf("Usage: init address\n");
-        printf("\taddress must be an 8 bit integer\n");
-        printf("\n\t(Current ID is %u)\n", _id);
+    int res = sscanf(id_str, "send %s %s", &dest_ip, &msg);
+
+    printf("res: %i\n", res); 
+    if (res != 2) {
+        printf("Usage: send <destination ip> <message>\n");
         return;
     }
 
-    printf("Set node ID to %u\n", _id);
+    // turn dest_ip into ipv6_addr_t
+    // todo: check if valid IP
+    printf("TODO: init socket & send!\n");
 }
 
-/* init transport layer stuff and aodv*/
+/* init transport layer & routing stuff*/
 void init_tlayer(char *str)
 {
-    if (!_id) {
-        printf("Error: set node id with 'set' command first!\n");
-        return;
-    }
-
     //destiny_init_transport_layer();
-    printf("\tinitializing sixlowpan...\n");
-    sixlowpan_lowpan_init(transceiver_type, get_node_id(), 0);
-    printf("\tinitializing aodv...\n");
+    printf("initializing 6LoWPAN...\n");
+    sixlowpan_lowpan_init(transceiver_type, getpid(), 0);
+    printf("initializing AODVv2...\n");
     aodv_init();
 }
 
 const shell_command_t shell_commands[] = {
-    {"set", "set node ID", demo_set_id},
+    {"send", "send message to ip", demo_send},
     {"init", "init transport layer and aodv", init_tlayer},
     {NULL, NULL, NULL}
 };
 
 int main(void)
 {
+    init_tlayer("");
+
     /* start shell */
     posix_open(uart0_handler_pid, 0);
 
