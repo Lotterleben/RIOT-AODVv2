@@ -110,24 +110,23 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     DEBUG("[aodvv2] %s()\n", __func__);
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
-
-    uint16_t origNode_seqNum = seqNum_get();
-    _target._packet_data.origNode.seqNum = origNode_seqNum;
-    seqNum_inc();
     
-    uint8_t origNode_hopCt = 0;
-   _target._packet_data.origNode.metric = origNode_hopCt;
+    /* add origNode address (has no address tlv); is mandatory address */
+    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
+                                               &_target._packet_data.origNode.addr, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &_target._packet_data.origNode.addr, true);
-
-    /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, &_target._packet_data.targNode.addr, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
+                                               &_target._packet_data.targNode.addr, true);
 
     /* add SeqNum TLV and metric TLV to origNode */
     // TODO: allow_dup true or false?
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_ORIGSEQNUM], &origNode_seqNum, sizeof(origNode_seqNum), false);
-    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_METRIC], &origNode_hopCt, sizeof(origNode_hopCt), false);
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_ORIGSEQNUM], 
+                               &_target._packet_data.origNode.seqNum, 
+                               sizeof(_target._packet_data.origNode.seqNum), false);
+    rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_METRIC],
+                               &_target._packet_data.origNode.metric, 
+                               sizeof(_target._packet_data.origNode.metric), false);
 }
 
 /**
@@ -233,6 +232,29 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
     /* set address to which the write_packet callback should send our RREQ */
     memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
 
+    /* set info about the rreq so the callbacks just have to grab it from _packet_data */
+    uint16_t origNode_seqNum = seqNum_get();
+    _target._packet_data.origNode.seqNum = origNode_seqNum;
+    seqNum_inc();
+
+    _target._packet_data.origNode.metric = 0;
+
+    rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
+    rfc5444_writer_flush(&writer, &_target.interface, false);
+}
+
+
+/* just forward a rreq, don't change anything */
+void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
+{
+    if (packet_data == NULL || next_hop == NULL)
+        return;
+    
+    memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+
+    /* set address to which the write_packet callback should send our RREQ */
+    memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
+    
     rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
     rfc5444_writer_flush(&writer, &_target.interface, false);
 }

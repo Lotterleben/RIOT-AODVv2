@@ -1,4 +1,3 @@
-
 #ifdef RIOT
 #include "net_help.h"
 #endif
@@ -245,8 +244,6 @@ static enum rfc5444_result _cb_rreq_end_callback(
         }
     }
     
-    //DEBUG("old entry:\n");
-    //print_rt_entry(rt_entry);
     /* The incoming routing information is better than existing routing 
      * table information and SHOULD be used to improve the route table. */ 
     rt_entry->address = packet_data.origNode.addr;
@@ -260,19 +257,29 @@ static enum rfc5444_result _cb_rreq_end_callback(
     rt_entry->metric = packet_data.origNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 
-    //DEBUG("new entry:\n");
-    //print_rt_entry(rt_entry);
-
     /*
      * If TargNode is a client of the router receiving the RREQ, then the
      * router generates a RREP message as specified in Section 7.4, and
      * subsequently processing for the RREQ is complete.  Otherwise,
      * processing continues as follows.
      */
-
     if (clienttable_is_client(&packet_data.targNode.addr)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
-        //send_rrep(&packet_data, &packet_data.sender);  
+        if (mutex_lock(&writer_mutex) == 1){
+            writer_send_rrep(&packet_data, &packet_data.sender);
+            mutex_unlock(&writer_mutex);
+        } // TODO: handle mutex_lock() = -1?    
+    }
+
+    else {
+        DEBUG("[aodvv2] I am not TargNode, forwarding RREQ\n");
+        struct netaddr _tmp_mcast;
+        ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast); 
+        
+        if (mutex_lock(&writer_mutex) == 1){
+            writer_forward_rreq(&packet_data, &_tmp_mcast);
+            mutex_unlock(&writer_mutex);
+        } // TODO: handle mutex_lock() = -1?     
     }
 
     return RFC5444_OKAY;
@@ -420,8 +427,6 @@ static enum rfc5444_result _cb_rrep_end_callback(
         }
     }
     
-    //DEBUG("old entry:\n");
-    //print_rt_entry(rt_entry);
     /* The incoming routing information is better than existing routing 
      * table information and SHOULD be used to improve the route table. */ 
     rt_entry->address = packet_data.targNode.addr;
@@ -435,17 +440,12 @@ static enum rfc5444_result _cb_rrep_end_callback(
     rt_entry->metric = packet_data.targNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 
-    //DEBUG("new entry:\n");
-    //print_rt_entry(rt_entry);
-
     /*
     If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
     earlier RREQ, and RREP processing is completed.  Any packets
     buffered for OrigNode should be transmitted. */
     if (clienttable_is_client(&packet_data.origNode.addr)){
         DEBUG("This is my RREP. We are done here, thanks!\n");
-        // TODO : transmit buffered data    
-        return RFC5444_DROP_PACKET;
     }
 
     /* 
@@ -453,8 +453,10 @@ static enum rfc5444_result _cb_rrep_end_callback(
     Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx]. */
     else {
         DEBUG("[aodvv2] Not my RREP, passing it on to the next hop\n");
-        //struct netaddr* next_hop = get_next_hop(&packet_data.origNode.addr, packet_data.metricType);
-        //send_rrep(&packet_data, &next_hop);
+        if (mutex_lock(&writer_mutex) == 1){
+            writer_send_rrep(&packet_data, routingtable_get_next_hop(&packet_data.origNode.addr, packet_data.metricType));
+            mutex_unlock(&writer_mutex);
+        } // TODO: handle mutex_lock() = -1?    
     }
     return RFC5444_OKAY;
 }

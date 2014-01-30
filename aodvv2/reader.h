@@ -46,11 +46,13 @@
 #include "common/common_types.h"
 #include "common/netaddr.h"
 #include "rfc5444/rfc5444_reader.h"
+#include "mutex.h"
 
 #include "utils.h"
 #include "routing.h"
 #include "constants.h"
 #include "seqnum.h"
+#include "writer.h"
 
 #ifndef READER_H_
 #define READER_H_

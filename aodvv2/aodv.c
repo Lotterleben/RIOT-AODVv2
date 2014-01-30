@@ -12,17 +12,16 @@ static void _aodv_receiver_thread(void);
 static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
-static void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst);
 
 char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char addr_str2[IPV6_MAX_ADDR_STR_LEN];
 char aodv_rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 static int _metric_type;
-static int sock_snd;
+static int _sock_snd;
 static struct autobuf _hexbuf;
 static sockaddr6_t sa_wp;
-static ipv6_addr_t na_local, na_mcast;
+static ipv6_addr_t na_local;
 static struct writer_target* wt;
 
 void aodv_init(void)
@@ -82,7 +81,7 @@ static void _init_addresses(void)
     ipv6_addr_set_all_nodes_addr(&na_mcast);
     DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &na_mcast));
 
-    /* init node's own IP */
+    /* get best IP for sending */
     ipv6_iface_get_best_src_addr(&na_local, &na_mcast);
     DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
 
@@ -94,9 +93,9 @@ static void _init_addresses(void)
 /* Init everything needed for socket communication */
 static void _init_sock_snd(void)
 {
-    sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    _sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
-    if(-1 == sock_snd) {
+    if(-1 == _sock_snd) {
         DEBUG("[aodvv2] Error Creating Socket!");
         return;
     }
@@ -105,6 +104,7 @@ static void _init_sock_snd(void)
 // TODO: debug. muss ich mich noch iwie für die mcast-pakete anmelden?
 static void _aodv_receiver_thread(void)
 {
+    DEBUG("[aodvv2] %s()\n", __func__);
     uint32_t fromlen;
     int32_t rcv_size;
     char buf_rcv[UDP_BUFFER_SIZE];    
@@ -118,14 +118,15 @@ static void _aodv_receiver_thread(void)
         destiny_socket_close(sock_rcv);
     }
 
+    DEBUG("[aodvv2] ready to receive data\n");
     for(;;) {
         rcv_size = destiny_socket_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0, 
                                           &sa_rcv, &fromlen);
 
         if(rcv_size < 0) {
-            DEBUG("ERROR receiving data!\n");
+            DEBUG("[aodvv2] ERROR receiving data!\n");
         }
-        DEBUG("UDP packet received from %s\n", ipv6_addr_to_str(&addr_str, &sa_rcv.sin6_addr));
+        DEBUG("[aodvv2] UDP packet received from %s\n", ipv6_addr_to_str(&addr_str, &sa_rcv.sin6_addr));
         
         struct netaddr _sender;
         ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
@@ -183,27 +184,27 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
        specific node or the multicast address) from the writer_target struct
        iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
-    memcpy(&sa_wp.sin6_addr, &wt->target_address, sizeof (ipv6_addr_t));
+    
+    struct netaddr_str nbuf;
+    printf("xoxoxo %s\n", netaddr_to_string(&nbuf, &wt->target_address));
+    
+    // PROBLEM: Alle Ansätze hier failen, sa_wp.sin6_addr ist immer null
+    memcpy(&sa_wp.sin6_addr, &wt->target_address._addr, sizeof (ipv6_addr_t));
+    //netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
 
     /* When sending a RREQ, add it to our RREQ table */
+    // TODO: auskommentierung ist hier nur zu testzwecken, löschen!!!!
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
         rreqtable_add(&wt->_packet_data);
     }
 
-    int bytes_sent = destiny_socket_sendto(sock_snd, buffer, length, 
+    printf("xoxoxo %s\n", netaddr_to_string(&nbuf, &sa_wp.sin6_addr));
+
+    int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 
                                             0, &sa_wp, sizeof sa_wp);
 
     DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
 }
-
-// TODO: so bauen dass es den ipv6_addr_t* direkt zurückgibt
-static void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst)
-{
-    dst->_type = AF_INET6;
-    dst->_prefix_len = AODVV2_RIOT_PREFIXLEN;
-    memcpy(dst->_addr, src , sizeof dst->_addr);
-}
-
 
 
 

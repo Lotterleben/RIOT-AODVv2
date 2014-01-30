@@ -35,4 +35,8 @@ void rreqtable_init(void);
 bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data);
 void rreqtable_add(struct aodvv2_packet_data* packet_data);
 
+/* various utilities */
+void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst);
+void netaddr_to_ipv6_addr_t(struct netaddr* src, ipv6_addr_t* dst);
+
 #endif /* UTILS_H_ */
