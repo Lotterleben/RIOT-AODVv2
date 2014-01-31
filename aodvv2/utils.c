@@ -65,9 +65,10 @@ bool clienttable_is_client(struct netaddr* addr)
 {
     if (mutex_lock(&clientt_mutex) == 1) {
         for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-            if (!netaddr_cmp(&client_table[i], addr))
+            if (!netaddr_cmp(&client_table[i], addr)) {
                 mutex_unlock(&clientt_mutex);
                 return true;
+            }
         }
         mutex_unlock(&clientt_mutex);
     }
