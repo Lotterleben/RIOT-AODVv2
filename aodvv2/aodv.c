@@ -55,9 +55,9 @@ void aodv_init(void)
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /* testtest */
-    //ipv6_addr_t test_addr;
-    //ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
-    //aodv_get_next_hop(&test_addr);
+    ipv6_addr_t test_addr;
+    ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
+    aodv_get_next_hop(&test_addr);
 }
 
 /* 
@@ -187,15 +187,15 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     printf("xoxoxo %s\n", netaddr_to_string(&nbuf, &wt->target_address));
     
     // PROBLEM: Alle Ansätze hier failen, sa_wp.sin6_addr ist immer null
-    memcpy(&sa_wp.sin6_addr, &wt->target_address._addr, sizeof (ipv6_addr_t));
-    //netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
+    //memcpy(&sa_wp.sin6_addr, &wt->target_address._addr, sizeof (ipv6_addr_t));
+    netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
 
     /* When sending a RREQ, add it to our RREQ table */
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
         rreqtable_add(&wt->_packet_data);
     }
 
-    printf("xoxoxo %s\n", netaddr_to_string(&nbuf, &sa_wp.sin6_addr));
+    printf("xoxoxo %s\n", ipv6_addr_to_str(&addr_str, &sa_wp.sin6_addr));
 
     int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 
                                             0, &sa_wp, sizeof sa_wp);

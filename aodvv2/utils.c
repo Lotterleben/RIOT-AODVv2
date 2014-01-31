@@ -272,14 +272,15 @@ void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst)
 {
     dst->_type = AF_INET6;
     dst->_prefix_len = AODVV2_RIOT_PREFIXLEN;
-    memcpy(dst->_addr, src , sizeof dst->_addr);
+    memcpy(dst->_addr, src, sizeof dst->_addr);
 }
 
 // TODO: Make this work
 void netaddr_to_ipv6_addr_t(struct netaddr* src, ipv6_addr_t* dst)
 {
     for (int i=0; i<NETADDR_MAX_LENGTH; i++){
-        printf("\t%i\n", dst[i]);
+        //printf("\t%i\n", dst[i]);
         //dst[i] = src->_addr[i];
+        memcpy(dst, src->_addr, sizeof(uint8_t) * NETADDR_MAX_LENGTH);
     }
 }
