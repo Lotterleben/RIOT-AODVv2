@@ -247,7 +247,6 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
         rfc5444_writer_flush(&writer, &_target.interface, false);
         mutex_unlock(&writer_mutex);
     } // TODO: handle mutex_lock() = -1?  
-    printf("hallohallo\n");
 }
 
 
