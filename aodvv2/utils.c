@@ -4,6 +4,8 @@
 #include "debug.h"
 
 /* Some aodvv2 utilities (mostly tables) */
+static mutex_t clientt_mutex;
+static mutex_t rreqt_mutex;
 
 /* helper functions */
 static struct aodvv2_rreq_entry* _get_comparable_rreq(struct aodvv2_packet_data* packet_data);
@@ -14,16 +16,22 @@ static struct netaddr client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
 
 static struct netaddr_str nbuf;
-static timex_t null_time, now, expiration_time;
+static timex_t null_time, now, expiration_time, _max_idletime;
 
 /*
  * Initialize table of clients that the router currently serves.
  */
 void clienttable_init(void)
 {   
-    for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        memset(&client_table[i], 0, sizeof(client_table[i]));
+    if (mutex_lock(&clientt_mutex) == 1) {
+        for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
+            memset(&client_table[i], 0, sizeof(client_table[i]));
+        }
+        mutex_unlock(&clientt_mutex);
     }
+
+    _max_idletime = timex_set(AODVV2_MAX_IDLETIME, 0);
+
     DEBUG("[aodvv2] client table initialized.\n");
 }
 
@@ -34,14 +42,17 @@ void clienttable_init(void)
  */
 void clienttable_add_client(struct netaddr* addr)
 {
-    if(!clienttable_is_client(addr)){
+    if(!clienttable_is_client(addr)) {
         /*find free spot in client table and place client address there */
-        for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++){
-            if (client_table[i]._type == AF_UNSPEC
-                && client_table[i]._prefix_len == 0) {
-                client_table[i] = *addr;
-                DEBUG("[aodvv2] clienttable: added client %s\n", netaddr_to_string(&nbuf, addr));
-                return;
+        if (mutex_lock(&clientt_mutex) == 1) {
+            for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++){
+                if (client_table[i]._type == AF_UNSPEC
+                    && client_table[i]._prefix_len == 0) {
+                    client_table[i] = *addr;
+                    DEBUG("[aodvv2] clienttable: added client %s\n", netaddr_to_string(&nbuf, addr));
+                    mutex_unlock(&clientt_mutex);
+                    return;
+                }
             }
         }
     }
@@ -54,9 +65,13 @@ void clienttable_add_client(struct netaddr* addr)
  */
 bool clienttable_is_client(struct netaddr* addr)
 {
-    for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        if (!netaddr_cmp(&client_table[i], addr))
-            return true;
+    if (mutex_lock(&clientt_mutex) == 1) {
+        for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
+            if (!netaddr_cmp(&client_table[i], addr))
+                mutex_unlock(&clientt_mutex);
+                return true;
+        }
+        mutex_unlock(&clientt_mutex);
     }
     return false;
 }
@@ -71,10 +86,13 @@ void clienttable_delete_client(struct netaddr* addr)
     if (!clienttable_is_client(addr))
         return;
     
-    for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
-        if (!netaddr_cmp(&client_table[i], addr)) {
-            memset(&client_table[i], 0, sizeof(client_table[i]));
-            return;
+    if (mutex_lock(&clientt_mutex) == 1) {
+        for (uint8_t i = 0; i < AODVV2_MAX_CLIENTS; i++) {
+            if (!netaddr_cmp(&client_table[i], addr)) {
+                memset(&client_table[i], 0, sizeof(client_table[i]));
+                mutex_unlock(&clientt_mutex);
+                return;
+            }
         }
     }
 }
@@ -86,8 +104,11 @@ void rreqtable_init(void)
 {
     null_time = timex_set(0,0);
 
-    for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
-        memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
+    if (mutex_lock(&rreqt_mutex) == 1) {
+        for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
+            memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
+        }
+        mutex_unlock(&rreqt_mutex);
     }
     DEBUG("[aodvv2] RREQ table initialized.\n");
 }
@@ -115,44 +136,49 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
     int seqNum_comparison;
     timex_t now;
     
-    comparable_rreq = _get_comparable_rreq(packet_data);
-    
-    /* if there is no comparable rreq stored, add one and return false */
-    if (comparable_rreq == NULL){
-        _add_rreq(packet_data);
+    if (mutex_lock(&rreqt_mutex) == 1) {
+        comparable_rreq = _get_comparable_rreq(packet_data);
+        
+        /* if there is no comparable rreq stored, add one and return false */
+        if (comparable_rreq == NULL){
+            _add_rreq(packet_data);
+            mutex_unlock(&rreqt_mutex);
+            return false;
+        }
+
+        seqNum_comparison = seqnum_cmp(packet_data->origNode.seqNum, comparable_rreq->seqNum);
+
+        /* 
+         * If two RREQs have the same
+         * metric type and OrigNode and Targnode addresses, the information from
+         * the one with the older Sequence Number is not needed in the table
+         */
+        if (seqNum_comparison == -1)
+            mutex_unlock(&rreqt_mutex);
+            return true;
+
+        if (seqNum_comparison == 1)
+            /* Update RREQ table entry with new seqnum value */
+            comparable_rreq->seqNum = packet_data->origNode.seqNum;
+
+        /* 
+         * in case they have the same Sequence Number, the one with the greater
+         * Metric value is not needed
+         */
+        if (seqNum_comparison == 0){
+            if (comparable_rreq->metric <= packet_data->origNode.metric)
+                mutex_unlock(&rreqt_mutex);
+                return true;
+            /* Update RREQ table entry with new metric value */
+            comparable_rreq->metric = packet_data->origNode.metric;
+        }
+
+        /* Since we've changed RREQ info, update the timestamp */
+        vtimer_now(&now);
+        comparable_rreq->timestamp = now;
+        mutex_unlock(&rreqt_mutex);
         return false;
     }
-
-    seqNum_comparison = seqnum_cmp(packet_data->origNode.seqNum, comparable_rreq->seqNum);
-
-    /* 
-     * If two RREQs have the same
-     * metric type and OrigNode and Targnode addresses, the information from
-     * the one with the older Sequence Number is not needed in the table
-     */
-    if (seqNum_comparison == -1)
-        return true;
-
-    if (seqNum_comparison == 1)
-        /* Update RREQ table entry with new seqnum value */
-        comparable_rreq->seqNum = packet_data->origNode.seqNum;
-
-    /* 
-     * in case they have the same Sequence Number, the one with the greater
-     * Metric value is not needed
-     */
-    if (seqNum_comparison == 0){
-        if (comparable_rreq->metric <= packet_data->origNode.metric)
-            return true;
-        /* Update RREQ table entry with new metric value */
-        comparable_rreq->metric = packet_data->origNode.metric;
-    }
-
-    /* Since we've changed RREQ info, update the timestamp */
-    vtimer_now(&now);
-    comparable_rreq->timestamp = now;
-    return false;
-
 }
 
 
@@ -161,15 +187,20 @@ void rreqtable_add(struct aodvv2_packet_data* packet_data)
     DEBUG("[aodvv2] RREQtable: Adding %s\n", netaddr_to_string(&nbuf, &packet_data->origNode.addr));
     timex_t now;
 
-    struct aodvv2_rreq_entry* comparable_rreq = _get_comparable_rreq(packet_data);
-    /* Seems like we already sent a similar RREQ, just update the timestamp */
-    if (comparable_rreq) {
-        vtimer_now(&now);
-        comparable_rreq->timestamp = now;
-        return;
+    if (mutex_lock(&rreqt_mutex) == 1) {
+        struct aodvv2_rreq_entry* comparable_rreq = _get_comparable_rreq(packet_data);
+        
+        /* if we already sent a similar RREQ, just update the timestamp */
+        if (comparable_rreq) {
+            vtimer_now(&now);
+            comparable_rreq->timestamp = now;
+            mutex_unlock(&rreqt_mutex);
+            return;
+        }
+        
+        _add_rreq(packet_data);
+        mutex_unlock(&rreqt_mutex);
     }
-    
-    _add_rreq(packet_data);
 }
 
 /*
@@ -224,7 +255,7 @@ static void _add_rreq(struct aodvv2_packet_data* packet_data)
 static void _reset_entry_if_stale(uint8_t i)
 {
     vtimer_now(&now);
-    expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0));
+    expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0)); // TODO: statt imer timex_set aufzurufen wert vorspeicgern!
 
     if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){
         if (timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){

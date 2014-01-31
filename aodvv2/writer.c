@@ -227,7 +227,7 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
         return;
 
     /* Make sure no other thread is using the writer right now */
-    if (mutex_lock(&writer_mutex) == 1){
+    if (mutex_lock(&writer_mutex) == 1) {
 
         memset(&_target._packet_data, 0, sizeof(struct aodvv2_packet_data));
         memcpy(&_target._packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
@@ -263,7 +263,7 @@ void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr*
         return;
 
     /* Make sure no other thread is using the writer right now */
-    if (mutex_lock(&writer_mutex) == 1){
+    if (mutex_lock(&writer_mutex) == 1) {
 
         memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 
@@ -285,9 +285,9 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
 
     if (packet_data == NULL || next_hop == NULL)
         return;
-    
+
     /* Make sure no other thread is using the writer right now */
-    if (mutex_lock(&writer_mutex) == 1){
+    if (mutex_lock(&writer_mutex) == 1) {
 
         memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 

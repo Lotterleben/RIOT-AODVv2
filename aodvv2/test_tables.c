@@ -174,18 +174,24 @@ void test_rreq_table(void)
     rreqtable_init();
 
     /* start testing */
-
+    printf(".\n");
     test_rreqtable_rreq_not_redundant(&entry_1);    
+    printf(".\n");
     test_rreqtable_rreq_redundant(&entry_1);    // the RREQ Table should already know entry_1
     entry_1.origNode.metric = 1;    
+    printf(".\n");
     test_rreqtable_rreq_not_redundant(&entry_1);
-    entry_1.origNode.seqNum = 1;          
+    entry_1.origNode.seqNum = 1;
+    printf(".\n");
     test_rreqtable_rreq_redundant(&entry_1);
     entry_1.origNode.seqNum = 14;               // SeqNum isn now bigger than the "newest" entry (i.e. original entry_1 with seqNum 13)
+    printf(".\n");
     test_rreqtable_rreq_not_redundant(&entry_1);
+    printf(".\n");
     test_rreqtable_rreq_redundant(&entry_1);
 
     vtimer_usleep((AODVV2_MAX_IDLETIME+1) * 1000000); // usleeps needs milliseconds, so there
+    printf(".\n");
     test_rreqtable_rreq_not_redundant(&entry_1);      // entry_1 should be stale & removed by now
 
     // TODO: wie überprüfe ich ob das bogus data ist? geht nicht, oder?
@@ -200,7 +206,7 @@ void test_tables_main(void)
 {
     BEGIN_TESTING(NULL);
 
-    test_routingtable();
+    //test_routingtable();
     test_rreq_table();
 
     FINISH_TESTING();
@@ -219,6 +225,7 @@ char* node_data_to_string(struct node_data* node_data)
 
 char* packet_data_to_string(struct aodvv2_packet_data* packet_data)
 {
+    /*
     sprintf(str,"packet data :\n \
 \thoplimit: %i\n\
 \tsender: %s\n\
@@ -233,4 +240,6 @@ char* packet_data_to_string(struct aodvv2_packet_data* packet_data)
                                        packet_data->timestamp.seconds,
                                        packet_data->timestamp.microseconds);
     return str;
+    */
+    return  "";
 }

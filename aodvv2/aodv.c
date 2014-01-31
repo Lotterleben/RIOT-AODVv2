@@ -55,9 +55,9 @@ void aodv_init(void)
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /* testtest */
-    ipv6_addr_t test_addr;
-    ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
-    aodv_get_next_hop(&test_addr);
+    //ipv6_addr_t test_addr;
+    //ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
+    //aodv_get_next_hop(&test_addr);
 }
 
 /* 
