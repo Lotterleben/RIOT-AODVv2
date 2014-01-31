@@ -84,9 +84,12 @@ const shell_command_t shell_commands[] = {
 
 int main(void)
 {
+    test_tables_main();
+
+    /*
     init_tlayer("");
 
-    /* start shell */
+    // start shell
     posix_open(uart0_handler_pid, 0);
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
@@ -95,6 +98,8 @@ int main(void)
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
 
     shell_run(&shell);
+    */
+
     return 0;
 }
 

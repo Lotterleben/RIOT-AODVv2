@@ -16,7 +16,7 @@ static struct netaddr client_table[AODVV2_MAX_CLIENTS];
 static struct aodvv2_rreq_entry rreq_table[AODVV2_RREQ_BUF];
 
 static struct netaddr_str nbuf;
-static timex_t null_time, now, expiration_time, _max_idletime;
+static timex_t null_time, now, _max_idletime;
 
 /*
  * Initialize table of clients that the router currently serves.
@@ -29,8 +29,6 @@ void clienttable_init(void)
         }
         mutex_unlock(&clientt_mutex);
     }
-
-    _max_idletime = timex_set(AODVV2_MAX_IDLETIME, 0);
 
     DEBUG("[aodvv2] client table initialized.\n");
 }
@@ -102,9 +100,10 @@ void clienttable_delete_client(struct netaddr* addr)
  */
 void rreqtable_init(void)
 {
-    null_time = timex_set(0,0);
-
     if (mutex_lock(&rreqt_mutex) == 1) {
+        null_time = timex_set(0,0);
+        _max_idletime = timex_set(AODVV2_MAX_IDLETIME, 0);
+
         for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
             memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
         }
@@ -153,22 +152,25 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
          * metric type and OrigNode and Targnode addresses, the information from
          * the one with the older Sequence Number is not needed in the table
          */
-        if (seqNum_comparison == -1)
+        if (seqNum_comparison == -1){
             mutex_unlock(&rreqt_mutex);
             return true;
+        }
 
-        if (seqNum_comparison == 1)
+        if (seqNum_comparison == 1){
             /* Update RREQ table entry with new seqnum value */
             comparable_rreq->seqNum = packet_data->origNode.seqNum;
+        }
 
         /* 
          * in case they have the same Sequence Number, the one with the greater
          * Metric value is not needed
          */
         if (seqNum_comparison == 0){
-            if (comparable_rreq->metric <= packet_data->origNode.metric)
+            if (comparable_rreq->metric <= packet_data->origNode.metric){
                 mutex_unlock(&rreqt_mutex);
                 return true;
+            }
             /* Update RREQ table entry with new metric value */
             comparable_rreq->metric = packet_data->origNode.metric;
         }
@@ -215,7 +217,6 @@ void rreqtable_add(struct aodvv2_packet_data* packet_data)
 static struct aodvv2_rreq_entry* _get_comparable_rreq(struct aodvv2_packet_data* packet_data)
 {       
     for (uint8_t i = 0; i < AODVV2_RREQ_BUF; i++) {
-        
         _reset_entry_if_stale(i);
 
         if (!netaddr_cmp(&rreq_table[i].origNode, &packet_data->origNode.addr)
@@ -255,12 +256,12 @@ static void _add_rreq(struct aodvv2_packet_data* packet_data)
 static void _reset_entry_if_stale(uint8_t i)
 {
     vtimer_now(&now);
-    expiration_time = timex_sub(now, timex_set(AODVV2_MAX_IDLETIME, 0)); // TODO: statt imer timex_set aufzurufen wert vorspeicgern!
 
     if (timex_cmp(rreq_table[i].timestamp, null_time) != 0){
-        if (timex_cmp(rreq_table[i].timestamp, expiration_time) < 0){
+        timex_t expiration_time = timex_add(rreq_table[i].timestamp, _max_idletime);
+        if (timex_cmp(expiration_time, now) < 0){
+            /* timestamp+expiration time is in the past: this entry is stale */
             DEBUG("\treset rreq table entry %s\n", netaddr_to_string(&nbuf, &rreq_table[i].origNode));
-
             memset(&rreq_table[i], 0, sizeof(rreq_table[i]));
         }
     }
