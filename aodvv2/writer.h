@@ -61,9 +61,6 @@ struct writer_target {
     struct aodvv2_packet_data _packet_data;
 };
 
-/* Lock on this mutex if you want to use the writer */
-mutex_t writer_mutex;
-
 typedef void (*write_packet_func_ptr)(
     struct rfc5444_writer *wr, struct rfc5444_writer_target *iface, void *buffer, size_t length);
 

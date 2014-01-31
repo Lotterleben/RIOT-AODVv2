@@ -153,10 +153,8 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     struct netaddr _tmp_mcast;
     ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast);
 
-    if (mutex_lock(&writer_mutex) == 1){
-        writer_send_rreq(&_tmp_src, &_tmp_dest, &_tmp_mcast);
-        mutex_unlock(&writer_mutex);
-    } // TODO: handle mutex_lock() = -1?
+    writer_send_rreq(&_tmp_src, &_tmp_dest, &_tmp_mcast);
+
     return NULL;
 }
 
@@ -193,7 +191,6 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     //netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
 
     /* When sending a RREQ, add it to our RREQ table */
-    // TODO: auskommentierung ist hier nur zu testzwecken, löschen!!!!
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
         rreqtable_add(&wt->_packet_data);
     }

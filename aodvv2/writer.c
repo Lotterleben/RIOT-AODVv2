@@ -27,9 +27,10 @@ static void _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_
 
 static void _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface);
 
-static struct writer_target _target;
+static mutex_t writer_mutex;
 
 struct rfc5444_writer writer;
+static struct writer_target _target;
 
 static int _msg_buffer[128];
 static int _msg_addrtlvs[1000];
@@ -225,38 +226,54 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
     if (na_origNode == NULL || na_targNode == NULL || next_hop == NULL)
         return;
 
-    memset(&_target._packet_data, 0, sizeof(struct aodvv2_packet_data));
-    memcpy(&_target._packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
-    memcpy(&_target._packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
+    /* Make sure no other thread is using the writer right now */
+    if (mutex_lock(&writer_mutex) == 1){
 
-    /* set address to which the write_packet callback should send our RREQ */
-    memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
+        memset(&_target._packet_data, 0, sizeof(struct aodvv2_packet_data));
+        memcpy(&_target._packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
+        memcpy(&_target._packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
 
-    /* set info about the rreq so the callbacks just have to grab it from _packet_data */
-    uint16_t origNode_seqNum = seqNum_get();
-    _target._packet_data.origNode.seqNum = origNode_seqNum;
-    seqNum_inc();
+        /* set address to which the write_packet callback should send our RREQ */
+        memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
 
-    _target._packet_data.origNode.metric = 0;
+        /* set info about the rreq so the callbacks just have to grab it from _packet_data */
+        uint16_t origNode_seqNum = seqNum_get();
+        _target._packet_data.origNode.seqNum = origNode_seqNum;
+        seqNum_inc();
 
-    rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
-    rfc5444_writer_flush(&writer, &_target.interface, false);
+        _target._packet_data.origNode.metric = 0;
+
+        rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
+        rfc5444_writer_flush(&writer, &_target.interface, false);
+        mutex_unlock(&writer_mutex);
+    } // TODO: handle mutex_lock() = -1?  
+    printf("hallohallo\n");
 }
 
 
-/* just forward a rreq, don't change anything */
+/**
+ * just forward a rreq, don't change anything.
+ * Lock on writer_mutex if you want to use this function 
+ */
 void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
+    DEBUG("[aodvv2] %s()\n", __func__);
+
     if (packet_data == NULL || next_hop == NULL)
         return;
-    
-    memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 
-    /* set address to which the write_packet callback should send our RREQ */
-    memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
-    
-    rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
-    rfc5444_writer_flush(&writer, &_target.interface, false);
+    /* Make sure no other thread is using the writer right now */
+    if (mutex_lock(&writer_mutex) == 1){
+
+        memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+
+        /* set address to which the write_packet callback should send our RREQ */
+        memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
+        
+        rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
+        rfc5444_writer_flush(&writer, &_target.interface, false);
+        mutex_unlock(&writer_mutex);
+    } // TODO: handle mutex_lock() = -1?  
 }
 
 /**
@@ -268,14 +285,19 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
 
     if (packet_data == NULL || next_hop == NULL)
         return;
+    
+    /* Make sure no other thread is using the writer right now */
+    if (mutex_lock(&writer_mutex) == 1){
 
-    memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+        memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
 
-    /* set address to which the write_packet callback should send our RREQ */
-    memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
+        /* set address to which the write_packet callback should send our RREQ */
+        memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
 
-    rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREP);
-    rfc5444_writer_flush(&writer, &_target.interface, false);
+        rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREP);
+        rfc5444_writer_flush(&writer, &_target.interface, false);
+        mutex_unlock(&writer_mutex);
+    } // TODO: handle mutex_lock() = -1?  
 }
 
 void writer_cleanup(void)

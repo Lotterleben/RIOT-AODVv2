@@ -265,23 +265,15 @@ static enum rfc5444_result _cb_rreq_end_callback(
      */
     if (clienttable_is_client(&packet_data.targNode.addr)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
-        if (mutex_lock(&writer_mutex) == 1){
-            writer_send_rrep(&packet_data, &packet_data.sender);
-            mutex_unlock(&writer_mutex);
-        } // TODO: handle mutex_lock() = -1?    
+        writer_send_rrep(&packet_data, &packet_data.sender);
     }
 
     else {
         DEBUG("[aodvv2] I am not TargNode, forwarding RREQ\n");
         struct netaddr _tmp_mcast;
         ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast); 
-        
-        if (mutex_lock(&writer_mutex) == 1){
-            writer_forward_rreq(&packet_data, &_tmp_mcast);
-            mutex_unlock(&writer_mutex);
-        } // TODO: handle mutex_lock() = -1?     
+        writer_forward_rreq(&packet_data, &_tmp_mcast);
     }
-
     return RFC5444_OKAY;
 }
 
@@ -453,10 +445,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx]. */
     else {
         DEBUG("[aodvv2] Not my RREP, passing it on to the next hop\n");
-        if (mutex_lock(&writer_mutex) == 1){
-            writer_send_rrep(&packet_data, routingtable_get_next_hop(&packet_data.origNode.addr, packet_data.metricType));
-            mutex_unlock(&writer_mutex);
-        } // TODO: handle mutex_lock() = -1?    
+        writer_send_rrep(&packet_data, routingtable_get_next_hop(&packet_data.origNode.addr, packet_data.metricType));
     }
     return RFC5444_OKAY;
 }
