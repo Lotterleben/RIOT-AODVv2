@@ -87,8 +87,6 @@ const shell_command_t shell_commands[] = {
 
 int main(void)
 {
-    //test_tables_main();
-
     init_tlayer("");
 
     // start shell
@@ -104,14 +102,3 @@ int main(void)
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -1,21 +1,79 @@
-CC=clang
-INCLUDE=-I../../oonf_api/src-api -I../oonf_api/build -I../node/olsr2
-LIBDIR=../../oonf_api/build
-SRC=../node/olsr2
-CFLAGS=-Wall -std=c99 -ggdb -DENABLE_DEBUG_OLSR -DENABLE_NAME $(INCLUDE)
-LDFLAGS=-L$(LIBDIR) -loonf_rfc5444 -loonf_common
+export CFLAGS += -DRIOT #-DENABLE_DEBUG
 
-objects = $(SRC)/routing.o $(SRC)/list.o $(SRC)/node.o $(SRC)/nhdp.o $(SRC)/olsr.o $(SRC)/util.o cunit/cunit.o
+# name of your project
+export PROJECT = aodvv2_node
 
-test_list: test_list.c ../node/olsr2/list.c cunit/cunit.c
+# If no BOARD is found in the environment, use this default:
+export BOARD ?= native
 
-test_olsr: $(objects) test_olsr.o
-	cc $(objects) test_olsr.o -o test_olsr $(LDFLAGS)
+# This has to be the absolute path to the RIOT base directory:
+export RIOTBASE =$(CURDIR)/../../riot/RIOT
+export RIOTLIBS =$(RIOTBASE)/../riot-libs
+export OONFBASE =$(CURDIR)/../../oonf_api
+export AODV_NODE =$(CURDIR)/../aodvv2 
 
-run:	test_list test_olsr
-	LD_LIBRARY_PATH=$(LIBDIR) ./test_list
-	LD_LIBRARY_PATH=$(LIBDIR) ./test_olsr
+EXTERNAL_MODULES +=$(OONFBASE)
+EXTERNAL_MODULES +=$(RIOTLIBS)
+EXTERNAL_MODULES +=$(AODV_NODE)
+export EXTERNAL_MODULES
 
-clean:
-	rm test_list
-	rm test_olsr
+# Uncomment these lines if you want to use platform support from external
+# repositories:
+#export RIOTCPU ?= $(CURDIR)/../../RIOT/thirdparty_cpu
+#export RIOTBOARD ?= $(CURDIR)/../../RIOT/thirdparty_boards
+
+# Uncomment this to enable scheduler statistics for ps:
+#CFLAGS += -DSCHEDSTATISTICS
+
+# If you want to use valgrind, you should recompile native with either
+# HAVE_VALGRIND_H or HAVE_VALGRIND_VALGRIND_H depending on the location
+# of the valgrind header (i.e. <valgrind.h> or <valgrind/valgrind.h>)
+# For more information about the valgrind support of RIOT read:
+# RIOT/cpu/native/README
+#CFLAGS += -DHAVE_VALGRIND_VALGRIND_H
+#CFLAGS += -DHAVE_VALGRIND_H
+
+# Uncomment this to enable code in RIOT that does safety checking
+# which is not needed in a production environment but helps in the
+# development process:
+#CFLAGS += -DDEVELHELP
+
+# Change this to 0 show compiler invocation lines by default:
+export QUIET ?= 1
+
+# Modules to include:
+USEMODULE += auto_init
+USEMODULE += shell
+USEMODULE += shell_commands
+USEMODULE += uart0
+USEMODULE += posix
+USEMODULE += ps 
+USEMODULE += vtimer 
+ifeq ($(strip $(BOARD)),native)
+	USEMODULE += nativenet
+else
+	USEMODULE += cc110x
+endif
+USEMODULE += sixlowpan
+USEMODULE += rpl
+USEMODULE += destiny
+
+# oonf
+USEMODULE += net_help 
+USEMODULE += sixlowpan
+USEMODULE += cunit
+USEMODULE += compat_misc
+USEMODULE += oonf_common
+USEMODULE += oonf_rfc5444
+
+#aodv
+USEMODULE += aodvv2
+
+export INCLUDES += -I${RIOTBASE}/core/include/         \
+				   -I$(RIOTBASE)/sys/net/include       \
+				   -I$(RIOTBASE)/drivers/cc110x/       \
+				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
+				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
+				   -I$(AODV_NODE)                      \
+
+include $(RIOTBASE)/Makefile.include
