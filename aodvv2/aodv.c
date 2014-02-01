@@ -14,7 +14,6 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         void *buffer, size_t length);
 
 char addr_str[IPV6_MAX_ADDR_STR_LEN];
-char addr_str2[IPV6_MAX_ADDR_STR_LEN];
 char aodv_rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 static int _metric_type;
@@ -55,9 +54,9 @@ void aodv_init(void)
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /* testtest */
-    ipv6_addr_t test_addr;
-    ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
-    aodv_get_next_hop(&test_addr);
+    //ipv6_addr_t test_addr;
+    //ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
+    //aodv_get_next_hop(&test_addr);
 }
 
 /* 
@@ -83,7 +82,7 @@ static void _init_addresses(void)
 
     /* get best IP for sending */
     ipv6_iface_get_best_src_addr(&na_local, &na_mcast);
-    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str2, &na_local));
+    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str, &na_local));
 
     /* init sockaddr that write_packet will use to send data */
     sa_wp.sin6_family = AF_INET6;
@@ -107,7 +106,9 @@ static void _aodv_receiver_thread(void)
     DEBUG("[aodvv2] %s()\n", __func__);
     uint32_t fromlen;
     int32_t rcv_size;
-    char buf_rcv[UDP_BUFFER_SIZE];    
+    char buf_rcv[UDP_BUFFER_SIZE];
+    char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
+
     sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
                            .sin6_port = HTONS(MANET_PORT) };
 
@@ -126,7 +127,7 @@ static void _aodv_receiver_thread(void)
         if(rcv_size < 0) {
             DEBUG("[aodvv2] ERROR receiving data!\n");
         }
-        DEBUG("[aodvv2] UDP packet received from %s\n", ipv6_addr_to_str(&addr_str, &sa_rcv.sin6_addr));
+        DEBUG("[aodvv2] UDP packet received from %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr));
         
         struct netaddr _sender;
         ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
@@ -138,7 +139,7 @@ static void _aodv_receiver_thread(void)
 
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
-    // TODO: routingtable_get_next_hop() bekommt ne netaddr! umwandeln!!
+    DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(&addr_str, dest));
 
     struct netaddr _tmp_dest;
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
@@ -182,14 +183,22 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
        specific node or the multicast address) from the writer_target struct
        iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
-    
+    printf("1\n");
     netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
+    printf("1\n");
 
     /* When sending a RREQ, add it to our RREQ table */
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
+        printf("--\n");
         rreqtable_add(&wt->_packet_data);
     }
+    printf("1\n");
 
+    /* 
+       verdacht: das hier tritt wieder nen aodv_get_next_hop() los, weil's ja 
+       noch nicht in der RT steht. -.- 
+       ...warum egtl nciht?
+    */
     int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 
                                             0, &sa_wp, sizeof sa_wp);
 

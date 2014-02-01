@@ -49,7 +49,10 @@ void demo_send(char *id_str)
     int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
                                             0, &_sockaddr, sizeof _sockaddr);
 
-    printf("%d bytes sent.\n", bytes_sent);
+    if (bytes_sent == -1)
+        printf("no bytes sent, probably because there is no route yet.\n");
+    else
+        printf("%d bytes sent.\n", bytes_sent);
 }
 
 void demo_init_socket(void)
@@ -84,9 +87,8 @@ const shell_command_t shell_commands[] = {
 
 int main(void)
 {
-    test_tables_main();
+    //test_tables_main();
 
-    /*
     init_tlayer("");
 
     // start shell
@@ -98,7 +100,7 @@ int main(void)
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
 
     shell_run(&shell);
-    */
+
 
     return 0;
 }
