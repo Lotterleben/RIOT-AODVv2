@@ -237,16 +237,9 @@ static enum rfc5444_result _cb_rreq_end_callback(
         struct aodvv2_routing_entry_t* tmp_rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
         memset(tmp_rt_entry, 0, sizeof(*tmp_rt_entry)); // TODO: muss ich das überhaupt? wird ja eh gefüllt
 
-        _fill_routing_entry_t_rreq(&packet_data, &tmp_rt_entry, link_cost);
+        _fill_routing_entry_t_rreq(&packet_data, tmp_rt_entry, link_cost);
         routingtable_add_entry(tmp_rt_entry);
-        // TODO: call free() on tmp_rt_entry
-
-        DEBUG("new entry:\n");
-        print_routingtable_entry(tmp_rt_entry);
-
-        DEBUG("Probe:\n");
-        struct aodvv2_routing_entry_t* probe_rte = routingtable_get_entry(&packet_data.origNode.addr, packet_data.metricType);
-        print_routingtable_entry(probe_rte);
+        free(tmp_rt_entry);
     } else {
         if (!_offers_improvement(rt_entry, &packet_data.origNode)){
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
@@ -255,14 +248,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         /* The incoming routing information is better than existing routing 
          * table information and SHOULD be used to improve the route table. */ 
         DEBUG("\tUpdating Routing Table entry...");
-        _fill_routing_entry_t_rreq(&packet_data, &rt_entry, link_cost);
-        
-        DEBUG("new entry:\n");
-        print_routingtable_entry(rt_entry);
-
-        DEBUG("Probe:\n");
-        struct aodvv2_routing_entry_t* tmp_rte = routingtable_get_entry(&packet_data.origNode.addr, packet_data.metricType);
-        print_routingtable_entry(tmp_rte);
+        _fill_routing_entry_t_rreq(&packet_data, rt_entry, link_cost);
     }
 
     /*

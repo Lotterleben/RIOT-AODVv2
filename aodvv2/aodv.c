@@ -145,8 +145,10 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
 
     ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(&_tmp_dest, _metric_type);
-    if (next_hop)
+    if (next_hop){
+        DEBUG("\t found dest in routing table!\n");
         return next_hop;
+    }
     /* no route found => start route discovery */
     struct netaddr _tmp_src;
     ipv6_addr_t_to_netaddr(&na_local, &_tmp_src);
@@ -183,16 +185,13 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
        specific node or the multicast address) from the writer_target struct
        iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
-    printf("1\n");
     netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
-    printf("1\n");
 
     /* When sending a RREQ, add it to our RREQ table */
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
         printf("--\n");
         rreqtable_add(&wt->_packet_data);
     }
-    printf("1\n");
 
     /* 
        verdacht: das hier tritt wieder nen aodv_get_next_hop() los, weil's ja 
