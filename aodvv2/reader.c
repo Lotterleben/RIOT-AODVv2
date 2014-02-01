@@ -27,6 +27,7 @@ static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* dat
 static uint8_t _get_max_metric(uint8_t metricType);
 static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric);
 static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* routing_entry, uint8_t link_cost);
+static void _fill_routing_entry_t_rrep(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost);
 
 /* This is where we store data gathered from packets */
 static struct aodvv2_packet_data packet_data;
@@ -401,37 +402,31 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
     if (!rt_entry || (rt_entry->metricType != packet_data.metricType)){
         DEBUG("\tCreating new Routing Table entry...\n");
-        /* de-NULL rt_entry */
-        rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
-        memset(rt_entry, 0, sizeof(*rt_entry)); // nullt nicht, sondern macht uint8_ts zu 48s.. o0 TODO
-        /* add empty rt_entry so that we can fill it later */
-        routingtable_add_entry(rt_entry);
+
+        struct aodvv2_routing_entry_t* tmp_rt_entry = (struct aodvv2_routing_entry_t*)malloc(sizeof(struct aodvv2_routing_entry_t));
+        memset(tmp_rt_entry, 0, sizeof(*tmp_rt_entry)); // TODO: muss ich das überhaupt? wird ja eh gefüllt
+
+        _fill_routing_entry_t_rrep(&packet_data, tmp_rt_entry, link_cost);
+        routingtable_add_entry(tmp_rt_entry);
+
+        free(tmp_rt_entry);
     } else {
         if (!_offers_improvement(rt_entry, &packet_data.targNode)) {
             DEBUG("\tPacket offers no improvement over known route. Dropping Packet.\n");
             return RFC5444_DROP_PACKET; 
         }
+        /* The incoming routing information is better than existing routing 
+         * table information and SHOULD be used to improve the route table. */ 
+        DEBUG("\tUpdating Routing Table entry...");
+        _fill_routing_entry_t_rreq(&packet_data, rt_entry, link_cost);
     }
     
-    /* The incoming routing information is better than existing routing 
-     * table information and SHOULD be used to improve the route table. */ 
-    rt_entry->address = packet_data.targNode.addr;
-    rt_entry->prefixlen = packet_data.targNode.prefixlen;
-    rt_entry->seqNum = packet_data.targNode.seqNum;
-    rt_entry->nextHopAddress = packet_data.sender;
-    rt_entry->lastUsed = packet_data.timestamp;
-    rt_entry->expirationTime = timex_add(packet_data.timestamp, validity_t);
-    rt_entry->broken = false;
-    rt_entry->metricType = packet_data.metricType;
-    rt_entry->metric = packet_data.targNode.metric + link_cost;
-    rt_entry->state = ROUTE_STATE_ACTIVE;
-
     /*
     If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
     earlier RREQ, and RREP processing is completed.  Any packets
     buffered for OrigNode should be transmitted. */
     if (clienttable_is_client(&packet_data.origNode.addr)){
-        DEBUG("This is my RREP. We are done here, thanks!\n");
+        DEBUG("\tThis is my RREP. We are done here, thanks!\n");
     }
 
     /* 
@@ -533,7 +528,6 @@ static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric)
     return NULL;
 }
 
-
 // TODO: use memcpy?!
 /* Fills a routing table entry with the data of a RREQ */
 static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost)
@@ -547,5 +541,21 @@ static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, s
     rt_entry->broken = false;
     rt_entry->metricType = packet_data->metricType;
     rt_entry->metric = packet_data->origNode.metric + link_cost;
+    rt_entry->state = ROUTE_STATE_ACTIVE;
+}
+
+// TODO: use memcpy?!
+/* Fills a routing table entry with the data of a RREQ */
+static void _fill_routing_entry_t_rrep(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost)
+{
+    rt_entry->address = packet_data->targNode.addr;
+    rt_entry->prefixlen = packet_data->targNode.prefixlen;
+    rt_entry->seqNum = packet_data->targNode.seqNum;
+    rt_entry->nextHopAddress = packet_data->sender;
+    rt_entry->lastUsed = packet_data->timestamp;
+    rt_entry->expirationTime = timex_add(packet_data->timestamp, validity_t);
+    rt_entry->broken = false;
+    rt_entry->metricType = packet_data->metricType;
+    rt_entry->metric = packet_data->targNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
 }
