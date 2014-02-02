@@ -18,8 +18,8 @@
 ipv6_addr_t na_mcast;
 
 enum msg_type {
-    RFC5444_MSGTYPE_RREQ,
-    RFC5444_MSGTYPE_RREP,
+    RFC5444_MSGTYPE_RREQ = 10,
+    RFC5444_MSGTYPE_RREP = 11,
 };
 
 enum tlv_type {
