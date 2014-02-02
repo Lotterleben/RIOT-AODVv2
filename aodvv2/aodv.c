@@ -100,7 +100,7 @@ static void _init_sock_snd(void)
     }
 }
 
-// TODO: debug. muss ich mich noch iwie für die mcast-pakete anmelden?
+/* receive RREQs and RREPs and handle them */
 static void _aodv_receiver_thread(void)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
@@ -137,6 +137,11 @@ static void _aodv_receiver_thread(void)
     destiny_socket_close(sock_rcv);    
 }
 
+/**
+ * This function will be called by  RIOT's ipv6_sendto() to determine the next 
+ * hop it should send a packet to dest to.
+ * @param dest 
+ **/
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
     DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(&addr_str, dest));
@@ -175,7 +180,7 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     DEBUG("[aodvv2] %s()\n", __func__);
 
     /* generate hexdump and human readable representation of packet
-        and print to console */
+       and print to console */
     abuf_hexdump(&_hexbuf, "\t", buffer, length);
     rfc5444_print_direct(&_hexbuf, buffer, length);
     DEBUG("%s", abuf_getptr(&_hexbuf));
@@ -193,19 +198,8 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         rreqtable_add(&wt->_packet_data);
     }
 
-    /* 
-       verdacht: das hier tritt wieder nen aodv_get_next_hop() los, weil's ja 
-       noch nicht in der RT steht. -.- 
-       ...warum egtl nciht?
-    */
     int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 
                                             0, &sa_wp, sizeof sa_wp);
 
     DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
 }
-
-
-
-
-
-

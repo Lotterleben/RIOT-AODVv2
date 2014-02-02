@@ -10,8 +10,3 @@ bin/
 .elf
 .hex
 .map
-
-# other
-/stuff
-/virtual_network
-

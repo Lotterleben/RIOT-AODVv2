@@ -1,31 +1,13 @@
 This document contains every part of AODVv2 that I want to implement for my
 bachelor's thesis (so far). I may extend it as I go along.
 
-== Notes ==
-
-
-== TBD ==
-
-Routing Messages RREQ and RREP (RteMsgs)
-
-   When an AODVv2 router needs to forward a data packet from a node
-   (OrigNode) in its set of router clients, and it does not have a
-   forwarding route toward the packet's IP destination address
-   (TargNode), the AODVv2 router (RREQ_Gen) generates a RREQ (as
-   described in Section 7.3) to discover a route toward TargNode.
-   Subsequently RREQ_Gen awaits reception of an RREP message (see
-   Section 7.4) or other route table update (see Section 6.2) to
-   establish a route toward TargNode.
-
-I will/may go over the AODVVv2 draft iteratively and add more functions after
-successful implementation if everything in the document.
-(For example Route Mainenance, which is missing entirely, may be added partly later on.)
+(For example Route Mainenance, which is missing entirely, but may be added partly later on.)
 
 ================================================================================
 
 5.  Data Structures
 
-5.1.  Route Table Entry
+5.1.  Route Table Entry [DONE]
 
    The route table entry is a conceptual data structure.
    Implementations may use any internal representation so long as it
@@ -98,7 +80,7 @@ successful implementation if everything in the document.
    When the link to a route's next hop is broken, the route is marked as
    being Broken, and the route may no longer be used.
 
-5.3.  Router Clients and Client Networks
+5.3.  Router Clients and Client Networks [DONE]
 
    An AODVv2 router may offer routing services to other nodes that are
    not AODVv2 routers.  AODVv2 defines the Sequence Number to be the
@@ -117,7 +99,7 @@ successful implementation if everything in the document.
    The list of Routing Clients for an AODVv2 router is never empty, 
    since an AODVv2 router is always its own client as well.
 
-5.5.  Sequence Numbers
+5.5.  Sequence Numbers [DONE]
 
    Each AODVv2 router in the network MUST maintain its own sequence
    number.  An AODVv2 router increments its SeqNum as follows.  Most of
@@ -127,7 +109,7 @@ successful implementation if everything in the document.
    set to one (1).  In other words, the sequence number after 65,535 is
    1.
 
-  6.1.  Evaluating Incoming Routing Information
+  6.1.  Evaluating Incoming Routing Information [DONE]
 
    Whenever an AODVv2 router (HandlingRtr)
    handles an incoming RteMsg (i.e., RREQ or RREP), for every relevant
@@ -144,12 +126,6 @@ successful implementation if everything in the document.
       Using stale routing information is not allowed, since that might
       result in routing loops.  HandlingRtr MUST NOT update the route
       table entry using the routing information for RteMsg.Addr. [DONE]
-   2.  Unsafe against loops::  (TRUE != LoopFree (RteMsg, Route)) :
-      If RteMsg is not Stale (as in (1) above), RteMsg.Cost is next
-      considered to insure loop freedom.  If (TRUE != LoopFree (RteMsg,
-      Route)) (see Section 5.6), then the incoming RteMsg information is
-      not guaranteed to prevent routing loops, and it MUST NOT be used
-      to update any route table entry.
    3.  More costly::
       (RteMsg.Cost >= Route.Metric) && (Route.Broken==FALSE)
       When RteMsg.SeqNum is the same as in a valid route table entry,
@@ -208,23 +184,24 @@ successful implementation if everything in the document.
    updated to reflect the Current_Time.
 
 
-6.2.  Applying Route Updates To Route Table Entries
+6.2.  Applying Route Updates To Route Table Entries [DONE]
+   
    To apply the route update, the route table entry is populated with
    the following information:
 
-   o  Route.Address := RteMsg.Addr [DONE]
+   o  Route.Address := RteMsg.Addr 
    o  If RteMsg.PrefixLength exists, then Route.PrefixLength :=
       RteMsg.PrefixLength.  Otherwise, Route.PrefixLength := maximum
-      length for address family (either 32 or 128). [DONE]
-   o  Route.SeqNum := RteMsg.SeqNum [DONE]
+      length for address family (either 32 or 128).
+   o  Route.SeqNum := RteMsg.SeqNum
    o  Route.NextHopAddress := IP.SourceAddress (i.e., an address of the
-      node from which the RteMsg was received) [DONE]
-   o  Route.Broken flag := FALSE [DONE]
+      node from which the RteMsg was received)
+   o  Route.Broken flag := FALSE
    o  Route.Metric := (RteMsg.Metric + Cost(L)), where L is the incoming
-      link. [DONE]
+      link.
    o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME). [DONE]
 
-7.2.  RteMsg Structure
+7.2.  RteMsg Structure [DONE]
    
    RteMsgs have the following general format:
 
@@ -265,7 +242,7 @@ successful implementation if everything in the document.
    than once, because there is only one OrigNode and only one TargNode
    address in the AddrBlk.
 
-7.3.  RREQ Generation
+7.3.  RREQ Generation [DONE]
 
    The AODVv2 router generating the RREQ (RREQ_Gen) on behalf of its
    client OrigNode follows the steps in this section. OrigNode MUST be
@@ -278,7 +255,7 @@ successful implementation if everything in the document.
 
    An example RREQ message format is illustrated in Appendix A.1.
 
-7.4.  RREP Generation
+7.4.  RREP Generation [DONE]
 
    Before transmitting a RREP, the routing information of the RREQ is
    processed as specified in Section 6.2; after such processing,
@@ -300,7 +277,7 @@ successful implementation if everything in the document.
 
    An example message format for RREP is illustrated in Appendix A.2.
 
-7.5.  Handling a Received RteMsg
+7.5.  Handling a Received RteMsg [DONE]
 
    Before an AODVv2 router can make use of a received RteMsg (i.e., RREQ
    or RREP), the router first must verify that the RteMsg is permissible
@@ -316,55 +293,55 @@ successful implementation if everything in the document.
       required information: <msg-hop-limit>, TargNode.Addr,
       OrigNode.Addr, RteMsg.Metric, and either RteMsg.OrigSeqNum or
       RteMsg.TargSeqNum.  If the required information does not exist,
-      the message is disregarded. [DONE]
+      the message is disregarded.
    
    An AODVv2 router handles a permissible RteMsg according to the
    following steps.
    
    1.  The router MUST process the routing information for OrigNode and
-       TargNode contained in the RteMsg as specified in Section 6.1. [DONE]
+       TargNode contained in the RteMsg as specified in Section 6.1.
 
    3. If RteMsg.<msg-hop-limit> is zero (0), no further action is
       taken, and the RteMsg is not retransmitted.  Otherwise, the
-      router MUST decrement RteMsg.<msg-hop-limit>. [DONE]
+      router MUST decrement RteMsg.<msg-hop-limit>.
 
    4.  The router checks the Metric Type MsgTLV (if present) to assure
        that the Metric Type associated with the Metric AddrTLV
        information in the RREQ or RREP is known, and that Cost(L) can be
        computed, where 'L' is the incoming link.  If not, the message is
-       disregarded. [DONE]
+       disregarded.
 
    5.  If (MAX_METRIC[RteMsg.MetricType] - Cost(L)) <= RteMsg.Metric,
        the RteMsg is disregarded, where Cost(L) denotes the cost of
        traversing the incoming link (i.e., as measured by the network
-       interface receiving the incoming RteMsg). [DONE]
+       interface receiving the incoming RteMsg).
 
-7.5.1.  Additional Handling for Incoming RREQ
+7.5.1.  Additional Handling for Incoming RREQ [DONE]
 
    o  The incoming RREQ MUST be checked against previously received
       information from the RREQ Table Section 7.6.  If the information
       in the incoming RteMsg is redundant, then then no further action
-      is taken. [DONE]
+      is taken.
    o  If TargNode is a client of the router receiving the RREQ, then the
       router generates a RREP message as specified in Section 7.4, and
       subsequently processing for the RREQ is complete.  Otherwise,
       processing continues as follows.
-   o  RREQ.MetricType := Route[OrigNode].MetricType [DONE]
-   o  RREQ.MetricTLV[OrigNodeNdx] := Route[OrigNode].Metric [DONE]
+   o  RREQ.MetricType := Route[OrigNode].MetricType
+   o  RREQ.MetricTLV[OrigNodeNdx] := Route[OrigNode].Metric
    o  The RREQ (with updated fields as specified above>) SHOULD be sent
       to the IP multicast address LL-MANET-Routers [RFC5498].  If the
       RREQ is unicast, the IP.DestinationAddress is set to
-      Route[RREQ.TargNode].NextHopAddress.
+      Route[RREQ.TargNode].NextHopAddress. 
+      [Note: Done, but not using LL-MANET-Routers yet]
 
-7.5.2.  Additional Handling for Incoming RREP
+7.5.2.  Additional Handling for Incoming RREP [DONE]
 
    o  If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
       Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx].   
    o  If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
-      earlier RREQ, and RREP processing is completed. [DONE]  Any packets
-      buffered for OrigNode should be transmitted.
+      earlier RREQ, and RREP processing is completed. 
 
-7.6.  Suppressing Redundant RREQ messages
+7.6.  Suppressing Redundant RREQ messages [DONE]
 
    TODO: shouldn't this be somewhere near 5.7.  RREQ Table: Received RREQ Messages?
 
