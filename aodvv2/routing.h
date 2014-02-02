@@ -1,15 +1,14 @@
+#include <string.h>
+
+#include "ipv6.h"
+#include "common/netaddr.h"
+#include "constants.h"
+
 /*
  * Cobbled-together routing table.
  * This is neither efficient nor elegant, but until RIOT gets their own native
  * RT, this will have to do.
  */
-#include <string.h>
-
-#include "ipv6.h"
-
-#include "common/netaddr.h"
-
-#include "constants.h"
 
 #ifndef ROUTING_H_
 #define ROUTING_H_

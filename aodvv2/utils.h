@@ -24,7 +24,6 @@ struct aodvv2_rreq_entry {
 };
 
 /* Section 5.3.: Client Table functionality */
-// TODO: make naming more clear? (-> reference to client table)
 void clienttable_init(void);
 void clienttable_add_client(struct netaddr* addr);
 bool clienttable_is_client(struct netaddr* addr);

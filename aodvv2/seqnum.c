@@ -10,8 +10,6 @@ void seqNum_init(void)
     seqNum = 1;
 }
 
-/* NOTE: lock on m_seqnum before using this function! */
-
 void seqNum_inc(void)
 {   
     if (seqNum == 65535)
@@ -22,7 +20,6 @@ void seqNum_inc(void)
         seqNum++;
 }
 
-/* NOTE: lock on m_seqnum before using this function! */
 uint16_t seqNum_get(void)
 {
     return seqNum;
