@@ -12,6 +12,7 @@ The applications will only work out of the box with the following directory stru
 ### dependencies
 you will need to clone the following projects and store them in the structure shown above
 
+- [RIOT OS](https://github.com/RIOT-OS/RIOT)
 - [the oonf api port to RIOT OS](https://github.com/Lotterleben/oonf_api)
 - [riot-libs](https://github.com/Lotterleben/riot-libs)
 
