@@ -138,10 +138,11 @@ static void _aodv_receiver_thread(void)
 }
 
 /**
- * This function will be called by  RIOT's ipv6_sendto() to determine the next 
- * hop it should send a packet to dest to.
+ * This function is set as ipv6_iface_routing_provider and will be called by 
+ * RIOT's ipv6_sendto() to determine the next hop it should send a packet to dest to.
  * @param dest 
- **/
+ * @return ipv6_addr_t* of the next hop towards dest if there is any, NULL if there is no next hop (yet)
+ */
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
     DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(&addr_str, dest));

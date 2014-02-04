@@ -28,10 +28,10 @@ enum aodvv2_routing_states {
 /* contains all fields of a routing table entry */
 struct aodvv2_routing_entry_t {
     struct netaddr address; 
-    uint8_t prefixlen; //should be long enough, no?
+    uint8_t prefixlen;
     uint8_t seqNum;
     struct netaddr nextHopAddress;
-    timex_t lastUsed; // use timer thingy for this?
+    timex_t lastUsed;
     timex_t expirationTime;
     bool broken;
     uint8_t metricType;

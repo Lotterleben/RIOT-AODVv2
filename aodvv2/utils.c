@@ -113,8 +113,10 @@ void rreqtable_init(void)
     DEBUG("[aodvv2] RREQ table initialized.\n");
 }
 
-/*
- * Behaviour described in Sections 5.7. and 7.6.:
+/**
+ * Check if a RREQ is redundant, i.e. was achieved form another node already.
+ * 
+ * Behaves as described in Sections 5.7. and 7.6.:
  *
  * The RREQ Table is maintained so that no two entries in the RREQ Table
  * are comparable -- that is, all RREQs represented in the RREQ Table
@@ -127,8 +129,8 @@ void rreqtable_init(void)
  * well, it does not matter which table entry is maintained.  Whenever a
  * RREQ Table entry is updated, its Timestamp field should also be
  * updated to reflect the Current_Time.
- *
  * 
+ * @param packet_data
  */
 bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
 {
@@ -184,7 +186,10 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
     }
 }
 
-
+/**
+ * Add a new RREQ. This function should *only* be used to add RREQs originated 
+ * by this node. To add RREQs received from other nodes, use rreqtable_is_redundant()
+ */
 void rreqtable_add(struct aodvv2_packet_data* packet_data)
 {   
     DEBUG("[aodvv2] RREQtable: Adding %s\n", netaddr_to_string(&nbuf, &packet_data->origNode.addr));
@@ -208,12 +213,10 @@ void rreqtable_add(struct aodvv2_packet_data* packet_data)
 
 /*
  * retrieve pointer to a comparable (according to Section 6.7.) 
- * RREQ table entry. To edit, simply follow the pointer.
+ * RREQ table entry if it exists and NULL otherwise.
  * Two AODVv2 RREQ messages are comparable if:
-
-   o  they have the same metric type
-   o  they have the same OrigNode and TargNode addresses
-   if there is no comparable RREQ, return NULL.
+ * - they have the same metric type
+ * - they have the same OrigNode and TargNode addresses
  */
 static struct aodvv2_rreq_entry* _get_comparable_rreq(struct aodvv2_packet_data* packet_data)
 {       
@@ -229,6 +232,7 @@ static struct aodvv2_rreq_entry* _get_comparable_rreq(struct aodvv2_packet_data*
 
     return NULL;
 }
+
 
 static void _add_rreq(struct aodvv2_packet_data* packet_data)
 {
@@ -291,8 +295,6 @@ struct netaddr* ipv6_addr_t_to_netaddr2(ipv6_addr_t* src)
 void netaddr_to_ipv6_addr_t(struct netaddr* src, ipv6_addr_t* dst)
 {
     for (int i=0; i<NETADDR_MAX_LENGTH; i++){
-        //printf("\t%i\n", dst[i]);
-        //dst[i] = src->_addr[i];
         memcpy(dst, src->_addr, sizeof(uint8_t) * NETADDR_MAX_LENGTH);
     }
 }

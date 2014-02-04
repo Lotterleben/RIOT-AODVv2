@@ -5,11 +5,18 @@
 
 static uint16_t seqNum; 
 
+/**
+ * Initializes the AODVv2 SeqNum.
+ **/
+
 void seqNum_init(void)
 {
     seqNum = 1;
 }
 
+/**
+ * Increments the AODVv2 SeqNum by 1.
+ **/
 void seqNum_inc(void)
 {   
     if (seqNum == 65535)

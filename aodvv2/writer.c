@@ -17,11 +17,9 @@
  * - The Packet header data is bullshit and only serves as an example for me 
  **/
 
-static void _cb_rreq_addMessageTLVs(struct rfc5444_writer *wr);
 static void _cb_rreq_addAddresses(struct rfc5444_writer *wr);
 static void _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
 
-static void _cb_rrep_addMessageTLVs(struct rfc5444_writer *wr);
 static void _cb_rrep_addAddresses(struct rfc5444_writer *wr);
 static void _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
 
@@ -39,7 +37,6 @@ static int _packet_buffer[128];
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
 
-//static struct aodvv2_packet_data _packet_data;
 
 /**
  * Callback to define the packet header for a RFC5444 packet. This is actually
@@ -217,7 +214,10 @@ void writer_init(write_packet_func_ptr ptr)
 }
 
 /**
- * Lock on writer_mutex if you want to use this function 
+ * Send a RREQ.
+ * @param na_origNode
+ * @param na_targNode
+ * @param next_hop Address the RREQ is sent to (i.e. appropriate Multicast group) 
  */
 void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, struct netaddr* next_hop)
 {
@@ -251,8 +251,7 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
 
 
 /**
- * just forward a rreq, don't change anything.
- * Lock on writer_mutex if you want to use this function 
+ * just forward a RREQ, don't change anything.
  */
 void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
@@ -276,7 +275,10 @@ void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr*
 }
 
 /**
- * Lock on writer_mutex if you want to use this function 
+ * Send a RREP.
+ * @param na_origNode
+ * @param na_targNode
+ * @param next_hop Address the RREP is sent to 
  */
 void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
