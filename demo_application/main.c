@@ -55,7 +55,12 @@ void demo_send(char *id_str)
         printf("%d bytes sent.\n", bytes_sent);
 }
 
-void demo_init_socket(void)
+void demo_print_ip(void)
+{
+    ipv6_iface_print_addrs();
+}
+
+static void _demo_init_socket(void)
 {
     _sockaddr.sin6_family = AF_INET6;
     _sockaddr.sin6_port = HTONS(RANDOM_PORT);
@@ -69,25 +74,25 @@ void demo_init_socket(void)
 }
 
 /* init transport layer & routing stuff*/
-void init_tlayer(char *str)
+static void _init_tlayer(char *str)
 {
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
     sixlowpan_lowpan_init(transceiver_type, getpid(), 0);
     printf("initializing AODVv2...\n");
     aodv_init();
-    demo_init_socket();
+    _demo_init_socket();
 }
 
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
-    {"init", "init transport layer and aodv", init_tlayer},
+    {"ip", "Print all addresses attached to this device", demo_print_ip},
     {NULL, NULL, NULL}
 };
 
 int main(void)
 {
-    init_tlayer("");
+    _init_tlayer("");
 
     // start shell
     posix_open(uart0_handler_pid, 0);
