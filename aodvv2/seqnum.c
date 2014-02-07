@@ -38,7 +38,6 @@ uint16_t seqNum_get(void)
 int seqnum_cmp(uint16_t s1, uint16_t s2)
 {
     uint16_t diff = s1 - s2;
-    printf("\t diff is: %i\n");
     if (diff == 0)
         return 0;
     if ((0 < diff) && (diff < 32768))

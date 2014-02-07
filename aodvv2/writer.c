@@ -12,8 +12,6 @@
 /**
  * Writer to create aodvv2 RFC5444 RREQ and RREP messages.
  * Please note that this is work under construction, specifically:
- * - The messageTLVs will be changed into Address TLVs or Address Block TLVs as
- *   soon as Charlie has answered my questions on the subject
  * - The Packet header data is bullshit and only serves as an example for me 
  **/
 

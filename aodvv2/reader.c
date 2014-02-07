@@ -248,7 +248,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         }
         /* The incoming routing information is better than existing routing 
          * table information and SHOULD be used to improve the route table. */ 
-        DEBUG("\tUpdating Routing Table entry...");
+        DEBUG("\tUpdating Routing Table entry...\n");
         _fill_routing_entry_t_rreq(&packet_data, rt_entry, link_cost);
     }
 
@@ -417,7 +417,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
         }
         /* The incoming routing information is better than existing routing 
          * table information and SHOULD be used to improve the route table. */ 
-        DEBUG("\tUpdating Routing Table entry...");
+        DEBUG("\tUpdating Routing Table entry...\n");
         _fill_routing_entry_t_rreq(&packet_data, rt_entry, link_cost);
     }
     

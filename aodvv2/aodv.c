@@ -194,8 +194,9 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
 
     /* When sending a RREQ, add it to our RREQ table */
-    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {        
-        printf("--\n");
+    // TODO: compare &wt->_packet_data.origNode.addr with na_local. if !=, don't
+    // check if redundant, has already been checked in reader!
+    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {
         rreqtable_add(&wt->_packet_data);
     }
 
