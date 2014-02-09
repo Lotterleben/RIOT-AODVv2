@@ -129,7 +129,7 @@ const shell_command_t shell_commands[] = {
 int main(void)
 {
     _init_tlayer("");
-    //int rcv_pid = thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
+    int rcv_pid = thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
 
     // start shell
     posix_open(uart0_handler_pid, 0);
