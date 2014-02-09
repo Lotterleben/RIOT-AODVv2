@@ -20,7 +20,8 @@ static int _metric_type;
 static int _sock_snd;
 static struct autobuf _hexbuf;
 static sockaddr6_t sa_wp;
-static ipv6_addr_t na_local;
+static ipv6_addr_t _v6_addr_local, _v6_addr_mcast;
+static struct netaddr na_local; // the same as _v6_addr_local, but to save us constant calls to ipv6_addr_t_to_netaddr()...
 static struct writer_target* wt;
 
 void aodv_init(void)
@@ -37,9 +38,7 @@ void aodv_init(void)
     clienttable_init();
 
     /* every node is its own client. */
-    struct netaddr _tmp;
-    ipv6_addr_t_to_netaddr(&na_local, &_tmp);
-    clienttable_add_client(&_tmp);
+    clienttable_add_client(&na_local);
     rreqtable_init(); 
 
     /* init reader and writer */
@@ -77,12 +76,17 @@ void aodv_set_metric_type(int metric_type)
 static void _init_addresses(void)
 {
     /* init multicast address: set to to a link-local all nodes multicast address */
-    ipv6_addr_set_all_nodes_addr(&na_mcast);
-    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &na_mcast));
+    ipv6_addr_set_all_nodes_addr(&_v6_addr_mcast);
+    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &_v6_addr_mcast));
 
     /* get best IP for sending */
-    ipv6_iface_get_best_src_addr(&na_local, &na_mcast);
-    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str, &na_local));
+    ipv6_iface_get_best_src_addr(&_v6_addr_local, &_v6_addr_mcast);
+    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str, &_v6_addr_local));
+
+    /* store src & multicast address as netaddr as well for easy interaction 
+    with oonf based stuff */
+    ipv6_addr_t_to_netaddr(&_v6_addr_local, &na_local);
+    ipv6_addr_t_to_netaddr(&_v6_addr_mcast, &na_mcast);
 
     /* init sockaddr that write_packet will use to send data */
     sa_wp.sin6_family = AF_INET6;
@@ -156,13 +160,8 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
         return next_hop;
     }
     /* no route found => start route discovery */
-    struct netaddr _tmp_src;
-    ipv6_addr_t_to_netaddr(&na_local, &_tmp_src);
 
-    struct netaddr _tmp_mcast;
-    ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast);
-
-    writer_send_rreq(&_tmp_src, &_tmp_dest, &_tmp_mcast);
+    writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
 
     return NULL;
 }
@@ -196,7 +195,7 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     /* When sending a RREQ, add it to our RREQ table/update its predecessor*/
     // TODO: compare &wt->_packet_data.origNode.addr with na_local. if !=, don't
     // check if redundant, has already been checked in reader!
-    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) { 
+    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &_v6_addr_local)) {
         rreqtable_is_redundant(&wt->_packet_data);
     }
 

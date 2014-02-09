@@ -15,7 +15,7 @@
 #define MANET_PORT  269
 
 /* my multicast address */
-ipv6_addr_t na_mcast;
+struct netaddr na_mcast;
 
 enum msg_type {
     RFC5444_MSGTYPE_RREQ = 10,

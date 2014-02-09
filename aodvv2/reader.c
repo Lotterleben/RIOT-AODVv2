@@ -266,8 +266,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
     else {
         DEBUG("[aodvv2] I am not TargNode, forwarding RREQ\n");
         struct netaddr _tmp_mcast;
-        ipv6_addr_t_to_netaddr(&na_mcast, &_tmp_mcast); 
-        writer_forward_rreq(&packet_data, &_tmp_mcast);
+        writer_forward_rreq(&packet_data, &na_mcast);
     }
     return RFC5444_OKAY;
 }
