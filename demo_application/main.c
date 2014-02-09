@@ -99,11 +99,7 @@ static void _demo_receiver_thread(void)
         if(rcv_size < 0) {
             DEBUG("[demo]   ERROR receiving data!\n");
         }
-        DEBUG("[demo]   UDP packet received from %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr));
-        
-        struct netaddr _sender;
-        ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
-        reader_handle_packet((void*) buf_rcv, rcv_size, &_sender);
+        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr), &buf_rcv);
     }
 
     destiny_socket_close(sock_rcv);  
