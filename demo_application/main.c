@@ -11,8 +11,6 @@
 #include "destiny.h"
 #include "net_help.h"
 
-#include "common/netaddr.h"
-
 #include "kernel.h"
 
 //#include "include/aodvv2.h"
@@ -31,7 +29,7 @@ static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
 
 static int _sock_snd;
 static sockaddr6_t _sockaddr;
-
+char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 void demo_send(char *id_str)
 {
@@ -102,11 +100,11 @@ static void _demo_receiver_thread(void)
         if(rcv_size < 0) {
             DEBUG("[demo]   ERROR receiving data!\n");
         }
-        DEBUG("[demo]   UDP packet received from %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr));
+        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr), &buf_rcv);
         
-        struct netaddr _sender;
-        ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
-        reader_handle_packet((void*) buf_rcv, rcv_size, &_sender);
+        //struct netaddr _sender;
+        //ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
+        //reader_handle_packet((void*) buf_rcv, rcv_size, &_sender);
     }
 
     destiny_socket_close(sock_rcv);  
@@ -132,7 +130,7 @@ const shell_command_t shell_commands[] = {
 int main(void)
 {
     _init_tlayer("");
-
+    int rcv_pid = thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
     // start shell
     posix_open(uart0_handler_pid, 0);
 
