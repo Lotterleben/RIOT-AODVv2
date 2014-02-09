@@ -8,14 +8,10 @@ export BOARD ?= native
 
 # This has to be the absolute path to the RIOT base directory:
 export RIOTBASE =$(CURDIR)/../../riot/RIOT
-#export RIOTLIBS =$(RIOTBASE)/../riot-libs
-#export OONFBASE =$(CURDIR)/../../oonf_api
 export OONFBASE = $(RIOTBASE)/pkg/oonf_api/oonf_api
 export AODV_NODE =$(CURDIR)/../aodvv2 
 
-#EXTERNAL_MODULES +=$(OONFBASE)
 EXTERNAL_MODULES +=$(RIOTBASE)/pkg/oonf_api
-#EXTERNAL_MODULES +=$(RIOTLIBS)
 EXTERNAL_MODULES +=$(AODV_NODE)
 export EXTERNAL_MODULES
 
@@ -64,7 +60,6 @@ USEMODULE += destiny
 USEMODULE += net_help 
 USEMODULE += sixlowpan
 USEMODULE += cunit
-#USEMODULE += compat_misc
 USEMODULE += oonf_common
 USEMODULE += oonf_rfc5444
 
@@ -77,6 +72,6 @@ export INCLUDES += -I${RIOTBASE}/core/include/         \
 				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
 				   -I$(OONFBASE)/src-api 			   \
 				   #-I$(RIOTLIBS) 					   \
-				   -I$(AODV_NODE)/include              \
+				   #-I$(AODV_NODE)/include              \
 
 include $(RIOTBASE)/Makefile.include
