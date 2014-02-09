@@ -21,8 +21,6 @@ static void _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_
 static void _cb_rrep_addAddresses(struct rfc5444_writer *wr);
 static void _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
 
-static void _cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface);
-
 static mutex_t writer_mutex;
 
 struct rfc5444_writer writer;
@@ -34,21 +32,6 @@ static int _packet_buffer[128];
 
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
-
-
-/**
- * Callback to define the packet header for a RFC5444 packet. This is actually
- * quite useless because a RREP/RREQ packet header should have no flags set, but anyway,
- * here's how you do it in case you need to.
- */
-static void
-_cb_addPacketHeader(struct rfc5444_writer *wr, struct rfc5444_writer_target *interface)
-{
-    DEBUG("[aodvv2] %s()\n", __func__);
-
-    /* set header with sequence number */
-    rfc5444_writer_set_pkt_header(wr, interface, true);
-}
 
 /*
  * message content provider that will add message TLVs,
@@ -182,7 +165,7 @@ void writer_init(write_packet_func_ptr ptr)
     /* define interface for generating rfc5444 packets */
     _target.interface.packet_buffer = _packet_buffer;
     _target.interface.packet_size = sizeof(_packet_buffer);
-    _target.interface.addPacketHeader = _cb_addPacketHeader;
+    
     /* set function to send binary packet content */
     _target.interface.sendPacket = ptr;
     
