@@ -193,11 +193,11 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     wt = container_of(iface, struct writer_target, interface);
     netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
 
-    /* When sending a RREQ, add it to our RREQ table */
+    /* When sending a RREQ, add it to our RREQ table/update its predecessor*/
     // TODO: compare &wt->_packet_data.origNode.addr with na_local. if !=, don't
     // check if redundant, has already been checked in reader!
-    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) {
-        rreqtable_add(&wt->_packet_data);
+    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &na_mcast)) { 
+        rreqtable_is_redundant(&wt->_packet_data);
     }
 
     int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 

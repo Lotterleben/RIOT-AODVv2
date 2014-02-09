@@ -186,31 +186,6 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
     }
 }
 
-/**
- * Add a new RREQ. This function should *only* be used to add RREQs originated 
- * by this node. To add RREQs received from other nodes, use rreqtable_is_redundant()
- */
-void rreqtable_add(struct aodvv2_packet_data* packet_data)
-{   
-    DEBUG("[aodvv2] RREQtable: Adding %s\n", netaddr_to_string(&nbuf, &packet_data->origNode.addr));
-    timex_t now;
-
-    if (mutex_lock(&rreqt_mutex) == 1) {
-        struct aodvv2_rreq_entry* comparable_rreq = _get_comparable_rreq(packet_data);
-        
-        /* if we already sent a similar RREQ, just update the timestamp */
-        if (comparable_rreq) {
-            vtimer_now(&now);
-            comparable_rreq->timestamp = now;
-            mutex_unlock(&rreqt_mutex);
-            return;
-        }
-        
-        _add_rreq(packet_data);
-        mutex_unlock(&rreqt_mutex);
-    }
-}
-
 /*
  * retrieve pointer to a comparable (according to Section 6.7.) 
  * RREQ table entry if it exists and NULL otherwise.

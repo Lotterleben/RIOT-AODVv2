@@ -32,7 +32,6 @@ void clienttable_delete_client(struct netaddr* addr);
 /* Sections 5.7. and 7.6.: RREQ table functionality */
 void rreqtable_init(void);
 bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data);
-void rreqtable_add(struct aodvv2_packet_data* packet_data);
 
 /* various utilities */
 void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst);
