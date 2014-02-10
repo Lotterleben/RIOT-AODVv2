@@ -77,11 +77,11 @@ static void _init_addresses(void)
 {
     /* init multicast address: set to to a link-local all nodes multicast address */
     ipv6_addr_set_all_nodes_addr(&_v6_addr_mcast);
-    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(&addr_str, &_v6_addr_mcast));
+    DEBUG("[aodvv2] my multicast address is: %s\n", ipv6_addr_to_str(addr_str, &_v6_addr_mcast));
 
     /* get best IP for sending */
     ipv6_iface_get_best_src_addr(&_v6_addr_local, &_v6_addr_mcast);
-    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(&addr_str, &_v6_addr_local));
+    DEBUG("[aodvv2] my src address is:       %s\n", ipv6_addr_to_str(addr_str, &_v6_addr_local));
 
     /* store src & multicast address as netaddr as well for easy interaction 
     with oonf based stuff */
@@ -131,7 +131,7 @@ static void _aodv_receiver_thread(void)
         if(rcv_size < 0) {
             DEBUG("[aodvv2] ERROR receiving data!\n");
         }
-        DEBUG("[aodvv2] UDP packet received from %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr));
+        DEBUG("[aodvv2] UDP packet received from %s\n", ipv6_addr_to_str(addr_str_rec, &sa_rcv.sin6_addr));
         
         struct netaddr _sender;
         ipv6_addr_t_to_netaddr(&sa_rcv.sin6_addr, &_sender);
@@ -149,7 +149,7 @@ static void _aodv_receiver_thread(void)
  */
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
-    DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(&addr_str, dest));
+    DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(addr_str, dest));
 
     struct netaddr _tmp_dest;
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
@@ -190,7 +190,7 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
        specific node or the multicast address) from the writer_target struct
        iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
-    netaddr_to_ipv6_addr_t(&wt->target_address._addr, &sa_wp.sin6_addr);
+    netaddr_to_ipv6_addr_t(&wt->target_address, &sa_wp.sin6_addr);
 
     /* When originating a RREQ, add it to our RREQ table/update its predecessor */
     if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &_v6_addr_mcast)

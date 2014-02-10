@@ -265,7 +265,6 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     else {
         DEBUG("[aodvv2] I am not TargNode, forwarding RREQ\n");
-        struct netaddr _tmp_mcast;
         writer_forward_rreq(&packet_data, &na_mcast);
     }
     return RFC5444_OKAY;
@@ -365,7 +364,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
 
     DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
 
-    /* Check if packet contains the rquired information */
+    /* Check if packet contains the required information */
     if (dropped) {
         DEBUG("\t Dropping packet.\n");
         return RFC5444_DROP_PACKET;
@@ -502,7 +501,7 @@ static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* pac
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return 1;
-    return NULL;
+    return 0;
 }
 
 /*
@@ -513,7 +512,7 @@ static uint8_t _get_max_metric(uint8_t metricType)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return AODVV2_MAX_HOPCOUNT;
-    return NULL;
+    return 0;
 }
 
 /*
@@ -524,7 +523,7 @@ static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric)
 {
     if (metricType == AODVV2_DEFAULT_METRIC_TYPE)
         return metric++;
-    return NULL;
+    return 0;
 }
 
 // TODO: use memcpy?!

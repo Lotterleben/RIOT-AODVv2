@@ -182,8 +182,9 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
         vtimer_now(&now);
         comparable_rreq->timestamp = now;
         mutex_unlock(&rreqt_mutex);
-        return false;
     }
+    
+    return false;
 }
 
 /*

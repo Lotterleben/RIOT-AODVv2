@@ -34,7 +34,6 @@ void demo_send(char *id_str)
 {
     char dest_str[39];  // assuming we're dealing with "full" IPs
     char msg[25];
-    ipv6_addr_t dest_ip;
 
     int res = sscanf(id_str, "send %s %s", dest_str, msg);
 
@@ -44,7 +43,7 @@ void demo_send(char *id_str)
     }
     printf("sending...\n");
 
-    // turn dest_ip into ipv6_addr_t
+    // turn dest_str into ipv6_addr_t
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
 
     int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
@@ -56,7 +55,7 @@ void demo_send(char *id_str)
         printf("%d bytes sent.\n", bytes_sent);
 }
 
-void demo_print_ip(void)
+void demo_print_ip(char* str)
 {
     ipv6_iface_print_addrs();
 }
@@ -99,14 +98,14 @@ static void _demo_receiver_thread(void)
         if(rcv_size < 0) {
             DEBUG("[demo]   ERROR receiving data!\n");
         }
-        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(&addr_str_rec, &sa_rcv.sin6_addr), &buf_rcv);
+        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(addr_str_rec, &sa_rcv.sin6_addr), buf_rcv);
     }
 
     destiny_socket_close(sock_rcv);  
 }
 
 /* init transport layer & routing stuff*/
-static void _init_tlayer(char *str)
+static void _init_tlayer()
 {
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
@@ -124,8 +123,8 @@ const shell_command_t shell_commands[] = {
 
 int main(void)
 {
-    _init_tlayer("");
-    int rcv_pid = thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
+    _init_tlayer();
+    thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
 
     // start shell
     posix_open(uart0_handler_pid, 0);

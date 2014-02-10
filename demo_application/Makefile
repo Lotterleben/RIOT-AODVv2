@@ -30,7 +30,7 @@ export EXTERNAL_MODULES
 # of the valgrind header (i.e. <valgrind.h> or <valgrind/valgrind.h>)
 # For more information about the valgrind support of RIOT read:
 # RIOT/cpu/native/README
-#CFLAGS += -DHAVE_VALGRIND_VALGRIND_H
+CFLAGS += -DHAVE_VALGRIND_VALGRIND_H -g
 #CFLAGS += -DHAVE_VALGRIND_H
 
 # Uncomment this to enable code in RIOT that does safety checking

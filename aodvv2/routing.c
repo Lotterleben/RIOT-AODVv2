@@ -117,8 +117,8 @@ void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry)
     printf("\t prefixlen: %i\n", rt_entry->prefixlen);
     printf("\t seqNum: %i\n", rt_entry->seqNum);
     printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddress)));
-    printf("\t lastUsed: %i\n", rt_entry->lastUsed);
-    printf("\t expirationTime: %i\n", rt_entry->expirationTime);
+    printf("\t lastUsed: %"PRIu32":%"PRIu32"\n", rt_entry->lastUsed.seconds, rt_entry->lastUsed.microseconds);
+    printf("\t expirationTime: %"PRIu32":%"PRIu32"\n", rt_entry->expirationTime.seconds, rt_entry->expirationTime.microseconds);
     printf("\t broken: %d\n", rt_entry->broken);
     printf("\t metricType: %i\n", rt_entry->metricType);
     printf("\t metric: %d\n", rt_entry->metric);

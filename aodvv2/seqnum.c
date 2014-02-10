@@ -42,6 +42,6 @@ int seqnum_cmp(uint16_t s1, uint16_t s2)
         return 0;
     if ((0 < diff) && (diff < 32768))
         return 1;
-    else if (32768 <= diff <= 65535)
-        return -1;
+    //else if (32768 <= diff <= 65535)
+    return -1;
 }

@@ -26,9 +26,9 @@ static mutex_t writer_mutex;
 struct rfc5444_writer writer;
 static struct writer_target _target;
 
-static int _msg_buffer[128];
-static int _msg_addrtlvs[1000];
-static int _packet_buffer[128];
+static uint8_t _msg_buffer[128];
+static uint8_t _msg_addrtlvs[1000];
+static uint8_t _packet_buffer[128];
 
 static struct rfc5444_writer_message *_rreq_msg;
 static struct rfc5444_writer_message *_rrep_msg;
