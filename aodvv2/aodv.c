@@ -5,6 +5,7 @@
 #include "debug.h"
 
 #define UDP_BUFFER_SIZE     (128) // TODO öhm.
+#define RCV_MSG_Q_SIZE      (64)
 
 static void _init_addresses(void);
 static void _init_sock_snd(void);
@@ -23,6 +24,7 @@ static sockaddr6_t sa_wp;
 static ipv6_addr_t _v6_addr_local, _v6_addr_mcast;
 static struct netaddr na_local; // the same as _v6_addr_local, but to save us constant calls to ipv6_addr_t_to_netaddr()...
 static struct writer_target* wt;
+static struct netaddr_str nbuf;
 
 void aodv_init(void)
 {
@@ -112,6 +114,9 @@ static void _aodv_receiver_thread(void)
     int32_t rcv_size;
     char buf_rcv[UDP_BUFFER_SIZE];
     char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
+    msg_t msg_q[RCV_MSG_Q_SIZE];
+    
+    msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
 
     sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
                            .sin6_port = HTONS(MANET_PORT) };
@@ -156,13 +161,16 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 
     ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(&_tmp_dest, _metric_type);
     if (next_hop){
-        DEBUG("\t found dest in routing table!\n");
+        DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, next_hop));
         return next_hop;
     }
+
+    DEBUG("foo\n");
 
     /* no route found => start route discovery */
     writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
 
+    DEBUG("bar\n");
     return NULL;
 }
 

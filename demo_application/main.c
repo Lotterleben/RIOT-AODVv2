@@ -20,6 +20,7 @@
 
 #define RANDOM_PORT 1337
 #define UDP_BUFFER_SIZE     (128)
+#define RCV_MSG_Q_SIZE      (64)
 
 //#if defined(BOARD_NATIVE)
 //#include <unistd.h>
@@ -28,6 +29,8 @@ static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
 
 static int _sock_snd;
 static sockaddr6_t _sockaddr;
+msg_t msg_q[RCV_MSG_Q_SIZE];
+
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 void demo_send(char *id_str)
@@ -79,6 +82,9 @@ static void _demo_receiver_thread(void)
     int32_t rcv_size;
     char buf_rcv[UDP_BUFFER_SIZE];
     char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
+    msg_t rcv_msg_q[RCV_MSG_Q_SIZE];
+    
+    msg_init_queue(rcv_msg_q, RCV_MSG_Q_SIZE);
 
     sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
                            .sin6_port = HTONS(RANDOM_PORT) };
@@ -106,7 +112,8 @@ static void _demo_receiver_thread(void)
 
 /* init transport layer & routing stuff*/
 static void _init_tlayer()
-{
+{    
+    msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
     sixlowpan_lowpan_init(transceiver_type, getpid(), 0);

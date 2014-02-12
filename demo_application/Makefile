@@ -1,7 +1,7 @@
 export CFLAGS += -DRIOT #-DENABLE_DEBUG
 
 # name of your project
-export PROJECT = aodvv2_node
+export PROJECT = demo_application
 
 # If no BOARD is found in the environment, use this default:
 export BOARD ?= native
