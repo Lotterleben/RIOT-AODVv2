@@ -183,7 +183,7 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
         comparable_rreq->timestamp = now;
         mutex_unlock(&rreqt_mutex);
     }
-    
+
     return false;
 }
 
@@ -248,7 +248,6 @@ static void _reset_entry_if_stale(uint8_t i)
     }
 }
 
-// TODO: so bauen dass es den ipv6_addr_t* direkt zurückgibt
 void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst)
 {
     dst->_type = AF_INET6;
@@ -256,18 +255,6 @@ void ipv6_addr_t_to_netaddr(ipv6_addr_t* src, struct netaddr* dst)
     memcpy(dst->_addr, src, sizeof dst->_addr);
 }
 
-/* segfaultet derzeit.
-struct netaddr* ipv6_addr_t_to_netaddr2(ipv6_addr_t* src)
-{
-    struct netaddr* dst;
-    dst->_type = AF_INET6;
-    dst->_prefix_len = AODVV2_RIOT_PREFIXLEN;
-    memcpy(dst->_addr, src, sizeof(uint8_t) * NETADDR_MAX_LENGTH);
-    return dst;
-}
-*/
-
-// TODO: Make this work
 void netaddr_to_ipv6_addr_t(struct netaddr* src, ipv6_addr_t* dst)
 {
     for (int i=0; i<NETADDR_MAX_LENGTH; i++){

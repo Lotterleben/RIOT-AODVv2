@@ -53,11 +53,6 @@ void aodv_init(void)
 
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
-
-    /* testtest */
-    //ipv6_addr_t test_addr;
-    //ipv6_addr_init(&test_addr, 0xABCD, 0xEF12, 0, 0, 0x1034, 0x00FF, 0xFE00, 23);
-    //aodv_get_next_hop(&test_addr);
 }
 
 /* 
@@ -165,12 +160,9 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
         return next_hop;
     }
 
-    DEBUG("foo\n");
-
     /* no route found => start route discovery */
     writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
 
-    DEBUG("bar\n");
     return NULL;
 }
 

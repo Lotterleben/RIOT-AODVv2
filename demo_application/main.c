@@ -71,7 +71,7 @@ static void _demo_init_socket(void)
     _sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
     if(-1 == _sock_snd) {
-        printf("[demo]   Error Creating Socket!");
+        printf("[demo]   Error Creating Socket!\n");
         return;
     }
 }
