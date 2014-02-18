@@ -202,10 +202,15 @@ static enum rfc5444_result _cb_rreq_blocktlv_messagetlvs_okay(struct rfc5444_rea
     if (!cont->has_hoplimit) {
         DEBUG("\tERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
-    }
+    } 
 
-    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
     packet_data.hoplimit = cont->hoplimit;
+    if (packet_data.hoplimit == 0) {
+        DEBUG("\tERROR: Hoplimit is 0.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    packet_data.hoplimit--;
     return RFC5444_OKAY;
 }
 
@@ -379,10 +384,15 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(struct rfc5444_rea
     if (!cont->has_hoplimit) {
         DEBUG("\tERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
-    }
+    } 
 
-    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
     packet_data.hoplimit = cont->hoplimit;
+    if (packet_data.hoplimit == 0) {
+        DEBUG("\tERROR: Hoplimit is 0.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    packet_data.hoplimit--;
     return RFC5444_OKAY;
 }
 
@@ -414,10 +424,6 @@ static enum rfc5444_result _cb_rrep_end_callback(
     if ((packet_data.targNode.addr._type == AF_UNSPEC) || !packet_data.targNode.seqNum) {
         DEBUG("\tERROR: missing TargNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
-    }
-    if (packet_data.hoplimit == 0) {
-        DEBUG("\tERROR: Hoplimit is 0. Dropping packet.\n");
-        return RFC5444_DROP_PACKET;
     }
     if ((_get_max_metric(packet_data.metricType) - link_cost) <= packet_data.targNode.metric){
         DEBUG("\tMetric Limit reached. Dropping packet.\n");
