@@ -63,7 +63,7 @@ void aodv_init(void)
     unreachable_nodes[0].seqnum = 13;
     unreachable_nodes[1].addr = na_mcast; 
     unreachable_nodes[1].seqnum = 23;
-    writer_send_rerr(unreachable_nodes, 2,  &na_mcast);
+    writer_send_rerr(unreachable_nodes, 2, 20, &na_mcast);
 }
 
 /* 
