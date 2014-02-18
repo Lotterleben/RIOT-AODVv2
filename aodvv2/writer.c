@@ -377,7 +377,7 @@ void writer_send_rerr_old(struct netaddr* unreachable_node, int seqnum, int metr
 }
 
 
-void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, struct netaddr* next_hop)
+void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int hoplimit, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
@@ -385,6 +385,7 @@ void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, stru
         return;
 
     if (mutex_lock(&writer_mutex) == 1) {
+        _target._packet_data.hoplimit = hoplimit;
         _unreachable_nodes = unreachable_nodes;
         _num_unreachable_nodes = len;
 

@@ -55,7 +55,10 @@ void aodv_init(void)
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /*testtest*/
-    static struct unreachable_node unreachable_nodes[2];
+
+    writer_send_rreq(&na_local, &na_mcast, &na_mcast);
+
+    struct unreachable_node unreachable_nodes[2];
     unreachable_nodes[0].addr = na_local;
     unreachable_nodes[0].seqnum = 13;
     unreachable_nodes[1].addr = na_mcast; 

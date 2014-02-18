@@ -85,6 +85,27 @@ static struct rfc5444_reader_tlvblock_consumer _rrep_address_consumer = {
 };
 
 /*
+ * Message consumer, will be called once for every message of
+ * type RFC5444_MSGTYPE_RERR that contains all the mandatory message TLVs
+ */
+static struct rfc5444_reader_tlvblock_consumer _rerr_consumer = {
+    .msg_id = RFC5444_MSGTYPE_RERR,
+    .block_callback = _cb_rerr_blocktlv_messagetlvs_okay,
+    .end_callback = _cb_rerr_end_callback,
+};
+
+/*
+ * Address consumer. Will be called once for every address in a message of
+ * type RFC5444_MSGTYPE_RERR.
+ */
+static struct rfc5444_reader_tlvblock_consumer _rerr_address_consumer = {
+    .msg_id = RFC5444_MSGTYPE_RERR,
+    .addrblock_consumer = true,
+    .block_callback = _cb_rerr_blocktlv_addresstlvs_okay,
+};
+
+
+/*
  * Address consumer entries definition
  * TLV types RFC5444_MSGTLV__SEQNUM and RFC5444_MSGTLV_METRIC
  */
@@ -510,10 +531,9 @@ static enum rfc5444_result _cb_rerr_blocktlv_addresstlvs_okay(struct rfc5444_rea
                 num_unreachable_nodes++;
                 packet_data.hoplimit--;
             }
-            return RFC5444_OKAY;
         }
     }
-    return RFC5444_DROP_PACKET;
+    return RFC5444_OKAY;
 }
 
 static enum rfc5444_result _cb_rerr_end_callback(struct rfc5444_reader_tlvblock_context *cont, bool dropped)
@@ -521,12 +541,16 @@ static enum rfc5444_result _cb_rerr_end_callback(struct rfc5444_reader_tlvblock_
     DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
     
     if (dropped) {
-        DEBUG("\t Dropping packet.\n");
+        DEBUG("\tDropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
 
+    if ( num_unreachable_nodes == 0){
+        DEBUG("\tNo unreachable nodes from my routing table. Dropping Packet.");
+        return RFC5444_DROP_PACKET;
+    }
     /* gather all unreachable nodes and put them into a RERR */
-    writer_send_rerr(unreachable_nodes, num_unreachable_nodes, &na_mcast);
+    writer_send_rerr(unreachable_nodes, num_unreachable_nodes, packet_data.hoplimit, &na_mcast);
 }
 
 void reader_init(void)
@@ -544,12 +568,16 @@ void reader_init(void)
         NULL, 0);
     rfc5444_reader_add_message_consumer(&reader, &_rrep_consumer,
         NULL, 0);
+    rfc5444_reader_add_message_consumer(&reader, &_rerr_consumer,
+        NULL, 0);
 
     /* register address consumer */
     rfc5444_reader_add_message_consumer(&reader, &_rreq_address_consumer,
         _rreq_rrep_address_consumer_entries, ARRAYSIZE(_rreq_rrep_address_consumer_entries));
     rfc5444_reader_add_message_consumer(&reader, &_rrep_address_consumer,
         _rreq_rrep_address_consumer_entries, ARRAYSIZE(_rreq_rrep_address_consumer_entries));
+    rfc5444_reader_add_message_consumer(&reader, &_rerr_address_consumer,
+        _rerr_address_consumer_entries, ARRAYSIZE(_rerr_address_consumer_entries));
 }
 
 void reader_cleanup(void)
@@ -564,6 +592,7 @@ void reader_cleanup(void)
  */
 int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 {
+    DEBUG("[aodvv2] %s()\n", __func__);
     memcpy(&packet_data.sender, sender, sizeof(*sender));
     return rfc5444_reader_handle_packet(&reader, buffer, length);
 }
