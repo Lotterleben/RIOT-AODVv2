@@ -488,10 +488,16 @@ static enum rfc5444_result _cb_rerr_blocktlv_messagetlvs_okay(struct rfc5444_rea
     if (!cont->has_hoplimit) {
         DEBUG("\tERROR: missing hop limit\n");
         return RFC5444_DROP_PACKET;
-    }
+    } 
 
-    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
     packet_data.hoplimit = cont->hoplimit;
+    if (packet_data.hoplimit == 0) {
+        DEBUG("\tERROR: Hoplimit is 0.\n");
+        return RFC5444_DROP_PACKET;
+    }
+    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    packet_data.hoplimit--;
+
     /* prepare buffer for unreachable nodes */
     num_unreachable_nodes = 0;
     for (uint8_t i = 0; i < AODVV2_MAX_UNREACHABLE_NODES; i++) {
