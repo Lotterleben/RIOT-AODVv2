@@ -97,7 +97,7 @@ _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, AODVV2_MAX_HOPCOUNT);
+    rfc5444_writer_set_msg_hoplimit(wr, message, _target._packet_data.hoplimit);
 }
 
 /**
@@ -276,6 +276,7 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
         memset(&_target._packet_data, 0, sizeof(struct aodvv2_packet_data));
         memcpy(&_target._packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
         memcpy(&_target._packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
+        _target._packet_data.hoplimit = AODVV2_MAX_HOPCOUNT;
 
         /* set address to which the write_packet callback should send our RREQ */
         memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
