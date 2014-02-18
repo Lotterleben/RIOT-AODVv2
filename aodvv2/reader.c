@@ -21,6 +21,13 @@ static enum rfc5444_result _cb_rrep_blocktlv_messagetlvs_okay(
 static enum rfc5444_result _cb_rrep_end_callback(
     struct rfc5444_reader_tlvblock_context *cont, bool dropped);
 
+static enum rfc5444_result _cb_rerr_blocktlv_addresstlvs_okay(
+    struct rfc5444_reader_tlvblock_context *cont);
+static enum rfc5444_result _cb_rerr_blocktlv_messagetlvs_okay(
+    struct rfc5444_reader_tlvblock_context *cont);
+static enum rfc5444_result _cb_rerr_end_callback(
+    struct rfc5444_reader_tlvblock_context *cont, bool dropped);
+
 /* helper functions */
 static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data);
 static uint8_t _get_link_cost(uint8_t metricType, struct aodvv2_packet_data* data);
@@ -31,6 +38,8 @@ static void _fill_routing_entry_t_rrep(struct aodvv2_packet_data* packet_data, s
 
 /* This is where we store data gathered from packets */
 static struct aodvv2_packet_data packet_data;
+static struct unreachable_node unreachable_nodes[AODVV2_MAX_UNREACHABLE_NODES];
+static int num_unreachable_nodes;
 
 static struct rfc5444_reader reader;
 static timex_t validity_t;
@@ -83,6 +92,14 @@ static struct rfc5444_reader_tlvblock_consumer_entry _rreq_rrep_address_consumer
     [RFC5444_MSGTLV_ORIGSEQNUM] = { .type = RFC5444_MSGTLV_ORIGSEQNUM},
     [RFC5444_MSGTLV_TARGSEQNUM] = { .type = RFC5444_MSGTLV_TARGSEQNUM},
     [RFC5444_MSGTLV_METRIC] = { .type = AODVV2_DEFAULT_METRIC_TYPE }
+};
+
+/*
+ * Address consumer entries definition
+ * TLV types RFC5444_MSGTLV__SEQNUM and RFC5444_MSGTLV_METRIC
+ */
+static struct rfc5444_reader_tlvblock_consumer_entry _rerr_address_consumer_entries[] = {
+    [RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM] = { .type = RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM},
 };
 
 /**
@@ -435,6 +452,81 @@ static enum rfc5444_result _cb_rrep_end_callback(
         writer_send_rrep(&packet_data, routingtable_get_next_hop(&packet_data.origNode.addr, packet_data.metricType));
     }
     return RFC5444_OKAY;
+}
+
+static enum rfc5444_result _cb_rerr_blocktlv_messagetlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
+{
+    DEBUG("[aodvv2] %s()\n", __func__);
+
+    if (!cont->has_hoplimit) {
+        DEBUG("\tERROR: missing hop limit\n");
+        return RFC5444_DROP_PACKET;
+    }
+
+    DEBUG("[aodvv2] %s()\n\t i can has hop limit: %d\n",__func__ , cont->hoplimit);
+    packet_data.hoplimit = cont->hoplimit;
+    /* prepare buffer for unreachable nodes */
+    num_unreachable_nodes = 0;
+    for (uint8_t i = 0; i < AODVV2_MAX_UNREACHABLE_NODES; i++) {
+        memset(&unreachable_nodes[i], 0, sizeof(unreachable_nodes[i]));
+    }
+    return RFC5444_OKAY;
+}
+
+static enum rfc5444_result _cb_rerr_blocktlv_addresstlvs_okay(struct rfc5444_reader_tlvblock_context *cont)
+{
+    struct netaddr_str nbuf;
+    struct aodvv2_routing_entry_t* unreachable_entry;
+    struct rfc5444_reader_tlvblock_entry* tlv;
+
+    DEBUG("[aodvv2] %s()\n", __func__);
+    DEBUG("\tmessage type: %d\n", cont->type);
+    DEBUG("\taddr: %s\n", netaddr_to_string(&nbuf, &cont->addr));  
+
+    /* Out of buffer size for more unreachable nodes. We're screwed, basically. */
+    if (num_unreachable_nodes == AODVV2_MAX_UNREACHABLE_NODES)
+        return RFC5444_OKAY;
+
+    // gather packet data TODO: will this fail if there's no seqnum?
+    packet_data.origNode.addr = cont->addr;
+
+    /* handle this unreachable node's SeqNum TLV */
+    tlv = _rerr_address_consumer_entries[RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM].tlv;
+    if (tlv) {
+        DEBUG("\ttlv RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM: %d\n", *tlv->single_value);
+        packet_data.origNode.seqNum = *tlv->single_value;
+    }
+
+    /* Check if there is an entry for unreachable node in our routing table */
+    unreachable_entry = routingtable_get_entry(&packet_data.origNode.addr, packet_data.metricType);
+    if (unreachable_entry) {
+        /* check if route to unreachable node has to be marked as broken and RERR has to be forwarded*/
+        if (netaddr_cmp(&unreachable_entry->nextHopAddress, &packet_data.sender ) == 0 
+            && (!tlv || seqnum_cmp(unreachable_entry->seqNum, packet_data.origNode.seqNum))) {
+            unreachable_entry->state = ROUTE_STATE_BROKEN;
+            if (packet_data.hoplimit > 0) {
+                unreachable_nodes[num_unreachable_nodes].addr = packet_data.origNode.addr;
+                unreachable_nodes[num_unreachable_nodes].seqnum = packet_data.origNode.seqNum;
+                num_unreachable_nodes++;
+                packet_data.hoplimit--;
+            }
+            return RFC5444_OKAY;
+        }
+    }
+    return RFC5444_DROP_PACKET;
+}
+
+static enum rfc5444_result _cb_rerr_end_callback(struct rfc5444_reader_tlvblock_context *cont, bool dropped)
+{
+    DEBUG("[aodvv2] %s() dropped: %d\n", __func__, dropped);
+    
+    if (dropped) {
+        DEBUG("\t Dropping packet.\n");
+        return RFC5444_DROP_PACKET;
+    } 
+
+    /* gather all unreachable nodes and put them into a RERR */
+    writer_send_rerr(unreachable_nodes, num_unreachable_nodes, &na_mcast);
 }
 
 void reader_init(void)

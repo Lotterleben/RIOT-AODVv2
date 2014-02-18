@@ -53,6 +53,14 @@ void aodv_init(void)
 
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
+
+    /*testtest*/
+    static struct unreachable_node unreachable_nodes[2];
+    unreachable_nodes[0].addr = na_local;
+    unreachable_nodes[0].seqnum = 13;
+    unreachable_nodes[1].addr = na_mcast; 
+    unreachable_nodes[1].seqnum = 23;
+    writer_send_rerr(unreachable_nodes, 2,  &na_mcast);
 }
 
 /* 

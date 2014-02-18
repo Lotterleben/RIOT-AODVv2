@@ -10,6 +10,7 @@
 #define AODVV2_ACTIVE_INTERVAL 5   // seconds
 #define AODVV2_MAX_IDLETIME 200    // seconds 
 #define AODVV2_RIOT_PREFIXLEN 128  // TODO: invent better name
+#define AODVV2_MAX_UNREACHABLE_NODES 10  // TODO: choose value (wisely)   
 
 /* RFC5498 */
 #define MANET_PORT  269
@@ -20,11 +21,13 @@ struct netaddr na_mcast;
 enum msg_type {
     RFC5444_MSGTYPE_RREQ = 10,
     RFC5444_MSGTYPE_RREP = 11,
+    RFC5444_MSGTYPE_RERR = 12,
 };
 
 enum tlv_type {
     RFC5444_MSGTLV_ORIGSEQNUM,
-    RFC5444_MSGTLV_TARGSEQNUM,    
+    RFC5444_MSGTLV_TARGSEQNUM,
+    RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM,
     RFC5444_MSGTLV_METRIC,
 };
 
@@ -43,6 +46,11 @@ struct aodvv2_packet_data {
     struct node_data origNode;
     struct node_data targNode;
     timex_t timestamp;
+};
+
+struct unreachable_node {
+    struct netaddr addr;
+    uint16_t seqnum;
 };
 
 #endif /* CONSTANTS_H_ */
