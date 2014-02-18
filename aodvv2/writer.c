@@ -379,25 +379,22 @@ void writer_send_rerr_old(struct netaddr* unreachable_node, int seqnum, int metr
 
 void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, struct netaddr* next_hop)
 {
-    DEBUG("[aodvv2] %s() TODOOOOO\n", __func__);
+    DEBUG("[aodvv2] %s()\n", __func__);
 
     if (unreachable_nodes == NULL || next_hop == NULL)
         return;
 
     if (mutex_lock(&writer_mutex) == 1) {
-
-        /*
-        for (int i = 0; i <_num_unreachable_nodes; i++){
-            printf("%u ~~\n", _unreachable_nodes[i].seqnum);
-        }
-        */
         _unreachable_nodes = unreachable_nodes;
         _num_unreachable_nodes = len;
+
+        /* set address to which the write_packet callback should send our RREQ */
+        memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
 
         rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RERR);
         rfc5444_writer_flush(&writer, &_target.interface, false);
         mutex_unlock(&writer_mutex);
-    } // T
+    }
 }
 
 void writer_cleanup(void)
