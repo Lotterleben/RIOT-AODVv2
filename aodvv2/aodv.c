@@ -176,7 +176,8 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     struct aodvv2_routing_entry_t* rt_entry = routingtable_get_entry(&_tmp_dest, _metric_type);
     if (rt_entry) {
         if (rt_entry->state == ROUTE_STATE_BROKEN ||
-            rt_entry->state == ROUTE_STATE_EXPIRED) {
+            rt_entry->state == ROUTE_STATE_EXPIRED ||
+            rt_entry->broken = true) {
             DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
             // TODO send rerr
             struct unreachable_node unreachable_nodes[1];
