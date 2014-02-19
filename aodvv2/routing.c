@@ -19,7 +19,7 @@ struct netaddr_str nbuf;
 void routingtable_init(void)
 {   
     null_time = timex_set(0,0);
-    max_seqnum_lifetime = timex_set(MAX_SEQNUM_LIFETIME,0);
+    max_seqnum_lifetime = timex_set(AODVV2_MAX_SEQNUM_LIFETIME,0);
 
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
