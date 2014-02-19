@@ -97,7 +97,7 @@ _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, _target._packet_data.hoplimit);
+    rfc5444_writer_set_msg_hoplimit(wr, message, _target.packet_data.hoplimit);
 }
 
 /**
@@ -113,20 +113,20 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
     
     /* add origNode address (has no address tlv); is mandatory address */
     origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
-                                               &_target._packet_data.origNode.addr, true);
+                                               &_target.packet_data.origNode.addr, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
     targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
-                                               &_target._packet_data.targNode.addr, true);
+                                               &_target.packet_data.targNode.addr, true);
 
     /* add SeqNum TLV and metric TLV to origNode */
     // TODO: allow_dup true or false?
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_ORIGSEQNUM], 
-                               &_target._packet_data.origNode.seqNum, 
-                               sizeof(_target._packet_data.origNode.seqNum), false);
+                               &_target.packet_data.origNode.seqNum, 
+                               sizeof(_target.packet_data.origNode.seqNum), false);
     rfc5444_writer_add_addrtlv(wr, origNode_addr, &_rreq_addrtlvs[RFC5444_MSGTLV_METRIC],
-                               &_target._packet_data.origNode.metric, 
-                               sizeof(_target._packet_data.origNode.metric), false);
+                               &_target.packet_data.origNode.metric, 
+                               sizeof(_target.packet_data.origNode.metric), false);
 }
 
 /**
@@ -155,18 +155,18 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 
     struct rfc5444_writer_address *origNode_addr, *targNode_addr;
 
-    uint16_t origNode_seqNum = _target._packet_data.origNode.seqNum;
+    uint16_t origNode_seqNum = _target.packet_data.origNode.seqNum;
     
     uint16_t targNode_seqNum = seqNum_get();
     seqNum_inc();
 
-    uint8_t targNode_hopCt = _target._packet_data.targNode.metric;
+    uint8_t targNode_hopCt = _target.packet_data.targNode.metric;
 
     /* add origNode address (has no address tlv); is mandatory address */
-    origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target._packet_data.origNode.addr, true);
+    origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target.packet_data.origNode.addr, true);
 
     /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target._packet_data.targNode.addr, true);
+    targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target.packet_data.targNode.addr, true);
 
     /* add OrigNode and TargNode SeqNum TLVs */
     // TODO: allow_dup true or false?
@@ -189,7 +189,7 @@ _cb_rerr_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, _target._packet_data.hoplimit);
+    rfc5444_writer_set_msg_hoplimit(wr, message, _target.packet_data.hoplimit);
 }
 
 /**
@@ -273,20 +273,21 @@ void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, 
     /* Make sure no other thread is using the writer right now */
     if (mutex_lock(&writer_mutex) == 1) {
 
-        memset(&_target._packet_data, 0, sizeof(struct aodvv2_packet_data));
-        memcpy(&_target._packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
-        memcpy(&_target._packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
-        _target._packet_data.hoplimit = AODVV2_MAX_HOPCOUNT;
+        memset(&_target.packet_data, 0, sizeof(struct aodvv2_packet_data));
+        memcpy(&_target.packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
+        memcpy(&_target.packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
+        _target.packet_data.hoplimit = AODVV2_MAX_HOPCOUNT;
+        _target.type = RFC5444_MSGTYPE_RREQ;
 
         /* set address to which the write_packet callback should send our RREQ */
         memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
 
-        /* set info about the rreq so the callbacks just have to grab it from _packet_data */
+        /* set info about the rreq so the callbacks just have to grab it from packet_data */
         uint16_t origNode_seqNum = seqNum_get();
-        _target._packet_data.origNode.seqNum = origNode_seqNum;
+        _target.packet_data.origNode.seqNum = origNode_seqNum;
         seqNum_inc();
 
-        _target._packet_data.origNode.metric = 0;
+        _target.packet_data.origNode.metric = 0;
 
         rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
         rfc5444_writer_flush(&writer, &_target.interface, false);
@@ -308,7 +309,8 @@ void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr*
     /* Make sure no other thread is using the writer right now */
     if (mutex_lock(&writer_mutex) == 1) {
 
-        memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+        memcpy(&_target.packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+        _target.type = RFC5444_MSGTYPE_RREQ;
 
         /* set address to which the write_packet callback should send our RREQ */
         memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
@@ -335,7 +337,8 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
     /* Make sure no other thread is using the writer right now */
     if (mutex_lock(&writer_mutex) == 1) {
 
-        memcpy(&_target._packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+        memcpy(&_target.packet_data, packet_data, sizeof(struct aodvv2_packet_data));
+        _target.type = RFC5444_MSGTYPE_RREP;
 
         /* set address to which the write_packet callback should send our RREQ */
         memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
@@ -354,7 +357,9 @@ void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int 
         return;
 
     if (mutex_lock(&writer_mutex) == 1) {
-        _target._packet_data.hoplimit = hoplimit;
+
+        _target.packet_data.hoplimit = hoplimit;
+        _target.type = RFC5444_MSGTYPE_RERR;
         _unreachable_nodes = unreachable_nodes;
         _num_unreachable_nodes = len;
 

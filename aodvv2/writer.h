@@ -17,7 +17,8 @@
 struct writer_target {
     struct rfc5444_writer_target interface;
     struct netaddr target_address;
-    struct aodvv2_packet_data _packet_data;
+    struct aodvv2_packet_data packet_data;
+    int type;
 };
 
 typedef void (*write_packet_func_ptr)(

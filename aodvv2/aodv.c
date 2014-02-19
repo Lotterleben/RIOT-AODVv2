@@ -227,10 +227,10 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     netaddr_to_ipv6_addr_t(&wt->target_address, &sa_wp.sin6_addr);
 
     /* When originating a RREQ, add it to our RREQ table/update its predecessor */
-    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &_v6_addr_mcast)
-        && netaddr_cmp(&wt->_packet_data.origNode.addr, &na_local) == 0) {
+    if (wt->type == RFC5444_MSGTYPE_RREQ &&
+        netaddr_cmp(&wt->packet_data.origNode.addr, &na_local) == 0) {
         DEBUG("[aodvv2] originating RREQ; updating RREQ table...\n");
-        rreqtable_is_redundant(&wt->_packet_data);
+        rreqtable_is_redundant(&wt->packet_data);
     }
 
     int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 
