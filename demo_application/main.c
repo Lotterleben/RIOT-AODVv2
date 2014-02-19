@@ -60,6 +60,7 @@ void demo_send(char *id_str)
 
 void demo_print_ip(char* str)
 {
+    (void) str;
     ipv6_iface_print_addrs();
 }
 
