@@ -13,13 +13,15 @@
 static void _reset_entry_if_stale(uint8_t i);
 
 static struct aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
-timex_t now, null_time, max_seqnum_lifetime;
+timex_t now, null_time, max_seqnum_lifetime, active_interval, max_idletime;
 struct netaddr_str nbuf;
 
 void routingtable_init(void)
 {   
     null_time = timex_set(0,0);
     max_seqnum_lifetime = timex_set(AODVV2_MAX_SEQNUM_LIFETIME,0);
+    active_interval = timex_set(AODVV2_ACTIVE_INTERVAL, 0);
+    max_idletime = timex_set(AODVV2_MAX_IDLETIME, 0);
 
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
@@ -89,10 +91,31 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
 static void _reset_entry_if_stale(uint8_t i)
 {
     vtimer_now(&now);
+    int state;
+    timex_t lastUsed, expirationTime;
 
-    if (timex_cmp(routing_table[i].expirationTime, null_time) != 0){
-        if(timex_cmp(routing_table[i].expirationTime, now) < 1 ||
-           timex_cmp(timex_sub(now, routing_table[i].lastUsed), max_seqnum_lifetime) >= 0){
+    if (timex_cmp(routing_table[i].expirationTime, null_time) != 0) {
+        state = routing_table[i].state;
+        lastUsed = routing_table[i].lastUsed;
+        expirationTime = routing_table[i].expirationTime;
+
+        /* an Active route is considered to remain active as long as it is used at least once
+           during every ACTIVE_INTERVAL. When a route is no longer Active, it becomes an Idle route. */
+        if (state == ROUTE_STATE_ACTIVE &&
+            timex_cmp(timex_sub(now, active_interval), lastUsed) == 1) {
+            routing_table[i].state = ROUTE_STATE_IDLE;
+            routing_table[i].lastUsed = now; // mark the time entry was set to Idle
+        }
+        /* After an idle route remains Idle for MAX_IDLETIME, it becomes an Expired route. */
+        if (state == ROUTE_STATE_IDLE &&
+            timex_cmp(timex_sub(now, max_idletime), lastUsed) == 1 ) {
+            routing_table[i].state = ROUTE_STATE_EXPIRED;
+            routing_table[i].lastUsed = now; // mark the time entry was set to Expired
+        }
+        /* After that time, old sequence number information is considered no longer 
+           valuable and the Expired route MUST BE expunged */
+        if(timex_cmp(expirationTime, now) < 1 ||
+           timex_cmp(timex_sub(now, lastUsed), max_seqnum_lifetime) >= 0) {
             DEBUG("\treset routing table entry for %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i].address), i);
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
         }
