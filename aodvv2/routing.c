@@ -13,12 +13,13 @@
 static void _reset_entry_if_stale(uint8_t i);
 
 static struct aodvv2_routing_entry_t routing_table[AODVV2_MAX_ROUTING_ENTRIES];
-timex_t now, null_time;
+timex_t now, null_time, max_seqnum_lifetime;
 struct netaddr_str nbuf;
 
 void routingtable_init(void)
 {   
     null_time = timex_set(0,0);
+    max_seqnum_lifetime = timex_set(AODVV2_MAX_SEQNUM_LIFETIME,0);
 
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         memset(&routing_table[i], 0, sizeof(routing_table[i]));
@@ -82,14 +83,16 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
 }
 
 /* 
- * Check if entry at index i is stale and clear the struct it fills if it is
+ * Check if entry at index i is stale as described in Section 6.3. 
+ * and clear the struct it fills if it is
  */
 static void _reset_entry_if_stale(uint8_t i)
 {
     vtimer_now(&now);
 
     if (timex_cmp(routing_table[i].expirationTime, null_time) != 0){
-        if(timex_cmp(routing_table[i].expirationTime, now) < 1){
+        if(timex_cmp(routing_table[i].expirationTime, now) < 1 ||
+           timex_cmp(timex_sub(now, routing_table[i].lastUsed), max_seqnum_lifetime) >= 0){
             DEBUG("\treset routing table entry for %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i].address), i);
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
         }
