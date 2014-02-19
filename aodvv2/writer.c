@@ -286,4 +286,5 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
 void writer_cleanup(void)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
+    rfc5444_writer_cleanup(&writer);
 }
