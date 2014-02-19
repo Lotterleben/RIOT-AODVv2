@@ -55,7 +55,6 @@ void aodv_init(void)
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /*testtest*/
-
     writer_send_rreq(&na_local, &na_mcast, &na_mcast);
 
     struct unreachable_node unreachable_nodes[2];
@@ -63,7 +62,8 @@ void aodv_init(void)
     unreachable_nodes[0].seqnum = 13;
     unreachable_nodes[1].addr = na_mcast; 
     unreachable_nodes[1].seqnum = 23;
-    writer_send_rerr(unreachable_nodes, 2, 20, &na_mcast);
+    // set the hoplimit to 3 to reduce debugging noise
+    writer_send_rerr(unreachable_nodes, 2, 3, &na_mcast);
 }
 
 /* 
@@ -164,12 +164,34 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 
     struct netaddr _tmp_dest;
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
+    timex_t now;
 
+    /*
     ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(&_tmp_dest, _metric_type);
     if (next_hop){
         DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, next_hop));
         return next_hop;
-    }
+    }*/
+
+    struct aodvv2_routing_entry_t* rt_entry = routingtable_get_entry(&_tmp_dest, _metric_type);
+    if (rt_entry) {
+        if (rt_entry->state == ROUTE_STATE_BROKEN ||
+            rt_entry->state == ROUTE_STATE_EXPIRED) {
+            DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
+            // TODO send rerr
+            struct unreachable_node unreachable_nodes[1];
+            unreachable_nodes[0].addr = _tmp_dest;
+            unreachable_nodes[0].seqnum = rt_entry->seqNum;
+            writer_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
+            return NULL;
+        }
+
+        DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
+        vtimer_now(&now);
+        rt_entry->lastUsed = now;
+
+        return &rt_entry->nextHopAddress;
+    } 
 
     /* no route found => start route discovery */
     writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);

@@ -536,13 +536,10 @@ static enum rfc5444_result _cb_rerr_blocktlv_addresstlvs_okay(struct rfc5444_rea
         /* check if route to unreachable node has to be marked as broken and RERR has to be forwarded*/
         if (netaddr_cmp(&unreachable_entry->nextHopAddress, &packet_data.sender ) == 0 
             && (!tlv || seqnum_cmp(unreachable_entry->seqNum, packet_data.origNode.seqNum))) {
-            unreachable_entry->state = ROUTE_STATE_BROKEN;
-            if (packet_data.hoplimit > 0) {
-                unreachable_nodes[num_unreachable_nodes].addr = packet_data.origNode.addr;
-                unreachable_nodes[num_unreachable_nodes].seqnum = packet_data.origNode.seqNum;
-                num_unreachable_nodes++;
-                packet_data.hoplimit--;
-            }
+            unreachable_entry->state = ROUTE_STATE_BROKEN; // TODO: debug because it will break routesfor a long time
+            unreachable_nodes[num_unreachable_nodes].addr = packet_data.origNode.addr;
+            unreachable_nodes[num_unreachable_nodes].seqnum = packet_data.origNode.seqNum;
+            num_unreachable_nodes++;
         }
     }
     return RFC5444_OKAY;

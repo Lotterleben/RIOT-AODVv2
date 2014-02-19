@@ -189,7 +189,7 @@ _cb_rerr_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_messa
 
     /* no originator, no hopcount, has hoplimit, no seqno */
     rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, AODVV2_MAX_HOPCOUNT);
+    rfc5444_writer_set_msg_hoplimit(wr, message, _target._packet_data.hoplimit);
 }
 
 /**
@@ -345,38 +345,6 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
         mutex_unlock(&writer_mutex);
     } // TODO: handle mutex_lock() = -1?  
 }
-
-/**
- * Send a RERR. 
- * TODO: 
-  - netaddr[], len übergeben, damit ich beliebig viele UnreachableNodes übergeben kann
-  - consider metrictype; add metrictype tlv if != default metric type
- */
-
-void writer_send_rerr_old(struct netaddr* unreachable_node, int seqnum, int metric_type, struct netaddr* next_hop)
-{
-    DEBUG("[aodvv2] %s()\n", __func__);
-
-    if (unreachable_node == NULL || next_hop == NULL)
-        return;
-
-    /* Make sure no other thread is using the writer right now */
-    if (mutex_lock(&writer_mutex) == 1) {
-        _target._packet_data.metricType = metric_type;
-        
-        /* TEMPORARY; works only for 1 UnreachableNode (i.e. only Case 1) */
-        memcpy(&_target._packet_data.origNode.addr, unreachable_node, sizeof (struct netaddr));
-        _target._packet_data.origNode.seqNum = seqnum;
-
-        /* set address to which the write_packet callback should send our RREQ */
-        memcpy(&_target.target_address, next_hop, sizeof (struct netaddr));
-
-        rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RERR);
-        rfc5444_writer_flush(&writer, &_target.interface, false);
-        mutex_unlock(&writer_mutex);
-    } // TODO: handle mutex_lock() = -1?  
-}
-
 
 void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int hoplimit, struct netaddr* next_hop)
 {
