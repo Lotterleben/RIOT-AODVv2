@@ -53,6 +53,17 @@ void aodv_init(void)
 
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
+
+    /*testtest*/
+    writer_send_rreq(&na_local, &na_mcast, &na_mcast);
+
+    struct unreachable_node unreachable_nodes[2];
+    unreachable_nodes[0].addr = na_local;
+    unreachable_nodes[0].seqnum = 13;
+    unreachable_nodes[1].addr = na_mcast; 
+    unreachable_nodes[1].seqnum = 23;
+    // set the hoplimit to 3 to reduce debugging noise
+    writer_send_rerr(unreachable_nodes, 2, 3, &na_mcast);
 }
 
 /* 
@@ -153,12 +164,35 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 
     struct netaddr _tmp_dest;
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
+    timex_t now;
 
+    /*
     ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(&_tmp_dest, _metric_type);
     if (next_hop){
         DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, next_hop));
         return next_hop;
-    }
+    }*/
+
+    struct aodvv2_routing_entry_t* rt_entry = routingtable_get_entry(&_tmp_dest, _metric_type);
+    if (rt_entry) {
+        if (rt_entry->state == ROUTE_STATE_BROKEN ||
+            rt_entry->state == ROUTE_STATE_EXPIRED ||
+            rt_entry->broken == true) {
+            DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
+            // TODO send rerr
+            struct unreachable_node unreachable_nodes[1];
+            unreachable_nodes[0].addr = _tmp_dest;
+            unreachable_nodes[0].seqnum = rt_entry->seqNum;
+            writer_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
+            return NULL;
+        }
+
+        DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
+        vtimer_now(&now);
+        rt_entry->lastUsed = now;
+
+        return &rt_entry->nextHopAddress;
+    } 
 
     /* no route found => start route discovery */
     writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
@@ -193,10 +227,10 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
     netaddr_to_ipv6_addr_t(&wt->target_address, &sa_wp.sin6_addr);
 
     /* When originating a RREQ, add it to our RREQ table/update its predecessor */
-    if (ipv6_addr_is_equal(&sa_wp.sin6_addr, &_v6_addr_mcast)
-        && netaddr_cmp(&wt->_packet_data.origNode.addr, &na_local) == 0) {
+    if (wt->type == RFC5444_MSGTYPE_RREQ &&
+        netaddr_cmp(&wt->packet_data.origNode.addr, &na_local) == 0) {
         DEBUG("[aodvv2] originating RREQ; updating RREQ table...\n");
-        rreqtable_is_redundant(&wt->_packet_data);
+        rreqtable_is_redundant(&wt->packet_data);
     }
 
     int bytes_sent = destiny_socket_sendto(_sock_snd, buffer, length, 
