@@ -160,7 +160,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     uint16_t targNode_seqNum = seqNum_get();
     seqNum_inc();
 
-    uint8_t targNode_hopCt = _target.packet_data.targNode.metric;
+    uint8_t targNode_hopCt = _target.packet_data.targNode.metric; // TODO -- stimmt das so?! sollte ich da nicht von vore anfangen?!
 
     /* add origNode address (has no address tlv); is mandatory address */
     origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target.packet_data.origNode.addr, true);
