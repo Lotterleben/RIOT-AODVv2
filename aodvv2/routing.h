@@ -47,4 +47,7 @@ struct aodvv2_routing_entry_t* routingtable_get_entry(struct netaddr* addr, uint
 void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType);
 void print_routingtable(void);
 void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry);
+/* I'm really sorry about my naming choice here. */
+void routingtable_break_and_get_all_hopping_over(struct netaddr* nextHopAddress, struct unreachable_node unreachable_nodes[], int* len);
+
 #endif /* ROUTING_H_ */ 

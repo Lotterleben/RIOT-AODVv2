@@ -57,6 +57,7 @@ void aodv_init(void)
     /*testtest*/
     writer_send_rreq(&na_local, &na_mcast, &na_mcast);
 
+    /*
     struct unreachable_node unreachable_nodes[2];
     unreachable_nodes[0].addr = na_local;
     unreachable_nodes[0].seqnum = 13;
@@ -64,6 +65,7 @@ void aodv_init(void)
     unreachable_nodes[1].seqnum = 23;
     // set the hoplimit to 3 to reduce debugging noise
     writer_send_rerr(unreachable_nodes, 2, 3, &na_mcast);
+    */
 }
 
 /* 
@@ -165,27 +167,32 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     struct netaddr _tmp_dest;
     ipv6_addr_t_to_netaddr(dest, &_tmp_dest);
     timex_t now;
-
-    /*
-    ipv6_addr_t* next_hop = (ipv6_addr_t*) routingtable_get_next_hop(&_tmp_dest, _metric_type);
-    if (next_hop){
-        DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, next_hop));
-        return next_hop;
-    }*/
+    struct unreachable_node unreachable_nodes[AODVV2_MAX_UNREACHABLE_NODES];
+    int len;
 
     struct aodvv2_routing_entry_t* rt_entry = routingtable_get_entry(&_tmp_dest, _metric_type);
     if (rt_entry) {
+        ndp_neighbor_cache_t* ndp_nc_entry = ndp_neighbor_cache_search(dest);
+
+        /* Case 1: Undeliverable Packet */        
         if (rt_entry->state == ROUTE_STATE_BROKEN ||
             rt_entry->state == ROUTE_STATE_EXPIRED ||
             rt_entry->broken == true) {
             DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
-            // TODO send rerr
-            struct unreachable_node unreachable_nodes[1];
             unreachable_nodes[0].addr = _tmp_dest;
             unreachable_nodes[0].seqnum = rt_entry->seqNum;
             writer_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         }
+        /* Case 2: Broken Link */
+        if ((!ndp_nc_entry || ndp_nc_entry->state != NDP_NCE_STATUS_REACHABLE) // TODO martine fragen ob das der einzig richtige state ist
+            && (rt_entry->state != ROUTE_STATE_BROKEN || rt_entry->broken != true)) {
+            // mark all routes (active, idle, expired) that use next_hop as broken
+            // add all *Active* routes to the list of unreachable nodes        
+            routingtable_break_and_get_all_hopping_over(&_tmp_dest, unreachable_nodes, &len);
+            writer_send_rerr(unreachable_nodes, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
+            return NULL;
+        } 
 
         DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
         vtimer_now(&now);
