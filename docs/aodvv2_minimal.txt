@@ -477,7 +477,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    In both cases, the <msg-hop-limit> MUST be included and SHOULD be set
    to MAX_HOPCOUNT.  <msg-hop-count> SHOULD be included and set to 0.
 
-8.3.1.  Case 1: Undeliverable Packet
+8.3.1.  Case 1: Undeliverable Packet [DONE]
 
    The first case happens when the router receives a packet from another
    AODVv2 router but does not have a valid route for the destination of
@@ -531,7 +531,7 @@ bachelor's thesis (so far). I may extend it as I go along.
 
    2.  Route.NextHopAddress is the same as RERR IP.SourceAddress.
 
-  If the Route satisfies all of the above conditions, HandlingRtr
+   If the Route satisfies all of the above conditions, HandlingRtr
    sets the Route.Broken flag for that Route. Furthermore, if <msg-hop-
    limit> is greater than 0, then HandlingRtr adds the UnreachableNode
    address and TLV information to an AddrBlk for delivery in the

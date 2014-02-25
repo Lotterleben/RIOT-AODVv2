@@ -84,6 +84,40 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
     }
 }
 
+/**
+ * find all routing table entries that use hop as their nextHopAddress, mark them
+ * as broken, write the active one into unreachable_nodes[] and increment len 
+ * accordingly. (Sorry about the Name.)
+ * TODO test/debug somehow
+ *
+ * @param hop
+ * @param unreachable_nodes[] array to be filled. should be empty.
+ * @param len int where the future length of unreachable_nodes[] should be noted
+ */
+void routingtable_break_and_get_all_hopping_over(struct netaddr* hop, struct unreachable_node unreachable_nodes[], int* len) 
+{
+    *len = 0; // to be sure
+
+    for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
+        _reset_entry_if_stale(i);
+
+        if (!netaddr_cmp(&routing_table[i].nextHopAddress, hop)) {
+            if (routing_table[i].state == ROUTE_STATE_ACTIVE &&
+                *len < AODVV2_MAX_UNREACHABLE_NODES) {
+                // when the max number of unreachable nodes is reached we're screwed.
+                // the above check is just damage control. TODO use autobuf
+                unreachable_nodes[*len].addr = routing_table[i].address;
+                unreachable_nodes[*len].seqnum = routing_table[i].seqNum;
+                
+                *len++;
+            }
+            routing_table[i].state = ROUTE_STATE_BROKEN;
+            routing_table[i].broken = true;
+            DEBUG("len: %i\n", *len);
+        }
+    }
+}
+
 /* 
  * Check if entry at index i is stale as described in Section 6.3. 
  * and clear the struct it fills if it is
