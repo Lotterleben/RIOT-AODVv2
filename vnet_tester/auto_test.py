@@ -7,10 +7,13 @@ import random
 import logging
 import time
 import datetime
+import signal
 from thread import start_new_thread
 
 riots = {}
 riots_lock = threading.Lock()
+sockets = []
+sockets_lock = threading.Lock()
 ports_local_path = "../../riot/desvirt_mehlis/ports.list" # TODO properly
 experiment_duration = 200
 max_silence_interval = 20
@@ -27,14 +30,6 @@ def get_node_ip(data):
     ips = data.split("\n");
     return ips[1]
 
-def connect_riots():
-    for port, ip in riots.iteritems():
-        start_new_thread(test_sender_thread,(port,))
-        # make sure the main thread isn't killed before we initialize our sockets
-        time.sleep(2) 
-    
-    time.sleep(experiment_duration) 
-
 def get_shell_output(sock):
     # read IP data until ">" marks termination of the shell output
     data = chunk = ""
@@ -44,11 +39,23 @@ def get_shell_output(sock):
         data += chunk
     return data
 
-# read IP data until ">" marks termination of the shell output
+def connect_riots():
+    for port, ip in riots.iteritems():
+        start_new_thread(test_sender_thread,(port,))
+        # make sure the main thread isn't killed before we initialize our sockets
+        time.sleep(2) 
+    
+    time.sleep(experiment_duration) 
+
 def test_sender_thread(port):
     sys.stdout.write("Port: %s\n" % port)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     data = my_ip = random_neighbor = ""
+    thread_id = threading.currentThread().name
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    with sockets_lock:
+        sockets.append(sock)
 
     try:
         sock.connect(("127.0.0.1 ", int(port)))
@@ -64,10 +71,12 @@ def test_sender_thread(port):
 
         # get relevant IP address
         my_ip = get_node_ip(data)
-        sys.stdout.write("IP: %s\n" % my_ip)
+        #sys.stdout.write("{%s} IP: %s\n" % (thread_id, my_ip))
+        logging.debug("{%s} IP: %s\n" % (thread_id, my_ip))
+
 
         with riots_lock:
-            sys.stdout.write("adding node to riots...\n")
+            sys.stdout.write("adding node with IP %s to riots...\n" % my_ip)
             riots[port] = my_ip
 
         #for i in range (0,5):
@@ -87,20 +96,32 @@ def test_sender_thread(port):
                 sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
                 sock.sendall("send %s hello\n" % random_neighbor)
 
-                logging.debug(get_shell_output(sock))
+                logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
     except:
         traceback.print_exc()
         sys.exit()
+
+# kill tcp connections on SIGINT
+def signal_handler(signal, frame):
+        print "\nCleaning up..."
+
+        for socket in sockets:
+            with sockets_lock:
+                socket.close
+                print "socket",socket.fileno(),"closed."
+
+        print "done"
+        sys.exit(0)
 
 if __name__ == "__main__":
     timestamp = time.time()
     date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
     logfile_name = "logs/auto_test "+date+".log"
     
-    logging.basicConfig(filename=logfile_name,level=logging.DEBUG)
-    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+    logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     get_ports()
-    print riots
     connect_riots()
