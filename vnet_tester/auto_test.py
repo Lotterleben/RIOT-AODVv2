@@ -2,9 +2,12 @@ import socket
 import time
 import traceback
 import sys
-from thread import start_new_thread
 import threading
 import random
+import logging
+import time
+import datetime
+from thread import start_new_thread
 
 riots = {}
 riots_lock = threading.Lock()
@@ -32,27 +35,34 @@ def connect_riots():
     
     time.sleep(experiment_duration) 
 
+def get_shell_output(sock):
+    # read IP data until ">" marks termination of the shell output
+    data = chunk = ""
+
+    while (not(">" in data)):
+        chunk = sock.recv(4096)
+        data += chunk
+    return data
+
+# read IP data until ">" marks termination of the shell output
 def test_sender_thread(port):
     sys.stdout.write("Port: %s\n" % port)
-    
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    data = ""
-    my_ip = ""
-    random_neighbor = ""
+    data = my_ip = random_neighbor = ""
 
     try:
         sock.connect(("127.0.0.1 ", int(port)))
         sock.sendall("ip\n")
 
-        # read IP data until ">" marks termination of the shell output
-        while (not(">" in data)):
-            chunk = sock.recv(4096)
-            data += chunk
+        #get all IP addresses of this RIOT
+        data = get_shell_output(sock)
 
         # check for errors (superduper professionally)
         if ("shell: command not found" in data):
             sys.stdout.write("Hickup while retrieving IPs. Exiting. Please try again.\n")
             sys.exit()
+
+        # get relevant IP address
         my_ip = get_node_ip(data)
         sys.stdout.write("IP: %s\n" % my_ip)
 
@@ -77,12 +87,20 @@ def test_sender_thread(port):
                 sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
                 sock.sendall("send %s hello\n" % random_neighbor)
 
+                logging.debug(get_shell_output(sock))
+
     except:
         traceback.print_exc()
         sys.exit()
 
 if __name__ == "__main__":
-    initialized_riots = 0
+    timestamp = time.time()
+    date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
+    logfile_name = "logs/auto_test "+date+".log"
+    
+    logging.basicConfig(filename=logfile_name,level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+
     get_ports()
     print riots
     connect_riots()
