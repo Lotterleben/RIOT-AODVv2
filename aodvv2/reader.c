@@ -555,6 +555,7 @@ static enum rfc5444_result _cb_rerr_end_callback(struct rfc5444_reader_tlvblock_
     }
     /* gather all unreachable nodes and put them into a RERR */
     writer_send_rerr(unreachable_nodes, num_unreachable_nodes, packet_data.hoplimit, &na_mcast);
+    return RFC5444_OKAY;
 }
 
 void reader_init(void)

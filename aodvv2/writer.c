@@ -106,14 +106,14 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
-    struct rfc5444_writer_address *origNode_addr, *targNode_addr;
+    struct rfc5444_writer_address *origNode_addr;
     
     /* add origNode address (has no address tlv); is mandatory address */
     origNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
                                                &_target.packet_data.origNode.addr, true);
 
-    /* add origNode address (has no address tlv); is mandatory address */
-    targNode_addr = rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
+    /* add targNode address (has no address tlv); is mandatory address */
+    rfc5444_writer_add_address(wr, _rreq_message_content_provider.creator, 
                                                &_target.packet_data.targNode.addr, true);
 
     /* add SeqNum TLV and metric TLV to origNode */
@@ -147,7 +147,7 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
     /* add origNode address (has no address tlv); is mandatory address */
     origNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target.packet_data.origNode.addr, true);
 
-    /* add origNode address (has no address tlv); is mandatory address */
+    /* add targNode address (has no address tlv); is mandatory address */
     targNode_addr = rfc5444_writer_add_address(wr, _rrep_message_content_provider.creator, &_target.packet_data.targNode.addr, true);
 
     /* add OrigNode and TargNode SeqNum TLVs */
@@ -171,7 +171,7 @@ _cb_rerr_addAddresses(struct rfc5444_writer *wr)
     struct rfc5444_writer_address *unreachableNode_addr;
 
     for (int i = 0; i < _num_unreachable_nodes; i++){
-        /* add origNode address (has no address tlv); is mandatory address */
+        /* add unreachableNode addresses (has no address tlv); is mandatory address */
         unreachableNode_addr = rfc5444_writer_add_address(wr, _rerr_message_content_provider.creator, 
                                                    &_unreachable_nodes[i].addr, true);
 
