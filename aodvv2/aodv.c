@@ -35,7 +35,7 @@ void aodv_init(void)
     _init_sock_snd();
 
     /* init ALL the things! \o, */
-    seqNum_init();
+    seqnum_init();
     routingtable_init();
     clienttable_init();
 
@@ -180,7 +180,7 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             rt_entry->broken == true) {
             DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
             unreachable_nodes[0].addr = _tmp_dest;
-            unreachable_nodes[0].seqnum = rt_entry->seqNum;
+            unreachable_nodes[0].seqnum = rt_entry->seqnum;
             writer_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         }
@@ -194,11 +194,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             return NULL;
         } 
 
-        DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddress));
+        DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddr));
         vtimer_now(&now);
         rt_entry->lastUsed = now;
 
-        return &rt_entry->nextHopAddress;
+        return &rt_entry->nextHopAddr;
     } 
 
     /* no route found => start route discovery */
@@ -231,7 +231,7 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
        specific node or the multicast address) from the writer_target struct
        iface* is stored in. This is a bit hacky, but it does the trick. */
     wt = container_of(iface, struct writer_target, interface);
-    netaddr_to_ipv6_addr_t(&wt->target_address, &sa_wp.sin6_addr);
+    netaddr_to_ipv6_addr_t(&wt->target_addr, &sa_wp.sin6_addr);
 
     /* When originating a RREQ, add it to our RREQ table/update its predecessor */
     if (wt->type == RFC5444_MSGTYPE_RREQ &&

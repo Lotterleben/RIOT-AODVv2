@@ -34,7 +34,7 @@ struct netaddr* routingtable_get_next_hop(struct netaddr* addr, uint8_t metricTy
     struct aodvv2_routing_entry_t* entry = routingtable_get_entry(addr, metricType);
     if (!entry)
         return NULL;
-    return(&entry->nextHopAddress);
+    return(&entry->nextHopAddr);
 }
 
 
@@ -43,10 +43,10 @@ void routingtable_add_entry(struct aodvv2_routing_entry_t* entry)
     /* only update if we don't already know the address
      * TODO: does this always make sense?
      */
-    if (!(routingtable_get_entry(&(entry->address), entry->metricType))){
+    if (!(routingtable_get_entry(&(entry->addr), entry->metricType))){
         /*find free spot in RT and place rt_entry there */
         for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++){
-            if (routing_table[i].address._type == AF_UNSPEC) {
+            if (routing_table[i].addr._type == AF_UNSPEC) {
                 /* TODO: sanity check? */
                 memcpy(&routing_table[i], entry, sizeof(struct aodvv2_routing_entry_t));
                 return;
@@ -63,7 +63,7 @@ struct aodvv2_routing_entry_t* routingtable_get_entry(struct netaddr* addr, uint
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         _reset_entry_if_stale(i);
 
-        if (!netaddr_cmp(&routing_table[i].address, addr)
+        if (!netaddr_cmp(&routing_table[i].addr, addr)
             && routing_table[i].metricType == metricType) {
             return &routing_table[i];
         }
@@ -76,7 +76,7 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         _reset_entry_if_stale(i);
 
-        if (!netaddr_cmp(&routing_table[i].address, addr)
+        if (!netaddr_cmp(&routing_table[i].addr, addr)
             && routing_table[i].metricType == metricType) {
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
             return;
@@ -101,13 +101,13 @@ void routingtable_break_and_get_all_hopping_over(struct netaddr* hop, struct unr
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         _reset_entry_if_stale(i);
 
-        if (!netaddr_cmp(&routing_table[i].nextHopAddress, hop)) {
+        if (!netaddr_cmp(&routing_table[i].nextHopAddr, hop)) {
             if (routing_table[i].state == ROUTE_STATE_ACTIVE &&
                 *len < AODVV2_MAX_UNREACHABLE_NODES) {
                 // when the max number of unreachable nodes is reached we're screwed.
                 // the above check is just damage control. TODO use autobuf
-                unreachable_nodes[*len].addr = routing_table[i].address;
-                unreachable_nodes[*len].seqnum = routing_table[i].seqNum;
+                unreachable_nodes[*len].addr = routing_table[i].addr;
+                unreachable_nodes[*len].seqnum = routing_table[i].seqnum;
                 
                 *len++;
             }
@@ -150,7 +150,7 @@ static void _reset_entry_if_stale(uint8_t i)
            valuable and the Expired route MUST BE expunged */
         if(timex_cmp(expirationTime, now) < 1 ||
            timex_cmp(timex_sub(now, lastUsed), max_seqnum_lifetime) >= 0) {
-            DEBUG("\treset routing table entry for %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i].address), i);
+            DEBUG("\treset routing table entry for %s at %i\n", netaddr_to_string(&nbuf, &routing_table[i].addr), i);
             memset(&routing_table[i], 0, sizeof(routing_table[i]));
         }
     }
@@ -173,10 +173,10 @@ void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry)
     struct netaddr_str nbuf;
 
     printf(".................................\n");
-    printf("\t address: %s\n", netaddr_to_string(&nbuf, &(rt_entry->address))); 
+    printf("\t address: %s\n", netaddr_to_string(&nbuf, &(rt_entry->addr))); 
     printf("\t prefixlen: %i\n", rt_entry->prefixlen);
-    printf("\t seqNum: %i\n", rt_entry->seqNum);
-    printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddress)));
+    printf("\t seqnum: %i\n", rt_entry->seqnum);
+    printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddr)));
     printf("\t lastUsed: %"PRIu32":%"PRIu32"\n", rt_entry->lastUsed.seconds, rt_entry->lastUsed.microseconds);
     printf("\t expirationTime: %"PRIu32":%"PRIu32"\n", rt_entry->expirationTime.seconds, rt_entry->expirationTime.microseconds);
     printf("\t broken: %d\n", rt_entry->broken);

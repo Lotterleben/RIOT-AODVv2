@@ -3,33 +3,33 @@
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-static uint16_t seqNum; 
+static uint16_t seqnum; 
 
 /**
  * Initializes the AODVv2 SeqNum.
  **/
 
-void seqNum_init(void)
+void seqnum_init(void)
 {
-    seqNum = 1;
+    seqnum = 1;
 }
 
 /**
  * Increments the AODVv2 SeqNum by 1.
  **/
-void seqNum_inc(void)
+void seqnum_inc(void)
 {   
-    if (seqNum == 65535)
-        seqNum = 1;
-    else if (seqNum == 0)
+    if (seqnum == 65535)
+        seqnum = 1;
+    else if (seqnum == 0)
         DEBUG("ERROR: SeqNum shouldn't be 0! \n"); // TODO handle properly
     else
-        seqNum++;
+        seqnum++;
 }
 
-uint16_t seqNum_get(void)
+uint16_t seqnum_get(void)
 {
-    return seqNum;
+    return seqnum;
 }
 
 /**

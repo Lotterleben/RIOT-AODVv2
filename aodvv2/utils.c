@@ -135,7 +135,7 @@ void rreqtable_init(void)
 bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
 {
     struct aodvv2_rreq_entry* comparable_rreq;
-    int seqNum_comparison;
+    int seqnum_comparison;
     timex_t now;
     
     if (mutex_lock(&rreqt_mutex) == 1) {
@@ -148,28 +148,28 @@ bool rreqtable_is_redundant(struct aodvv2_packet_data* packet_data)
             return false;
         }
 
-        seqNum_comparison = seqnum_cmp(packet_data->origNode.seqNum, comparable_rreq->seqNum);
+        seqnum_comparison = seqnum_cmp(packet_data->origNode.seqnum, comparable_rreq->seqnum);
 
         /* 
          * If two RREQs have the same
          * metric type and OrigNode and Targnode addresses, the information from
          * the one with the older Sequence Number is not needed in the table
          */
-        if (seqNum_comparison == -1){
+        if (seqnum_comparison == -1){
             mutex_unlock(&rreqt_mutex);
             return true;
         }
 
-        if (seqNum_comparison == 1){
+        if (seqnum_comparison == 1){
             /* Update RREQ table entry with new seqnum value */
-            comparable_rreq->seqNum = packet_data->origNode.seqNum;
+            comparable_rreq->seqnum = packet_data->origNode.seqnum;
         }
 
         /* 
          * in case they have the same Sequence Number, the one with the greater
          * Metric value is not needed
          */
-        if (seqNum_comparison == 0){
+        if (seqnum_comparison == 0){
             if (comparable_rreq->metric <= packet_data->origNode.metric){
                 mutex_unlock(&rreqt_mutex);
                 return true;
@@ -223,7 +223,7 @@ static void _add_rreq(struct aodvv2_packet_data* packet_data)
                 rreq_table[i].targNode = packet_data->targNode.addr; 
                 rreq_table[i].metricType = packet_data->metricType; 
                 rreq_table[i].metric = packet_data->origNode.metric; 
-                rreq_table[i].seqNum = packet_data->origNode.seqNum;
+                rreq_table[i].seqnum = packet_data->origNode.seqnum;
                 rreq_table[i].timestamp = packet_data->timestamp;
                 return;
             }

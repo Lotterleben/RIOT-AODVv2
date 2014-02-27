@@ -27,10 +27,10 @@ enum aodvv2_routing_states {
 
 /* contains all fields of a routing table entry */
 struct aodvv2_routing_entry_t {
-    struct netaddr address; 
+    struct netaddr addr; 
     uint8_t prefixlen;
-    uint8_t seqNum;
-    struct netaddr nextHopAddress;
+    uint8_t seqnum;
+    struct netaddr nextHopAddr;
     timex_t lastUsed;
     timex_t expirationTime;
     bool broken;
@@ -48,6 +48,6 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType);
 void print_routingtable(void);
 void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry);
 /* I'm really sorry about my naming choice here. */
-void routingtable_break_and_get_all_hopping_over(struct netaddr* nextHopAddress, struct unreachable_node unreachable_nodes[], int* len);
+void routingtable_break_and_get_all_hopping_over(struct netaddr* hop, struct unreachable_node unreachable_nodes[], int* len);
 
 #endif /* ROUTING_H_ */ 

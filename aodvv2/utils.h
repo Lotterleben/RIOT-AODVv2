@@ -19,7 +19,7 @@ struct aodvv2_rreq_entry {
     struct netaddr targNode;
     uint8_t metricType;
     uint8_t metric;
-    uint16_t seqNum;
+    uint16_t seqnum;
     timex_t timestamp;
 };
 

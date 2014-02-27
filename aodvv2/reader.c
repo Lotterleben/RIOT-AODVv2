@@ -146,7 +146,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         DEBUG("\ttlv RFC5444_MSGTLV_ORIGSEQNUM: %d\n", *tlv->single_value);
         is_origNode_addr = true;
         packet_data.origNode.addr = cont->addr;
-        packet_data.origNode.seqNum = *tlv->single_value;
+        packet_data.origNode.seqnum = *tlv->single_value;
         packet_data.origNode.prefixlen = cont->addr._prefix_len;         
     }
 
@@ -156,7 +156,7 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         DEBUG("\ttlv RFC5444_MSGTLV_TARGSEQNUM: %d\n", *tlv->single_value);
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
-        packet_data.targNode.seqNum = *tlv->single_value;
+        packet_data.targNode.seqnum = *tlv->single_value;
         packet_data.targNode.prefixlen = cont->addr._prefix_len;         
     }
     if (!tlv && !is_origNode_addr) {
@@ -235,7 +235,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
         DEBUG("\t Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
-    if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum){
+    if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqnum){
         DEBUG("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
@@ -335,7 +335,7 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
         DEBUG("\ttlv RFC5444_MSGTLV_SEQNUM: %d\n", *tlv->single_value);
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
-        packet_data.targNode.seqNum = *tlv->single_value;
+        packet_data.targNode.seqnum = *tlv->single_value;
         packet_data.targNode.prefixlen = cont->addr._prefix_len;
     }
 
@@ -345,7 +345,7 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
         DEBUG("\ttlv RFC5444_MSGTLV_ORIGSEQNUM: %d\n", *tlv->single_value);
         is_targNode_addr = false;
         packet_data.origNode.addr = cont->addr;
-        packet_data.origNode.seqNum = *tlv->single_value;
+        packet_data.origNode.seqnum = *tlv->single_value;
         packet_data.origNode.prefixlen = cont->addr._prefix_len;
     } 
     if (!tlv && !is_targNode_addr) {
@@ -417,11 +417,11 @@ static enum rfc5444_result _cb_rrep_end_callback(
         DEBUG("\t Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     } 
-    if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqNum) {
+    if ((packet_data.origNode.addr._type == AF_UNSPEC) || !packet_data.origNode.seqnum) {
         DEBUG("\tERROR: missing OrigNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET;
     }
-    if ((packet_data.targNode.addr._type == AF_UNSPEC) || !packet_data.targNode.seqNum) {
+    if ((packet_data.targNode.addr._type == AF_UNSPEC) || !packet_data.targNode.seqnum) {
         DEBUG("\tERROR: missing TargNode Address or SeqNum. Dropping packet.\n");
         return RFC5444_DROP_PACKET; 
     }
@@ -527,19 +527,19 @@ static enum rfc5444_result _cb_rerr_blocktlv_addresstlvs_okay(struct rfc5444_rea
     tlv = _rerr_address_consumer_entries[RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM].tlv;
     if (tlv) {
         DEBUG("\ttlv RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM: %d\n", *tlv->single_value);
-        packet_data.origNode.seqNum = *tlv->single_value;
+        packet_data.origNode.seqnum = *tlv->single_value;
     }
 
     /* Check if there is an entry for unreachable node in our routing table */
     unreachable_entry = routingtable_get_entry(&packet_data.origNode.addr, packet_data.metricType);
     if (unreachable_entry) {
         /* check if route to unreachable node has to be marked as broken and RERR has to be forwarded*/
-        if (netaddr_cmp(&unreachable_entry->nextHopAddress, &packet_data.sender ) == 0 
-            && (!tlv || seqnum_cmp(unreachable_entry->seqNum, packet_data.origNode.seqNum))) {
+        if (netaddr_cmp(&unreachable_entry->nextHopAddr, &packet_data.sender ) == 0 
+            && (!tlv || seqnum_cmp(unreachable_entry->seqnum, packet_data.origNode.seqnum))) {
             unreachable_entry->state = ROUTE_STATE_BROKEN; // TODO: debug because it will break routesfor a long time
             unreachable_entry->broken = true;  // Double Tap as ordered by the Draft.
             unreachable_nodes[num_unreachable_nodes].addr = packet_data.origNode.addr;
-            unreachable_nodes[num_unreachable_nodes].seqnum = packet_data.origNode.seqNum;
+            unreachable_nodes[num_unreachable_nodes].seqnum = packet_data.origNode.seqnum;
             num_unreachable_nodes++;
         }
     }
@@ -615,7 +615,7 @@ int reader_handle_packet(void* buffer, size_t length, struct netaddr* sender)
 static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct node_data* node_data)
 {
     /* Check if new info is stale */    
-    if (seqnum_cmp(node_data->seqNum, rt_entry->seqNum) == -1)
+    if (seqnum_cmp(node_data->seqnum, rt_entry->seqnum) == -1)
         return false;
     /* Check if new info is more costly */
     if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken))
@@ -661,10 +661,10 @@ static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric)
 /* Fills a routing table entry with the data of a RREQ */
 static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost)
 {
-    rt_entry->address = packet_data->origNode.addr;
+    rt_entry->addr = packet_data->origNode.addr;
     rt_entry->prefixlen = packet_data->origNode.prefixlen;
-    rt_entry->seqNum = packet_data->origNode.seqNum;
-    rt_entry->nextHopAddress = packet_data->sender;
+    rt_entry->seqnum = packet_data->origNode.seqnum;
+    rt_entry->nextHopAddr = packet_data->sender;
     rt_entry->lastUsed = packet_data->timestamp;
     rt_entry->expirationTime = timex_add(packet_data->timestamp, validity_t);
     rt_entry->broken = false;
@@ -677,10 +677,10 @@ static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, s
 /* Fills a routing table entry with the data of a RREQ */
 static void _fill_routing_entry_t_rrep(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost)
 {
-    rt_entry->address = packet_data->targNode.addr;
+    rt_entry->addr = packet_data->targNode.addr;
     rt_entry->prefixlen = packet_data->targNode.prefixlen;
-    rt_entry->seqNum = packet_data->targNode.seqNum;
-    rt_entry->nextHopAddress = packet_data->sender;
+    rt_entry->seqnum = packet_data->targNode.seqnum;
+    rt_entry->nextHopAddr = packet_data->sender;
     rt_entry->lastUsed = packet_data->timestamp;
     rt_entry->expirationTime = timex_add(packet_data->timestamp, validity_t);
     rt_entry->broken = false;

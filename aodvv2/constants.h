@@ -36,7 +36,7 @@ struct node_data {
     struct netaddr addr;
     uint8_t prefixlen;
     uint8_t metric;
-    uint16_t seqNum;
+    uint16_t seqnum;
 };
 
 /* contains all data contained in an aodvv2 packet */

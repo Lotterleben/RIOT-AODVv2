@@ -16,7 +16,7 @@
 
 struct writer_target {
     struct rfc5444_writer_target interface;
-    struct netaddr target_address;
+    struct netaddr target_addr;
     struct aodvv2_packet_data packet_data;
     int type;
 };
