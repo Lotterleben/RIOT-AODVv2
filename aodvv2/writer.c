@@ -15,14 +15,11 @@
  * - The Packet header data is bullshit and only serves as an example for me 
  **/
 
+static void _cb_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
+
 static void _cb_rreq_addAddresses(struct rfc5444_writer *wr);
-static void _cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
-
 static void _cb_rrep_addAddresses(struct rfc5444_writer *wr);
-static void _cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
-
 static void _cb_rerr_addAddresses(struct rfc5444_writer *wr);
-static void _cb_rerr_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message);
 
 static mutex_t writer_mutex;
 
@@ -91,7 +88,7 @@ static struct rfc5444_writer_tlvtype _rerr_addrtlvs[] = {
  * @param message
  */
 static void
-_cb_rreq_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message)
+_cb_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
@@ -130,21 +127,6 @@ _cb_rreq_addAddresses(struct rfc5444_writer *wr)
 }
 
 /**
- * Callback to define the message header for a RFC5444 RREQ message
- * @param wr
- * @param message
- */
-static void
-_cb_rrep_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message)
-{
-    DEBUG("[aodvv2] %s()\n", __func__);
-
-    /* no originator, no hopcount, has hoplimit, no seqno */
-    rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, AODVV2_MAX_HOPCOUNT);
-}
-
-/**
  * Callback to add addresses and address TLVs to a RFC5444 RREQ message
  * @param wr
  */
@@ -175,21 +157,6 @@ _cb_rrep_addAddresses(struct rfc5444_writer *wr)
 
     /* Add Metric TLV to targNode Address */
     rfc5444_writer_add_addrtlv(wr, targNode_addr, &_rrep_addrtlvs[RFC5444_MSGTLV_METRIC], &targNode_hopCt, sizeof(targNode_hopCt), false);
-}
-
-/**
- * Callback to define the message header for a RFC5444 RREQ message
- * @param wr
- * @param message
- */
-static void
-_cb_rerr_addMessageHeader(struct rfc5444_writer *wr, struct rfc5444_writer_message *message)
-{
-    DEBUG("[aodvv2] %s()\n", __func__);
-
-    /* no originator, no hopcount, has hoplimit, no seqno */
-    rfc5444_writer_set_msg_header(wr, message, false, false, true, false);
-    rfc5444_writer_set_msg_hoplimit(wr, message, _target.packet_data.hoplimit);
 }
 
 /**
@@ -252,9 +219,9 @@ void writer_init(write_packet_func_ptr ptr)
     _rrep_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RREP, false, RFC5444_MAX_ADDRLEN);
     _rerr_msg = rfc5444_writer_register_message(&writer, RFC5444_MSGTYPE_RERR, false, RFC5444_MAX_ADDRLEN);
 
-    _rreq_msg->addMessageHeader = _cb_rreq_addMessageHeader;
-    _rrep_msg->addMessageHeader = _cb_rrep_addMessageHeader;
-    _rerr_msg->addMessageHeader = _cb_rerr_addMessageHeader;
+    _rreq_msg->addMessageHeader = _cb_addMessageHeader;
+    _rrep_msg->addMessageHeader = _cb_addMessageHeader;
+    _rerr_msg->addMessageHeader = _cb_addMessageHeader;
 }
 
 /**
@@ -339,6 +306,7 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
 
         memcpy(&_target.packet_data, packet_data, sizeof(struct aodvv2_packet_data));
         _target.type = RFC5444_MSGTYPE_RREP;
+        _target.packet_data.hoplimit = AODVV2_MAX_HOPCOUNT;
 
         /* set address to which the write_packet callback should send our RREQ */
         memcpy(&_target.target_addr, next_hop, sizeof (struct netaddr));
