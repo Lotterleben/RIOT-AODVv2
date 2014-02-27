@@ -172,6 +172,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 
     struct aodvv2_routing_entry_t* rt_entry = routingtable_get_entry(&_tmp_dest, _metric_type);
     if (rt_entry) {
+        /* 
+           TODO use ndp_neighbor_get_ll_address() as soon as it's in the master.
+           note: delete check for active/stale/delayed entries, get_ll_address
+           does that for us then
+        */
         ndp_neighbor_cache_t* ndp_nc_entry = ndp_neighbor_cache_search(dest);
 
         /* Case 1: Undeliverable Packet */        
@@ -184,8 +189,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             return NULL;
         }
         /* Case 2: Broken Link */
-        if ((!ndp_nc_entry || ndp_nc_entry->state != NDP_NCE_STATUS_REACHABLE) // TODO martine fragen ob das der einzig richtige state ist
-            && (rt_entry->state != ROUTE_STATE_BROKEN)) {
+        if ((!ndp_nc_entry ||
+            ndp_nc_entry->state != NDP_NCE_STATUS_REACHABLE ||
+            ndp_nc_entry->state != NDP_NCE_STATUS_STALE ||
+            ndp_nc_entry->state != NDP_NCE_STATUS_DELAY) &&
+            (rt_entry->state != ROUTE_STATE_BROKEN)) {
             // mark all routes (active, idle, expired) that use next_hop as broken
             // and add all *Active* routes to the list of unreachable nodes        
             routingtable_break_and_get_all_hopping_over(&_tmp_dest, unreachable_nodes, &len);
