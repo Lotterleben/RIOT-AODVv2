@@ -618,7 +618,10 @@ static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct 
     if (seqnum_cmp(node_data->seqnum, rt_entry->seqnum) == -1)
         return false;
     /* Check if new info is more costly */
-    if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken))
+    if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken) && !(rt_entry.state != ROUTE_STATE_BROKEN))
+        return false;
+    /* Check if new info repairs a broken route */
+    if (!(rt_entry->broken) && !(rt_entry.state != ROUTE_STATE_BROKEN))
         return false;
     return true;
 }
