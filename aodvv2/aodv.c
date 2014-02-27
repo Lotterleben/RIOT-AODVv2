@@ -176,8 +176,7 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 
         /* Case 1: Undeliverable Packet */        
         if (rt_entry->state == ROUTE_STATE_BROKEN ||
-            rt_entry->state == ROUTE_STATE_EXPIRED ||
-            rt_entry->broken == true) {
+            rt_entry->state == ROUTE_STATE_EXPIRED ) {
             DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
             unreachable_nodes[0].addr = _tmp_dest;
             unreachable_nodes[0].seqnum = rt_entry->seqnum;
@@ -186,10 +185,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
         }
         /* Case 2: Broken Link */
         if ((!ndp_nc_entry || ndp_nc_entry->state != NDP_NCE_STATUS_REACHABLE) // TODO martine fragen ob das der einzig richtige state ist
-            && (rt_entry->state != ROUTE_STATE_BROKEN || rt_entry->broken != true)) {
+            && (rt_entry->state != ROUTE_STATE_BROKEN)) {
             // mark all routes (active, idle, expired) that use next_hop as broken
-            // add all *Active* routes to the list of unreachable nodes        
+            // and add all *Active* routes to the list of unreachable nodes        
             routingtable_break_and_get_all_hopping_over(&_tmp_dest, unreachable_nodes, &len);
+
             writer_send_rerr(unreachable_nodes, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         } 

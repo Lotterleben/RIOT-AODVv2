@@ -537,7 +537,6 @@ static enum rfc5444_result _cb_rerr_blocktlv_addresstlvs_okay(struct rfc5444_rea
         if (netaddr_cmp(&unreachable_entry->nextHopAddr, &packet_data.sender ) == 0 
             && (!tlv || seqnum_cmp(unreachable_entry->seqnum, packet_data.origNode.seqnum))) {
             unreachable_entry->state = ROUTE_STATE_BROKEN; // TODO: debug because it will break routesfor a long time
-            unreachable_entry->broken = true;  // Double Tap as ordered by the Draft.
             unreachable_nodes[num_unreachable_nodes].addr = packet_data.origNode.addr;
             unreachable_nodes[num_unreachable_nodes].seqnum = packet_data.origNode.seqnum;
             num_unreachable_nodes++;
@@ -618,10 +617,10 @@ static bool _offers_improvement(struct aodvv2_routing_entry_t* rt_entry, struct 
     if (seqnum_cmp(node_data->seqnum, rt_entry->seqnum) == -1)
         return false;
     /* Check if new info is more costly */
-    if ((node_data->metric >= rt_entry->metric) && !(rt_entry->broken) && !(rt_entry.state != ROUTE_STATE_BROKEN))
+    if ((node_data->metric >= rt_entry->metric) && !(rt_entry->state != ROUTE_STATE_BROKEN))
         return false;
     /* Check if new info repairs a broken route */
-    if (!(rt_entry->broken) && !(rt_entry.state != ROUTE_STATE_BROKEN))
+    if (!(rt_entry->state != ROUTE_STATE_BROKEN))
         return false;
     return true;
 }
@@ -670,7 +669,6 @@ static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, s
     rt_entry->nextHopAddr = packet_data->sender;
     rt_entry->lastUsed = packet_data->timestamp;
     rt_entry->expirationTime = timex_add(packet_data->timestamp, validity_t);
-    rt_entry->broken = false;
     rt_entry->metricType = packet_data->metricType;
     rt_entry->metric = packet_data->origNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;
@@ -686,7 +684,6 @@ static void _fill_routing_entry_t_rrep(struct aodvv2_packet_data* packet_data, s
     rt_entry->nextHopAddr = packet_data->sender;
     rt_entry->lastUsed = packet_data->timestamp;
     rt_entry->expirationTime = timex_add(packet_data->timestamp, validity_t);
-    rt_entry->broken = false;
     rt_entry->metricType = packet_data->metricType;
     rt_entry->metric = packet_data->targNode.metric + link_cost;
     rt_entry->state = ROUTE_STATE_ACTIVE;

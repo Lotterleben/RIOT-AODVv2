@@ -33,7 +33,6 @@ struct aodvv2_routing_entry_t {
     struct netaddr nextHopAddr;
     timex_t lastUsed;
     timex_t expirationTime;
-    bool broken;
     uint8_t metricType;
     uint8_t metric;
     uint8_t state; /* see aodvv2_routing_states */

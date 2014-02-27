@@ -112,7 +112,6 @@ void routingtable_break_and_get_all_hopping_over(struct netaddr* hop, struct unr
                 *len++;
             }
             routing_table[i].state = ROUTE_STATE_BROKEN;
-            routing_table[i].broken = true;
             DEBUG("len: %i\n", *len);
         }
     }
@@ -179,7 +178,6 @@ void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry)
     printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddr)));
     printf("\t lastUsed: %"PRIu32":%"PRIu32"\n", rt_entry->lastUsed.seconds, rt_entry->lastUsed.microseconds);
     printf("\t expirationTime: %"PRIu32":%"PRIu32"\n", rt_entry->expirationTime.seconds, rt_entry->expirationTime.microseconds);
-    printf("\t broken: %d\n", rt_entry->broken);
     printf("\t metricType: %i\n", rt_entry->metricType);
     printf("\t metric: %d\n", rt_entry->metric);
     printf("\t state: %d\n", rt_entry->state);
