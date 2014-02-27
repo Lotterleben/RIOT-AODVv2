@@ -34,7 +34,6 @@ enum tlv_type {
 
 struct node_data {
     struct netaddr addr;
-    uint8_t prefixlen;
     uint8_t metric;
     uint16_t seqnum;
 };

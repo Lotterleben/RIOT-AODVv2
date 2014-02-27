@@ -147,7 +147,6 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         is_origNode_addr = true;
         packet_data.origNode.addr = cont->addr;
         packet_data.origNode.seqnum = *tlv->single_value;
-        packet_data.origNode.prefixlen = cont->addr._prefix_len;         
     }
 
     /* handle TargNode SeqNum TLV */
@@ -157,13 +156,11 @@ static enum rfc5444_result _cb_rreq_blocktlv_addresstlvs_okay(struct rfc5444_rea
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.seqnum = *tlv->single_value;
-        packet_data.targNode.prefixlen = cont->addr._prefix_len;         
     }
     if (!tlv && !is_origNode_addr) {
         /* assume that tlv missing => targNode Address */
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
-        packet_data.targNode.prefixlen = cont->addr._prefix_len; 
     }
 
     if (!is_origNode_addr && !is_targNode_addr) {
@@ -336,7 +333,6 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
         is_targNode_addr = true;
         packet_data.targNode.addr = cont->addr;
         packet_data.targNode.seqnum = *tlv->single_value;
-        packet_data.targNode.prefixlen = cont->addr._prefix_len;
     }
 
     /* handle OrigNode SeqNum TLV */
@@ -346,7 +342,6 @@ static enum rfc5444_result _cb_rrep_blocktlv_addresstlvs_okay(struct rfc5444_rea
         is_targNode_addr = false;
         packet_data.origNode.addr = cont->addr;
         packet_data.origNode.seqnum = *tlv->single_value;
-        packet_data.origNode.prefixlen = cont->addr._prefix_len;
     } 
     if (!tlv && !is_targNode_addr) {
         DEBUG("\tERROR: mandatory SeqNum TLV missing.\n");
@@ -664,7 +659,6 @@ static uint8_t _get_updated_metric(uint8_t metricType, uint8_t metric)
 static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost)
 {
     rt_entry->addr = packet_data->origNode.addr;
-    rt_entry->prefixlen = packet_data->origNode.prefixlen;
     rt_entry->seqnum = packet_data->origNode.seqnum;
     rt_entry->nextHopAddr = packet_data->sender;
     rt_entry->lastUsed = packet_data->timestamp;
@@ -679,7 +673,6 @@ static void _fill_routing_entry_t_rreq(struct aodvv2_packet_data* packet_data, s
 static void _fill_routing_entry_t_rrep(struct aodvv2_packet_data* packet_data, struct aodvv2_routing_entry_t* rt_entry, uint8_t link_cost)
 {
     rt_entry->addr = packet_data->targNode.addr;
-    rt_entry->prefixlen = packet_data->targNode.prefixlen;
     rt_entry->seqnum = packet_data->targNode.seqnum;
     rt_entry->nextHopAddr = packet_data->sender;
     rt_entry->lastUsed = packet_data->timestamp;

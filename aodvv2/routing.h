@@ -28,7 +28,6 @@ enum aodvv2_routing_states {
 /* contains all fields of a routing table entry */
 struct aodvv2_routing_entry_t {
     struct netaddr addr; 
-    uint8_t prefixlen;
     uint8_t seqnum;
     struct netaddr nextHopAddr;
     timex_t lastUsed;

@@ -173,7 +173,6 @@ void print_routingtable_entry(struct aodvv2_routing_entry_t* rt_entry)
 
     printf(".................................\n");
     printf("\t address: %s\n", netaddr_to_string(&nbuf, &(rt_entry->addr))); 
-    printf("\t prefixlen: %i\n", rt_entry->prefixlen);
     printf("\t seqnum: %i\n", rt_entry->seqnum);
     printf("\t nextHopAddress: %s\n", netaddr_to_string(&nbuf, &(rt_entry->nextHopAddr)));
     printf("\t lastUsed: %"PRIu32":%"PRIu32"\n", rt_entry->lastUsed.seconds, rt_entry->lastUsed.microseconds);
