@@ -55,7 +55,7 @@ void aodv_init(void)
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /*testtest*/
-    writer_send_rreq(&na_local, &na_mcast, &na_mcast);
+    //writer_send_rreq(&na_local, &na_mcast, &na_mcast);
 
     /*
     struct unreachable_node unreachable_nodes[2];
@@ -203,8 +203,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
         } 
 
         DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddr));
+
         vtimer_now(&now);
         rt_entry->lastUsed = now;
+        if (rt_entry->state == ROUTE_STATE_IDLE)
+            rt_entry->state = ROUTE_STATE_ACTIVE;
 
         return &rt_entry->nextHopAddr;
     } 

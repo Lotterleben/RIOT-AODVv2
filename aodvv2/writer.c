@@ -325,6 +325,7 @@ void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int 
         return;
 
     if (mutex_lock(&writer_mutex) == 1) {
+        printf("ladida");
 
         _target.packet_data.hoplimit = hoplimit;
         _target.type = RFC5444_MSGTYPE_RERR;
