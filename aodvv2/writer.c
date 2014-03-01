@@ -225,48 +225,9 @@ void writer_init(write_packet_func_ptr ptr)
 }
 
 /**
- * Send a RREQ.
- * @param na_origNode
- * @param na_targNode
- * @param next_hop Address the RREQ is sent to (i.e. appropriate Multicast group) 
+ * Send a RREP.
  */
-void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, struct netaddr* next_hop)
-{
-    DEBUG("[aodvv2] %s()\n", __func__);
-
-    if (na_origNode == NULL || na_targNode == NULL || next_hop == NULL)
-        return;
-
-    /* Make sure no other thread is using the writer right now */
-    if (mutex_lock(&writer_mutex) == 1) {
-
-        memset(&_target.packet_data, 0, sizeof(struct aodvv2_packet_data));
-        memcpy(&_target.packet_data.origNode.addr, na_origNode, sizeof (struct netaddr));
-        memcpy(&_target.packet_data.targNode.addr, na_targNode, sizeof (struct netaddr));
-        _target.packet_data.hoplimit = AODVV2_MAX_HOPCOUNT;
-        _target.type = RFC5444_MSGTYPE_RREQ;
-
-        /* set address to which the write_packet callback should send our RREQ */
-        memcpy(&_target.target_addr, next_hop, sizeof (struct netaddr));
-
-        /* set info about the rreq so the callbacks just have to grab it from packet_data */
-        uint16_t origNode_seqnum = seqnum_get();
-        _target.packet_data.origNode.seqnum = origNode_seqnum;
-        seqnum_inc();
-
-        _target.packet_data.origNode.metric = 0;
-
-        rfc5444_writer_create_message_alltarget(&writer, RFC5444_MSGTYPE_RREQ);
-        rfc5444_writer_flush(&writer, &_target.interface, false);
-        mutex_unlock(&writer_mutex);
-    } // TODO: handle mutex_lock() = -1?  
-}
-
-
-/**
- * just forward a RREQ, don't change anything.
- */
-void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
+void writer_send_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop) // ex forward rreq TODO diesen komemntar löschen
 {
     DEBUG("[aodvv2] %s()\n", __func__);
 
@@ -278,6 +239,7 @@ void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr*
 
         memcpy(&_target.packet_data, packet_data, sizeof(struct aodvv2_packet_data));
         _target.type = RFC5444_MSGTYPE_RREQ;
+        _target.packet_data.hoplimit = packet_data->hoplimit;
 
         /* set address to which the write_packet callback should send our RREQ */
         memcpy(&_target.target_addr, next_hop, sizeof (struct netaddr));

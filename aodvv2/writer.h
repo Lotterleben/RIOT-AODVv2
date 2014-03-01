@@ -27,8 +27,7 @@ typedef void (*write_packet_func_ptr)(
 void writer_init(write_packet_func_ptr ptr);
 void writer_cleanup(void);
 
-void writer_send_rreq(struct netaddr* na_origNode, struct netaddr* na_targNode, struct netaddr* next_hop);
-void writer_forward_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop);
+void writer_send_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop);
 void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop);
 void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int hoplimit, struct netaddr* next_hop);
 

@@ -160,6 +160,8 @@ static void _aodv_receiver_thread(void)
  * @param dest 
  * @return ipv6_addr_t* of the next hop towards dest if there is any, NULL if there is no next hop (yet)
  */
+
+
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
     DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(addr_str, dest));
@@ -177,9 +179,11 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
            note: delete check for active/stale/delayed entries, get_ll_address
            does that for us then
         */
+
+        /*
         ndp_neighbor_cache_t* ndp_nc_entry = ndp_neighbor_cache_search(dest);
 
-        /* Case 1: Undeliverable Packet */        
+        // Case 1: Undeliverable Packet        
         if (rt_entry->state == ROUTE_STATE_BROKEN ||
             rt_entry->state == ROUTE_STATE_EXPIRED ) {
             DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
@@ -188,7 +192,8 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             writer_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         }
-        /* Case 2: Broken Link */
+
+        // Case 2: Broken Link
         if ((!ndp_nc_entry ||
             ndp_nc_entry->state != NDP_NCE_STATUS_REACHABLE ||
             ndp_nc_entry->state != NDP_NCE_STATUS_STALE ||
@@ -201,6 +206,7 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             writer_send_rerr(unreachable_nodes, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         } 
+        */
 
         DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddr));
 
@@ -212,8 +218,23 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
         return &rt_entry->nextHopAddr;
     } 
 
+    struct aodvv2_packet_data rreq_data = (struct aodvv2_packet_data) {
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .metricType = _metric_type,
+        .origNode = (struct node_data) {
+            .addr = na_local,
+            .metric = 0,
+            .seqnum = seqnum_get(),
+        },
+        .targNode = (struct node_data) { 
+            .addr = _tmp_dest,
+        }
+    };
+
     /* no route found => start route discovery */
-    writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
+    // writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
+
+    writer_send_rreq(&rreq_data, &na_mcast);
 
     return NULL;
 }

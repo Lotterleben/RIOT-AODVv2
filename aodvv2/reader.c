@@ -305,7 +305,7 @@ static enum rfc5444_result _cb_rreq_end_callback(
 
     else {
         DEBUG("[aodvv2] I am not TargNode, forwarding RREQ\n");
-        writer_forward_rreq(&packet_data, &na_mcast);
+        writer_send_rreq(&packet_data, &na_mcast);
     }
     return RFC5444_OKAY;
 }
