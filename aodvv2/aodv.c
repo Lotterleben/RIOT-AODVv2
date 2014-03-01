@@ -10,14 +10,17 @@
 static void _init_addresses(void);
 static void _init_sock_snd(void);
 static void _aodv_receiver_thread(void);
+static void _aodv_sender_thread(void);
 static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
 
 char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char aodv_rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
+char aodv_snd_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 static int _metric_type;
+static int sender_thread;
 static int _sock_snd;
 static struct autobuf _hexbuf;
 static sockaddr6_t sa_wp;
@@ -47,14 +50,16 @@ void aodv_init(void)
     reader_init();
     writer_init(_write_packet);
 
-    /* start listening */
-    int aodv_receiver_thread_pid = thread_create(aodv_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _aodv_receiver_thread, "_aodv_receiver_thread");
-    printf("[aodvv2] listening on port %d (thread pid: %d)\n", HTONS(MANET_PORT), aodv_receiver_thread_pid);
+    /* start listening & enable sending */
+    thread_create(aodv_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _aodv_receiver_thread, "_aodv_receiver_thread");
+    printf("[aodvv2] listening on port %d\n", HTONS(MANET_PORT));
+    sender_thread = thread_create(aodv_snd_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _aodv_sender_thread, "_aodv_sender_thread");
 
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
     /*testtest*/
+    
     //writer_send_rreq(&na_local, &na_mcast, &na_mcast);
 
     /*
@@ -66,6 +71,73 @@ void aodv_init(void)
     // set the hoplimit to 3 to reduce debugging noise
     writer_send_rerr(unreachable_nodes, 2, 3, &na_mcast);
     */
+
+    vtimer_usleep(1000000); // usleeps needs milliseconds, so there
+
+    /*
+    struct aodvv2_packet_data* p2 = malloc(sizeof(struct aodvv2_packet_data));
+    *p2 = (struct aodvv2_packet_data) {
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .metricType = _metric_type,
+        .origNode = (struct node_data) {
+            .addr = na_local,
+            .metric = 0,
+            .seqnum = seqnum_get(),
+        },
+        .targNode = (struct node_data) { 
+            .addr = na_local,
+        }
+    };
+
+    struct rreq_rrep_data* rreq_data = malloc(sizeof(struct rreq_rrep_data));
+    *rreq_data = (struct rreq_rrep_data) {
+        .packet_data = p2,
+        .next_hop = &na_mcast,
+    };
+
+
+    struct msg_container* mc = malloc(sizeof(struct msg_container));
+    *mc = (struct msg_container) {
+        .type = RFC5444_MSGTYPE_RREQ,
+        .data = rreq_data,
+    };
+
+    msg_t* msg = malloc(sizeof(msg_t));
+    msg->content.ptr = (char*) mc; // TODO: char* ?
+
+    msg_send(&msg, sender_thread, false);
+    */
+
+    struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
+    *pd = (struct aodvv2_packet_data) {
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .metricType = _metric_type,
+        .origNode = (struct node_data) {
+            .addr = na_local,
+            .metric = 0,
+            .seqnum = seqnum_get(),
+        },
+        .targNode = (struct node_data) { 
+            .addr = na_local,
+        }
+    };
+
+    struct rreq_rrep_data* rd = malloc(sizeof(struct rreq_rrep_data));
+    *rd = (struct rreq_rrep_data) {
+        .next_hop = &na_mcast,
+        .packet_data = pd,
+    };
+
+    struct msg_container* mc = malloc(sizeof(struct msg_container));
+    *mc = (struct msg_container) {
+        .type = RFC5444_MSGTYPE_RREQ,
+        .data = rd
+    };
+
+    msg_t msg;
+    msg.content.ptr = mc;
+
+    msg_send(&msg, sender_thread, false);
 }
 
 /* 
@@ -114,6 +186,34 @@ static void _init_sock_snd(void)
     }
 }
 
+/* Build and dispatch RREQs, RREPs and RERRs */
+static void _aodv_sender_thread(void)
+{
+    DEBUG("Preparing dispatcher...\n");
+    // TODO: msgq init nicht vergessen
+    msg_t msgq[1];
+    msg_init_queue(msgq, sizeof msgq);
+
+    while (true) {
+        msg_t msg;
+        msg_receive(&msg);
+        struct msg_container* mc = (struct msg_container*) msg.content.ptr;
+
+        DEBUG("received msg %i\n", mc->type);
+
+        if (mc->type == RFC5444_MSGTYPE_RREQ) {
+            struct rreq_rrep_data* rreq_data = (struct rreq_rrep_data*) mc->data;
+            writer_send_rreq(rreq_data->packet_data, rreq_data->next_hop); 
+        } else if (mc->type == RFC5444_MSGTYPE_RREP) {
+            struct rreq_rrep_data* rrep_data = (struct rreq_rrep_data*) mc->data;
+            writer_send_rrep(rrep_data->packet_data, rrep_data->next_hop); 
+        } else if (mc->type == RFC5444_MSGTYPE_RERR) { 
+            struct rerr_data* rerr_data = (struct rerr_data*) mc->data;
+            writer_send_rerr(rerr_data->unreachable_nodes, rerr_data->len, rerr_data->hoplimit, rerr_data->next_hop);
+        }
+    }
+}
+
 /* receive RREQs and RREPs and handle them */
 static void _aodv_receiver_thread(void)
 {
@@ -155,13 +255,11 @@ static void _aodv_receiver_thread(void)
 }
 
 /**
- * This function is set as ipv6_iface_routing_provider and will be called by 
+ * When set as ipv6_iface_routing_provider, thsi function will be called by 
  * RIOT's ipv6_sendto() to determine the next hop it should send a packet to dest to.
  * @param dest 
  * @return ipv6_addr_t* of the next hop towards dest if there is any, NULL if there is no next hop (yet)
  */
-
-
 static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
 {
     DEBUG("[aodvv2] getting next hop for %s\n", ipv6_addr_to_str(addr_str, dest));
@@ -179,7 +277,6 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
            note: delete check for active/stale/delayed entries, get_ll_address
            does that for us then
         */
-
         /*
         ndp_neighbor_cache_t* ndp_nc_entry = ndp_neighbor_cache_search(dest);
 
@@ -232,8 +329,6 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     };
 
     /* no route found => start route discovery */
-    // writer_send_rreq(&na_local, &_tmp_dest, &na_mcast);
-
     writer_send_rreq(&rreq_data, &na_mcast);
 
     return NULL;
