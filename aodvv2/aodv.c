@@ -58,9 +58,7 @@ void aodv_init(void)
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
-    /*testtest*/
-    
-    //writer_send_rreq(&na_local, &na_mcast, &na_mcast);
+    //////////////////////////// testtest //////////////////////////////////////
 
     /*
     struct unreachable_node unreachable_nodes[2];
@@ -74,40 +72,6 @@ void aodv_init(void)
 
     vtimer_usleep(1000000); // usleeps needs milliseconds, so there
 
-    /*
-    struct aodvv2_packet_data* p2 = malloc(sizeof(struct aodvv2_packet_data));
-    *p2 = (struct aodvv2_packet_data) {
-        .hoplimit = AODVV2_MAX_HOPCOUNT,
-        .metricType = _metric_type,
-        .origNode = (struct node_data) {
-            .addr = na_local,
-            .metric = 0,
-            .seqnum = seqnum_get(),
-        },
-        .targNode = (struct node_data) { 
-            .addr = na_local,
-        }
-    };
-
-    struct rreq_rrep_data* rreq_data = malloc(sizeof(struct rreq_rrep_data));
-    *rreq_data = (struct rreq_rrep_data) {
-        .packet_data = p2,
-        .next_hop = &na_mcast,
-    };
-
-
-    struct msg_container* mc = malloc(sizeof(struct msg_container));
-    *mc = (struct msg_container) {
-        .type = RFC5444_MSGTYPE_RREQ,
-        .data = rreq_data,
-    };
-
-    msg_t* msg = malloc(sizeof(msg_t));
-    msg->content.ptr = (char*) mc; // TODO: char* ?
-
-    msg_send(&msg, sender_thread, false);
-    */
-
     struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
     *pd = (struct aodvv2_packet_data) {
         .hoplimit = AODVV2_MAX_HOPCOUNT,
@@ -118,7 +82,7 @@ void aodv_init(void)
             .seqnum = seqnum_get(),
         },
         .targNode = (struct node_data) { 
-            .addr = na_local,
+            .addr = na_mcast,
         }
     };
 
@@ -138,6 +102,31 @@ void aodv_init(void)
     msg.content.ptr = mc;
 
     msg_send(&msg, sender_thread, false);
+
+    struct unreachable_node* un = malloc(sizeof(struct unreachable_node));
+    *un = (struct unreachable_node) {
+        .addr = na_local,
+        .seqnum = 42,
+    };
+
+    struct rerr_data* rerrd = malloc(sizeof(struct rerr_data));
+    *rerrd = (struct rerr_data) {
+        .unreachable_nodes = un,
+        .len = 1 ,
+        .hoplimit = AODVV2_MAX_HOPCOUNT,
+        .next_hop = &na_mcast
+    };
+
+    struct msg_container* mc2 = malloc(sizeof(struct msg_container));
+    *mc2 = (struct msg_container) {
+        .type = RFC5444_MSGTYPE_RERR,
+        .data = rerrd
+    };
+
+    msg_t msg2;
+    msg2.content.ptr = mc2;
+
+    msg_send(&msg2, sender_thread, false);
 }
 
 /* 
