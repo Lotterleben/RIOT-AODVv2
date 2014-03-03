@@ -124,7 +124,7 @@ void test_routingtable(void)
     test_routingtable_get_next_hop_bullshitdata(&now, entry_2.metricType);    // wrong data type for address
     test_routingtable_get_next_hop_bullshitdata(&addr_1, 2);                  // right address, wrong metricType 
 
-    vtimer_usleep((AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME +1) * 1000000); // usleeps needs milliseconds, so there
+    vtimer_usleep((AODVV2_MAX_SEQNUM_LIFETIME) * 1000000); // usleeps needs milliseconds, so there
     test_routingtable_get_entry_bullshitdata(&addr_1, entry_1.metricType);    // entry_1 should be stale & removed by now
     test_routingtable_get_next_hop_bullshitdata(&addr_1, entry_1.metricType); // entry_1 should be stale & removed by now
     routingtable_delete_entry(&addr_1, entry_1.metricType);                        // here's to hoping this blows up when something goes wrong
@@ -198,7 +198,7 @@ void test_tables_main(void)
 {
     BEGIN_TESTING(NULL);
 
-    //test_routingtable();
+    test_routingtable();
     test_rreq_table();
 
     FINISH_TESTING();
