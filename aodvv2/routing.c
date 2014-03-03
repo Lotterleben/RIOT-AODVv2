@@ -97,7 +97,7 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
 void routingtable_break_and_get_all_hopping_over(struct netaddr* hop, struct unreachable_node unreachable_nodes[], int* len) 
 {
     *len = 0; // to be sure
-    DEBUG("len: %i\n", *len);
+    //DEBUG("len: %i\n", *len);
 
     for (uint8_t i = 0; i < AODVV2_MAX_ROUTING_ENTRIES; i++) {
         _reset_entry_if_stale(i);
@@ -113,7 +113,7 @@ void routingtable_break_and_get_all_hopping_over(struct netaddr* hop, struct unr
                 (*len)++;
             }
             routing_table[i].state = ROUTE_STATE_BROKEN;
-            DEBUG("len: %i\n", *len);
+            //DEBUG("len: %i\n", *len);
         }
     }
 }

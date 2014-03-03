@@ -106,9 +106,12 @@ void aodv_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next
     struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
     memcpy(pd, packet_data, sizeof(struct aodvv2_packet_data));
 
+    struct netaddr* nh = malloc(sizeof(struct netaddr));
+    memcpy(nh, next_hop, sizeof(struct netaddr));
+
     struct rreq_rrep_data* rd = malloc(sizeof(struct rreq_rrep_data));
     *rd = (struct rreq_rrep_data) {
-        .next_hop = next_hop, // TODO memcpy?
+        .next_hop = nh,
         .packet_data = pd,
     };
 
@@ -380,11 +383,13 @@ static void _deep_free_msg_container(struct msg_container* mc)
     if ((type == RFC5444_MSGTYPE_RREQ) || (type == RFC5444_MSGTYPE_RREP)) {
         struct rreq_rrep_data* rreq_rrep_data = (struct rreq_rrep_data*) mc->data;
         free(rreq_rrep_data->packet_data);
-        //if (netaddr_cmp(rreq_rrep_data->next_hop, &na_mcast) != 0)
-        //    free(rreq_rrep_data->next_hop);
+        if (netaddr_cmp(rreq_rrep_data->next_hop, &na_mcast) != 0)
+            free(rreq_rrep_data->next_hop);
     } else if (type == RFC5444_MSGTYPE_RERR) {
-        // TODO: unreachable_nodes freen, oder sind das pointer auf Teile von RT-einträgen?
-        // selbe frage mit next_hop..
+        // TODO: unreachable_nodes[] freen?
+        struct rerr_data* rerr_data = (struct rerr_data*) mc->data;
+        if (netaddr_cmp(rerr_data->next_hop, &na_mcast) != 0)
+            free(rerr_data->next_hop);
     }
     free(mc->data);
     free(mc);
