@@ -85,7 +85,7 @@ void routingtable_delete_entry(struct netaddr* addr, uint8_t metricType)
 }
 
 /**
- * find all routing table entries that use hop as their nextHopAddress, mark them
+ * Find all routing table entries that use hop as their nextHopAddress, mark them
  * as broken, write the active one into unreachable_nodes[] and increment len 
  * accordingly. (Sorry about the Name.)
  * TODO test/debug somehow

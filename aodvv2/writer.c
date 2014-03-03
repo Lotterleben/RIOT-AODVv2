@@ -225,7 +225,11 @@ void writer_init(write_packet_func_ptr ptr)
 }
 
 /**
- * Send a RREP.
+ * Send a RREQ. DO NOT use this function to dispatch packets from anything else
+ * than the sender_thread. To send RREQs, use aodv_send_rerr().
+ * @param na_origNode
+ * @param na_targNode
+ * @param next_hop Address the RREP is sent to 
  */
 void writer_send_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop) // ex forward rreq TODO diesen komemntar löschen
 {
@@ -251,10 +255,8 @@ void writer_send_rreq(struct aodvv2_packet_data* packet_data, struct netaddr* ne
 }
 
 /**
- * Send a RREP.
- * @param na_origNode
- * @param na_targNode
- * @param next_hop Address the RREP is sent to 
+ * Send a RREP. DO NOT use this function to dispatch packets from anything else
+ * than the sender_thread. To send RREPs, use aodv_send_rerr().
  */
 void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
 {
@@ -279,6 +281,10 @@ void writer_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* ne
     } // TODO: handle mutex_lock() = -1?  
 }
 
+/**
+ * Send a RERR. DO NOT use this function to dispatch packets from anything else
+ * than the sender_thread. To send RERRs, use aodv_send_rerr().
+ */
 void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int hoplimit, struct netaddr* next_hop)
 {
     DEBUG("[aodvv2] %s()\n", __func__);
@@ -287,7 +293,6 @@ void writer_send_rerr(struct unreachable_node unreachable_nodes[], int len, int 
         return;
 
     if (mutex_lock(&writer_mutex) == 1) {
-        printf("ladida");
 
         _target.packet_data.hoplimit = hoplimit;
         _target.type = RFC5444_MSGTYPE_RERR;

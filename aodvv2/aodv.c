@@ -61,16 +61,6 @@ void aodv_init(void)
 
     //////////////////////////// testtest //////////////////////////////////////
 
-    /*
-    struct unreachable_node unreachable_nodes[2];
-    unreachable_nodes[0].addr = na_local;
-    unreachable_nodes[0].seqnum = 13;
-    unreachable_nodes[1].addr = na_mcast; 
-    unreachable_nodes[1].seqnum = 23;
-    // set the hoplimit to 3 to reduce debugging noise
-    writer_send_rerr(unreachable_nodes, 2, 3, &na_mcast);
-    */
-
     vtimer_usleep(1000000); // usleeps needs milliseconds, so there
 
     struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
@@ -86,6 +76,44 @@ void aodv_init(void)
             .addr = na_mcast,
         }
     };
+
+    aodv_send_rreq(pd);
+
+    struct unreachable_node* uns;
+    int len = 2;
+    uns = malloc(sizeof(struct unreachable_node)*len);
+
+    uns[0] = (struct unreachable_node) {
+        .addr = na_local,
+        .seqnum = 42,
+    };
+
+    uns[1] = (struct unreachable_node) {
+        .addr = na_mcast,
+        .seqnum = 23,
+    };
+
+    aodv_send_rerr(uns, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
+}
+
+/* 
+ * Change or set the metric type.
+ * If metric_type does not match any known metric types, no changes will be made.
+ */
+void aodv_set_metric_type(int metric_type)
+{
+    if (metric_type != AODVV2_DEFAULT_METRIC_TYPE)
+        return;
+    _metric_type = metric_type;
+}
+
+/**
+ * Dispatch a rreq.
+ */
+void aodv_send_rreq(struct aodvv2_packet_data* packet_data)
+{
+    struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
+    memcpy(pd, packet_data, sizeof(struct aodvv2_packet_data));
 
     struct rreq_rrep_data* rd = malloc(sizeof(struct rreq_rrep_data));
     *rd = (struct rreq_rrep_data) {
@@ -103,19 +131,45 @@ void aodv_init(void)
     msg.content.ptr = mc;
 
     msg_send(&msg, sender_thread, false);
+}
 
-    struct unreachable_node* un = malloc(sizeof(struct unreachable_node));
-    *un = (struct unreachable_node) {
-        .addr = na_local,
-        .seqnum = 42,
+/**
+ * Dispatch a rrep.
+ */
+void aodv_send_rrep(struct aodvv2_packet_data* packet_data, struct netaddr* next_hop)
+{
+    struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
+    memcpy(pd, packet_data, sizeof(struct aodvv2_packet_data));
+
+    struct rreq_rrep_data* rd = malloc(sizeof(struct rreq_rrep_data));
+    *rd = (struct rreq_rrep_data) {
+        .next_hop = next_hop, // TODO memcpy?
+        .packet_data = pd,
     };
 
+    struct msg_container* mc = malloc(sizeof(struct msg_container));
+    *mc = (struct msg_container) {
+        .type = RFC5444_MSGTYPE_RREQ,
+        .data = rd
+    };
+
+    msg_t msg;
+    msg.content.ptr = mc;
+
+    msg_send(&msg, sender_thread, false);
+}
+
+/**
+ * Dispatch a rerr.
+ */
+void aodv_send_rerr(struct unreachable_node unreachable_nodes[], int len, int hoplimit, struct netaddr* next_hop)
+{
     struct rerr_data* rerrd = malloc(sizeof(struct rerr_data));
     *rerrd = (struct rerr_data) {
-        .unreachable_nodes = un,
-        .len = 1 ,
+        .unreachable_nodes = unreachable_nodes,
+        .len = len,
         .hoplimit = AODVV2_MAX_HOPCOUNT,
-        .next_hop = &na_mcast
+        .next_hop = next_hop
     };
 
     struct msg_container* mc2 = malloc(sizeof(struct msg_container));
@@ -130,16 +184,6 @@ void aodv_init(void)
     msg_send(&msg2, sender_thread, false);
 }
 
-/* 
- * Change or set the metric type.
- * If metric_type does not match any known metric types, no changes will be made.
- */
-void aodv_set_metric_type(int metric_type)
-{
-    if (metric_type != AODVV2_DEFAULT_METRIC_TYPE)
-        return;
-    _metric_type = metric_type;
-}
 
 /* 
  * init the multicast address all RREQs are sent to 
@@ -179,18 +223,16 @@ static void _init_sock_snd(void)
 /* Build and dispatch RREQs, RREPs and RERRs */
 static void _aodv_sender_thread(void)
 {
-    DEBUG("Preparing dispatcher...\n");
     msg_t msgq[1];
     msg_init_queue(msgq, sizeof msgq);
+    DEBUG("[aodvv2] _aodv_sender_thread initialized.\n");
 
     while (true) {
         msg_t msg;
         msg_receive(&msg);
         struct msg_container* mc = (struct msg_container*) msg.content.ptr;
 
-        // TODO: free()
         DEBUG("received msg %i\n", mc->type);
-
         if (mc->type == RFC5444_MSGTYPE_RREQ) {
             struct rreq_rrep_data* rreq_data = (struct rreq_rrep_data*) mc->data;
             writer_send_rreq(rreq_data->packet_data, rreq_data->next_hop);
@@ -280,7 +322,7 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             DEBUG("\tRouting table entry found, but invalid. Sending RERR.\n");
             unreachable_nodes[0].addr = _tmp_dest;
             unreachable_nodes[0].seqnum = rt_entry->seqnum;
-            writer_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
+            aodv_send_rerr(unreachable_nodes, 1, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         }
 
@@ -294,7 +336,7 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             // and add all *Active* routes to the list of unreachable nodes        
             routingtable_break_and_get_all_hopping_over(&_tmp_dest, unreachable_nodes, &len);
 
-            writer_send_rerr(unreachable_nodes, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
+            aodv_send_rerr(unreachable_nodes, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         } 
         */
@@ -323,10 +365,12 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
     };
 
     /* no route found => start route discovery */
-    writer_send_rreq(&rreq_data, &na_mcast);
+    aodv_send_rreq(&rreq_data);
 
     return NULL;
 }
+
+
 
 /**
  * Handle the output of the RFC5444 packet creation process

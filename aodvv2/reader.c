@@ -300,12 +300,12 @@ static enum rfc5444_result _cb_rreq_end_callback(
      */
     if (clienttable_is_client(&packet_data.targNode.addr)){
         DEBUG("[aodvv2] TargNode is in client list, sending RREP\n");    
-        writer_send_rrep(&packet_data, &packet_data.sender);
+        aodv_send_rrep(&packet_data, &packet_data.sender);
     }
 
     else {
         DEBUG("[aodvv2] I am not TargNode, forwarding RREQ\n");
-        writer_send_rreq(&packet_data, &na_mcast);
+        aodv_send_rreq(&packet_data);
     }
     return RFC5444_OKAY;
 }
@@ -471,7 +471,7 @@ static enum rfc5444_result _cb_rrep_end_callback(
     Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx]. */
     else {
         DEBUG("[aodvv2] Not my RREP, passing it on to the next hop\n");
-        writer_send_rrep(&packet_data, routingtable_get_next_hop(&packet_data.origNode.addr, packet_data.metricType));
+        aodv_send_rrep(&packet_data, routingtable_get_next_hop(&packet_data.origNode.addr, packet_data.metricType));
     }
     return RFC5444_OKAY;
 }
@@ -554,7 +554,7 @@ static enum rfc5444_result _cb_rerr_end_callback(struct rfc5444_reader_tlvblock_
         return RFC5444_DROP_PACKET;
     }
     /* gather all unreachable nodes and put them into a RERR */
-    writer_send_rerr(unreachable_nodes, num_unreachable_nodes, packet_data.hoplimit, &na_mcast);
+    aodv_send_rerr(unreachable_nodes, num_unreachable_nodes, packet_data.hoplimit, &na_mcast);
     return RFC5444_OKAY;
 }
 

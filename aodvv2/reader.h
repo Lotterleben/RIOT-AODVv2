@@ -1,3 +1,5 @@
+#ifndef READER_H_
+#define READER_H_
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +13,7 @@
 #include "routing.h"
 #include "constants.h"
 #include "seqnum.h"
-#include "writer.h"
-
-#ifndef READER_H_
-#define READER_H_
+#include "aodv.h"
 
 void reader_init(void);
 void reader_cleanup(void);
