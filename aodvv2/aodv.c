@@ -11,6 +11,7 @@ static void _init_addresses(void);
 static void _init_sock_snd(void);
 static void _aodv_receiver_thread(void);
 static void _aodv_sender_thread(void);
+static void _deep_free_msg_container(struct msg_container* msg_container);
 static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
         struct rfc5444_writer_target *iface __attribute__((unused)),
         void *buffer, size_t length);
@@ -179,7 +180,6 @@ static void _init_sock_snd(void)
 static void _aodv_sender_thread(void)
 {
     DEBUG("Preparing dispatcher...\n");
-    // TODO: msgq init nicht vergessen
     msg_t msgq[1];
     msg_init_queue(msgq, sizeof msgq);
 
@@ -188,11 +188,12 @@ static void _aodv_sender_thread(void)
         msg_receive(&msg);
         struct msg_container* mc = (struct msg_container*) msg.content.ptr;
 
+        // TODO: free()
         DEBUG("received msg %i\n", mc->type);
 
         if (mc->type == RFC5444_MSGTYPE_RREQ) {
             struct rreq_rrep_data* rreq_data = (struct rreq_rrep_data*) mc->data;
-            writer_send_rreq(rreq_data->packet_data, rreq_data->next_hop); 
+            writer_send_rreq(rreq_data->packet_data, rreq_data->next_hop);
         } else if (mc->type == RFC5444_MSGTYPE_RREP) {
             struct rreq_rrep_data* rrep_data = (struct rreq_rrep_data*) mc->data;
             writer_send_rrep(rrep_data->packet_data, rrep_data->next_hop); 
@@ -200,6 +201,10 @@ static void _aodv_sender_thread(void)
             struct rerr_data* rerr_data = (struct rerr_data*) mc->data;
             writer_send_rerr(rerr_data->unreachable_nodes, rerr_data->len, rerr_data->hoplimit, rerr_data->next_hop);
         }
+        else {
+            DEBUG("ERROR: Couldn't identify Message");
+        }
+        _deep_free_msg_container(mc);
     }
 }
 
@@ -360,4 +365,21 @@ static void _write_packet(struct rfc5444_writer *wr __attribute__ ((unused)),
                                             0, &sa_wp, sizeof sa_wp);
 
     DEBUG("[aodvv2] %d bytes sent.\n", bytes_sent);
+}
+
+/* free the matryoshka doll of cobbled-together structs that the sender_thread receives */
+static void _deep_free_msg_container(struct msg_container* mc)
+{
+    int type = mc->type;
+    if ((type == RFC5444_MSGTYPE_RREQ) || (type == RFC5444_MSGTYPE_RREP)) {
+        struct rreq_rrep_data* rreq_rrep_data = (struct rreq_rrep_data*) mc->data;
+        free(rreq_rrep_data->packet_data);
+        //if (netaddr_cmp(rreq_rrep_data->next_hop, &na_mcast) != 0)
+        //    free(rreq_rrep_data->next_hop);
+    } else if (type == RFC5444_MSGTYPE_RERR) {
+        // TODO: unreachable_nodes freen, oder sind das pointer auf Teile von RT-einträgen?
+        // selbe frage mit next_hop..
+    }
+    free(mc->data);
+    free(mc);
 }
