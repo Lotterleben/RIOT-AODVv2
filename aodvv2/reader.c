@@ -550,7 +550,7 @@ static enum rfc5444_result _cb_rerr_end_callback(struct rfc5444_reader_tlvblock_
     } 
 
     if ( num_unreachable_nodes == 0){
-        DEBUG("\tNo unreachable nodes from my routing table. Dropping Packet.");
+        DEBUG("\tNo unreachable nodes from my routing table. Dropping Packet.\n");
         return RFC5444_DROP_PACKET;
     }
     /* gather all unreachable nodes and put them into a RERR */

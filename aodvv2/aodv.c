@@ -59,41 +59,6 @@ void aodv_init(void)
     /* register aodv for routing */
     ipv6_iface_set_routing_provider(aodv_get_next_hop);
 
-    //////////////////////////// testtest //////////////////////////////////////
-
-    vtimer_usleep(1000000); // usleeps needs milliseconds, so there
-
-    struct aodvv2_packet_data* pd = malloc(sizeof(struct aodvv2_packet_data));
-    *pd = (struct aodvv2_packet_data) {
-        .hoplimit = AODVV2_MAX_HOPCOUNT,
-        .metricType = _metric_type,
-        .origNode = (struct node_data) {
-            .addr = na_local,
-            .metric = 0,
-            .seqnum = seqnum_get(),
-        },
-        .targNode = (struct node_data) { 
-            .addr = na_mcast,
-        }
-    };
-
-    aodv_send_rreq(pd);
-
-    struct unreachable_node* uns;
-    int len = 2;
-    uns = malloc(sizeof(struct unreachable_node)*len);
-
-    uns[0] = (struct unreachable_node) {
-        .addr = na_local,
-        .seqnum = 42,
-    };
-
-    uns[1] = (struct unreachable_node) {
-        .addr = na_mcast,
-        .seqnum = 23,
-    };
-
-    aodv_send_rerr(uns, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
 }
 
 /* 
@@ -232,7 +197,6 @@ static void _aodv_sender_thread(void)
         msg_receive(&msg);
         struct msg_container* mc = (struct msg_container*) msg.content.ptr;
 
-        DEBUG("received msg %i\n", mc->type);
         if (mc->type == RFC5444_MSGTYPE_RREQ) {
             struct rreq_rrep_data* rreq_data = (struct rreq_rrep_data*) mc->data;
             writer_send_rreq(rreq_data->packet_data, rreq_data->next_hop);
@@ -313,7 +277,6 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
            note: delete check for active/stale/delayed entries, get_ll_address
            does that for us then
         */
-        /*
         ndp_neighbor_cache_t* ndp_nc_entry = ndp_neighbor_cache_search(dest);
 
         // Case 1: Undeliverable Packet        
@@ -339,7 +302,6 @@ static ipv6_addr_t* aodv_get_next_hop(ipv6_addr_t* dest)
             aodv_send_rerr(unreachable_nodes, len, AODVV2_MAX_HOPCOUNT, &na_mcast);
             return NULL;
         } 
-        */
 
         DEBUG("\t found dest in routing table: %s\n", netaddr_to_string(&nbuf, &rt_entry->nextHopAddr));
 
