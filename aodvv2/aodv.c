@@ -258,7 +258,7 @@ static void _aodv_receiver_thread(void)
 }
 
 /**
- * When set as ipv6_iface_routing_provider, thsi function will be called by 
+ * When set as ipv6_iface_routing_provider, this function will be called by 
  * RIOT's ipv6_sendto() to determine the next hop it should send a packet to dest to.
  * @param dest 
  * @return ipv6_addr_t* of the next hop towards dest if there is any, NULL if there is no next hop (yet)

@@ -1,3 +1,5 @@
+#ifndef UTILS_H_
+#define UTILS_H_
 #include <stdio.h>
 
 #include "ipv6.h"
@@ -6,9 +8,6 @@
 
 #include "constants.h"
 #include "seqnum.h"
-
-#ifndef UTILS_H_
-#define UTILS_H_
 
 #define AODVV2_MAX_CLIENTS 1    // multiple clients are currently not supported.
 #define AODVV2_RREQ_BUF 128     // should be enough for now...

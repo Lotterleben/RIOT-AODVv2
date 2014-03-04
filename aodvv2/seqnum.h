@@ -1,7 +1,6 @@
-#include <stdint.h>
-
 #ifndef SEQNUM_H_
 #define SEQNUM_H_
+#include <stdint.h>
 
 void seqnum_init(void);
 uint16_t seqnum_get(void);
