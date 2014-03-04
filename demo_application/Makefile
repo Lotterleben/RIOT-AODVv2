@@ -8,6 +8,7 @@ export BOARD ?= native
 
 # This has to be the absolute path to the RIOT base directory:
 export RIOTBASE =$(CURDIR)/../../riot/RIOT
+#USEPKG += oonf_api
 export RIOTLIBS =$(RIOTBASE)/../riot-libs
 export OONFBASE =$(CURDIR)/../../oonf_api
 export AODV_NODE =$(CURDIR)/../aodvv2 
@@ -52,11 +53,16 @@ USEMODULE += vtimer
 ifeq ($(strip $(BOARD)),native)
 	USEMODULE += nativenet
 else
-	USEMODULE += cc110x
+	#USEMODULE += cc110x
+	USEMODULE += cc110x_ng
 endif
+
 USEMODULE += sixlowpan
 USEMODULE += rpl
 USEMODULE += destiny
+
+#testtest
+USEMODULE += transceiver
 
 # oonf
 USEMODULE += net_help 
@@ -72,8 +78,11 @@ USEMODULE += aodvv2
 export INCLUDES += -I${RIOTBASE}/core/include/         \
 				   -I$(RIOTBASE)/sys/net/include       \
 				   -I$(RIOTBASE)/drivers/cc110x/       \
+				   -I${RIOTBASE}/drivers/include/	   \
 				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
+				   -I$(RIOTBASE)/boards/msba2-common/include  \
 				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
 				   -I$(AODV_NODE)                      \
+				   -I$(RIOTBASE)/boards/msba2-common/include/ \
 
 include $(RIOTBASE)/Makefile.include

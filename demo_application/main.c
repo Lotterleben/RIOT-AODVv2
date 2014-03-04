@@ -63,6 +63,11 @@ void demo_print_ip(char* str)
     ipv6_iface_print_addrs();
 }
 
+void demo_exit(char* str)
+{
+    exit(0);
+}
+
 static void _demo_init_socket(void)
 {
     _sockaddr.sin6_family = AF_INET6;
@@ -125,6 +130,8 @@ static void _init_tlayer()
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"ip", "Print all addresses attached to this device", demo_print_ip},
+    {"exit", "Shut down node", demo_exit},
+
     {NULL, NULL, NULL}
 };
 

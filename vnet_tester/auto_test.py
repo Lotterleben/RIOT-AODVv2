@@ -9,9 +9,12 @@ import time
 import datetime
 import signal
 from thread import start_new_thread
+import argparse
 
 riots = {}
 riots_lock = threading.Lock()
+riots_complete = threading.Lock()
+num_riots = 0
 sockets = []
 sockets_lock = threading.Lock()
 ports_local_path = "../../riot/desvirt_mehlis/ports.list" # TODO properly
@@ -40,11 +43,14 @@ def get_shell_output(sock):
     return data
 
 def connect_riots():
+    riots_complete.acquire()
+
     for port, ip in riots.iteritems():
         start_new_thread(test_sender_thread,(port,))
         # make sure the main thread isn't killed before we initialize our sockets
         time.sleep(2) 
     
+    # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration) 
 
 def test_sender_thread(port):
@@ -74,12 +80,22 @@ def test_sender_thread(port):
         #sys.stdout.write("{%s} IP: %s\n" % (thread_id, my_ip))
         logging.debug("{%s} IP: %s\n" % (thread_id, my_ip))
 
-
         with riots_lock:
             sys.stdout.write("adding node with IP %s to riots...\n" % my_ip)
             riots[port] = my_ip
+            global num_riots
+            num_riots += 1
+            sys.stdout.write("num_riots %i\n" % num_riots)
 
-        #for i in range (0,5):
+        # wait until all nodes are initialized. if they are, release the lock 
+        # so all nodes can start sending
+        if (num_riots < len(riots)):
+            riots_complete.acquire() # blocking wait
+
+        riots_complete.release()         # open the gate for the next thread
+
+        sys.stdout.write("unlocked %s\n" % thread_id)
+
         while (True):
             #wait for a little while
             some_time = random.randint(1, max_silence_interval)
@@ -89,14 +105,14 @@ def test_sender_thread(port):
             with riots_lock:
                 random_port = random.choice(riots.keys())
                 random_neighbor = riots[random_port]
-                #sys.stdout.write("new random neighbor:%s\n" % random_neighbor)
+                sys.stdout.write("new random neighbor:%s\n" % random_neighbor)
 
             # send data. just skip the uninitialized ones
             if ((random_neighbor != my_ip) and (random_neighbor != "")):
                 sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
                 sock.sendall("send %s hello\n" % random_neighbor)
 
-                logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
 
     except:
         traceback.print_exc()
@@ -104,24 +120,42 @@ def test_sender_thread(port):
 
 # kill tcp connections on SIGINT
 def signal_handler(signal, frame):
-        print "\nCleaning up..."
+    close_connections()
+    sys.exit(0)
 
-        for socket in sockets:
-            with sockets_lock:
-                socket.close
-                print "socket",socket.fileno(),"closed."
+def close_connections():
+        print "\nCleaning up..."
+            
+        with sockets_lock:
+            for socket in sockets:
+                    socket.close
+                    print "socket",socket.fileno(),"closed."
 
         print "done"
-        sys.exit(0)
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description='Initiate traffic on a vnet of RIOTs.')
+    parser.add_argument('-d','--debug', action='store_true', help='print debug output to console rather than to a logfile')
+
+    args = parser.parse_args()
+    
     timestamp = time.time()
     date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
     logfile_name = "logs/auto_test "+date+".log"
     
-    logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+    if (args.debug):
+        print "ALL OUTPUT GENERATED WILL NOT BE STORED IN A LOGFILE."
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+    else:
+        print "writing logs to", logfile_name
+        logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
 
     signal.signal(signal.SIGINT, signal_handler)
 
     get_ports()
     connect_riots()
+
+    close_connections()
+
+if __name__ == "__main__":
+    main()
