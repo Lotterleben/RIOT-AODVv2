@@ -128,7 +128,6 @@ const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"ip", "Print all addresses attached to this device", demo_print_ip},
     {"exit", "Shut down node", demo_exit},
-
     {NULL, NULL, NULL}
 };
 

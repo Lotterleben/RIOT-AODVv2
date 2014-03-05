@@ -20,6 +20,8 @@ sockets_lock = threading.Lock()
 ports_local_path = "../../riot/desvirt_mehlis/ports.list" # TODO properly
 experiment_duration = 200
 max_silence_interval = 20
+max_shutdown_interval = shutdown_riots = shutdown_window = 0
+shutdown_queue = Queue()
 
 def get_ports():
     with open(ports_local_path, 'r') as f:
@@ -49,7 +51,9 @@ def connect_riots():
         start_new_thread(test_sender_thread,(port,))
         # make sure the main thread isn't killed before we initialize our sockets
         time.sleep(2) 
-    
+
+    start_new_thread(test_shutdown_thread,())
+
     # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration) 
 
@@ -100,23 +104,45 @@ def test_sender_thread(port):
             #wait for a little while
             some_time = random.randint(1, max_silence_interval)
             time.sleep(some_time)
-            
-            # pick random node
-            with riots_lock:
-                random_port = random.choice(riots.keys())
-                random_neighbor = riots[random_port]
-                sys.stdout.write("new random neighbor:%s\n" % random_neighbor)
 
-            # send data. just skip the uninitialized ones
-            if ((random_neighbor != my_ip) and (random_neighbor != "")):
-                sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
-                sock.sendall("send %s hello\n" % random_neighbor)
+            if (shutdown_queue.get()):
+                # we've been told to shut down
+                sock.sendall("exit\n")
+                thread.exit()
 
-                logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
+            except:
+                # no shutdown instruction, continue as usual
+
+                # pick random node
+                with riots_lock:
+                    random_port = random.choice(riots.keys())
+                    random_neighbor = riots[random_port]
+                    sys.stdout.write("new random neighbor:%s\n" % random_neighbor)
+
+                # send data. just skip the uninitialized ones
+                if ((random_neighbor != my_ip) and (random_neighbor != "")):
+                    sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
+                    sock.sendall("send %s hello\n" % random_neighbor)
+
+                    logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
+
+
+            #if shutdown: send exit, (close socket, remove it from list of sockets,) exit
 
     except:
         traceback.print_exc()
         sys.exit()
+
+def test_shutdown_thread():
+    time.sleep(shutdown_window * 2) 
+
+    while (shutdown_riots > 0):
+
+        shutdown_riots -= 1
+
+        # wait a little while
+        some_time = random.randint(1, max_shutdown_interval)
+        time.sleep(some_time)
 
 # kill tcp connections on SIGINT
 def signal_handler(signal, frame):
@@ -134,14 +160,17 @@ def close_connections():
         print "done"
 
 def main():
-    parser = argparse.ArgumentParser(description='Initiate traffic on a vnet of RIOTs.')
-    parser.add_argument('-d','--debug', action='store_true', help='print debug output to console rather than to a logfile')
-
-    args = parser.parse_args()
-    
     timestamp = time.time()
+    signal.signal(signal.SIGINT, signal_handler)
+
     date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
     logfile_name = "logs/auto_test "+date+".log"
+
+    parser = argparse.ArgumentParser(description='Initiate traffic on a vnet of RIOTs.')
+    parser.add_argument('-d','--debug', action='store_true', help='print debug output to console rather than to a logfile')
+    parser.add_argument('-s','--shutdown', type = int, help='randomly shut down n nodes during execution')
+
+    args = parser.parse_args()
     
     if (args.debug):
         print "ALL OUTPUT GENERATED WILL NOT BE STORED IN A LOGFILE."
@@ -149,8 +178,12 @@ def main():
     else:
         print "writing logs to", logfile_name
         logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
-
-    signal.signal(signal.SIGINT, signal_handler)
+    if (args.shutdown > 0):
+        shutdown_riots = args.shutdown
+        #only shut down RIOTs in the last 3rd of the experiment 
+        # so that there actually are routes to repair
+        shutdown_window = experiment_duration / 3
+        max_shutdown_interval = shutdown_window / shutdown_riots
 
     get_ports()
     connect_riots()

@@ -7,13 +7,6 @@ export BOARD ?= native
 
 # This has to be the absolute path to the RIOT base directory:
 export RIOTBASE =$(CURDIR)/../../riot/RIOT
-<<<<<<< HEAD
-#USEPKG += oonf_api
-export RIOTLIBS =$(RIOTBASE)/../riot-libs
-export OONFBASE =$(CURDIR)/../../oonf_api
-export AODV_NODE =$(CURDIR)/../aodvv2 
-=======
->>>>>>> master
 
 USEPKG += oonf_api
 export CFLAGS += -DRIOT #-DENABLE_DEBUG
@@ -61,14 +54,6 @@ USEMODULE += sixlowpan
 USEMODULE += rpl      #what?!
 USEMODULE += destiny
 
-<<<<<<< HEAD
-#testtest
-USEMODULE += transceiver
-
-# oonf
-=======
-# oonf TODO: brauch ich nicht mehr, wa?
->>>>>>> master
 USEMODULE += net_help 
 USEMODULE += sixlowpan
 #USEMODULE += cunit
@@ -79,17 +64,6 @@ USEMODULE += sixlowpan
 #aodv
 USEMODULE += aodvv2
 
-<<<<<<< HEAD
-export INCLUDES += -I${RIOTBASE}/core/include/         \
-				   -I$(RIOTBASE)/sys/net/include       \
-				   -I$(RIOTBASE)/drivers/cc110x/       \
-				   -I${RIOTBASE}/drivers/include/	   \
-				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
-				   -I$(RIOTBASE)/boards/msba2-common/include  \
-				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
-				   -I$(AODV_NODE)                      \
-				   -I$(RIOTBASE)/boards/msba2-common/include/ \
-=======
 export INCLUDES += -I$(RIOTBASE)/sys/net/include \
 				   -I$(RIOTBASE)/sys/net/routing/aodvv2/include
 
@@ -99,6 +73,5 @@ export INCLUDES += -I$(RIOTBASE)/sys/net/include \
 #				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
 #				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
 #				   -I$(AODV_NODE)                      \
->>>>>>> master
 
 include $(RIOTBASE)/Makefile.include
