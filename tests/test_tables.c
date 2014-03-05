@@ -74,13 +74,11 @@ void test_routingtable(void)
     validity_t = timex_set(AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME, 0); 
 
     struct aodvv2_routing_entry_t entry_1 = {
-        .address = addr_1,
-        .prefixlen = 5,
-        .seqNum = 6,
-        .nextHopAddress = addr_2,
+        .addr = addr_1,
+        .seqnum = 6,
+        .nextHopAddr = addr_2,
         .lastUsed = now,
         .expirationTime = timex_add(now, validity_t),
-        .broken = false,
         .metricType = AODVV2_DEFAULT_METRIC_TYPE,
         .metric = 12,
         .state = ROUTE_STATE_IDLE
@@ -89,13 +87,11 @@ void test_routingtable(void)
     vtimer_now(&now);
 
     struct aodvv2_routing_entry_t entry_2 = {
-        .address = addr_2,
-        .prefixlen = 5,
-        .seqNum = 0, // illegal, but what the hell. for testing purposes. ahum.
-        .nextHopAddress = addr_2,
+        .addr = addr_2,
+        .seqnum = 0, // illegal, but what the hell. for testing purposes. ahum.
+        .nextHopAddr = addr_2,
         .lastUsed = now,
         .expirationTime = timex_add(now, validity_t),
-        .broken = false,
         .metricType = AODVV2_DEFAULT_METRIC_TYPE,
         .metric = 13,
         .state = ROUTE_STATE_ACTIVE
@@ -128,7 +124,7 @@ void test_routingtable(void)
     test_routingtable_get_next_hop_bullshitdata(&now, entry_2.metricType);    // wrong data type for address
     test_routingtable_get_next_hop_bullshitdata(&addr_1, 2);                  // right address, wrong metricType 
 
-    vtimer_usleep((AODVV2_ACTIVE_INTERVAL + AODVV2_MAX_IDLETIME +1) * 1000000); // usleeps needs milliseconds, so there
+    vtimer_usleep((AODVV2_MAX_SEQNUM_LIFETIME) * 1000000); // usleeps needs milliseconds, so there
     test_routingtable_get_entry_bullshitdata(&addr_1, entry_1.metricType);    // entry_1 should be stale & removed by now
     test_routingtable_get_next_hop_bullshitdata(&addr_1, entry_1.metricType); // entry_1 should be stale & removed by now
     routingtable_delete_entry(&addr_1, entry_1.metricType);                        // here's to hoping this blows up when something goes wrong
@@ -155,15 +151,13 @@ void test_rreq_table(void)
         .metricType = AODVV2_DEFAULT_METRIC_TYPE,
         .origNode = {
             .addr = address,
-            .prefixlen = 128,
             .metric = 12,
-            .seqNum = 13,
+            .seqnum = 13,
         },
         .targNode = {
             .addr = next_hop,
-            .prefixlen = 128,
             .metric = 12,
-            .seqNum = 0,
+            .seqnum = 0,
         },
         .timestamp = now,
     };
@@ -181,10 +175,10 @@ void test_rreq_table(void)
     entry_1.origNode.metric = 1;    
     printf(".\n");
     test_rreqtable_rreq_not_redundant(&entry_1);
-    entry_1.origNode.seqNum = 1;
+    entry_1.origNode.seqnum = 1;
     printf(".\n");
     test_rreqtable_rreq_redundant(&entry_1);
-    entry_1.origNode.seqNum = 14;               // SeqNum isn now bigger than the "newest" entry (i.e. original entry_1 with seqNum 13)
+    entry_1.origNode.seqnum = 14;               // seqnum isn now bigger than the "newest" entry (i.e. original entry_1 with seqnum 13)
     printf(".\n");
     test_rreqtable_rreq_not_redundant(&entry_1);
     printf(".\n");
@@ -204,7 +198,7 @@ void test_tables_main(void)
 {
     BEGIN_TESTING(NULL);
 
-    //test_routingtable();
+    test_routingtable();
     test_rreq_table();
 
     FINISH_TESTING();
@@ -213,11 +207,9 @@ void test_tables_main(void)
 char* node_data_to_string(struct node_data* node_data)
 {
     sprintf(str, "\t\taddr: %s\n\
-\t\tprefixlen: %d\n\
 \t\tmetric: %d\n\
-\t\tseqNum: %d\n", netaddr_to_string(&nbuf, &node_data->addr),
-                             node_data->prefixlen, node_data->metric,
-                             node_data->seqNum);
+\t\tseqnum: %d\n", netaddr_to_string(&nbuf, &node_data->addr), node_data->metric,
+                             node_data->seqnum);
     return str;
 }
 

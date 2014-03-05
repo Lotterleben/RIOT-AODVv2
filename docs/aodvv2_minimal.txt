@@ -201,6 +201,26 @@ bachelor's thesis (so far). I may extend it as I go along.
       link.
    o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME). [DONE]
 
+6.3.  Route Table Entry Timeouts [DONE]
+   
+   During normal operation, AODVv2 does not require any explicit
+   timeouts to manage the lifetime of a route.  However, the route table
+   entry MUST be examined before using it to forward a packet, as
+   discussed in Section 8.1.  Any required expiry or deletion can occur
+   at that time.  Nevertheless, it is permissible to implement timers
+   and timeouts to achieve the same effect.
+
+   At any time, the route table can be examined and route table entries
+   can be expunged according to their current state at the time of
+   examination, as follows.
+
+   o  An Active route MUST NOT be expunged.
+   o  An Idle route SHOULD NOT be expunged.
+   o  An Expired route MAY be expunged (least recently used first).
+   o  A route MUST be expunged if (Current_Time - Route.LastUsed) >=
+      MAX_SEQNUM_LIFETIME.
+   o  A route MUST be expunged if Current_Time >= Route.ExpirationTime
+
 7.2.  RteMsg Structure [DONE]
    
    RteMsgs have the following general format:
@@ -336,7 +356,9 @@ bachelor's thesis (so far). I may extend it as I go along.
 
 7.5.2.  Additional Handling for Incoming RREP [DONE]
 
-   o  If HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
+   o  If no forwarding route exists to OrigNode, then a RERR SHOULD be
+      transmitted to RREP.AddrBlk[TargNodeNdx]. Otherwise, if
+      HandlingRtr is not RREQ_Gen then the outgoing RREP is sent to the
       Route.NextHopAddress for the RREP.AddrBlk[OrigNodeNdx].   
    o  If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
       earlier RREQ, and RREP processing is completed. 
@@ -367,156 +389,165 @@ bachelor's thesis (so far). I may extend it as I go along.
       Metric.
    o  Otherwise, the incoming RREQ is suppressed.
 
-========== APPENDIX ============================================================
+8.  Route Maintenance and RERR Messages [DONE]
 
-A.1.  RREQ Message Format 
+   AODVv2 routers attempt to maintain active routes.  When a routing
+   problem is encountered, an AODVv2 router (denoted RERR_Gen) attempts
+   to quickly notify upstream routers.  Two kinds of routing problems
+   may trigger generation of a RERR message.  The first case happens
+   when the router receives a packet but does not have a route for the
+   destination of the packet.  The second case happens immediately upon
+   detection of a broken link (see Section 8.2) of an Active route, to
+   quickly notify upstream AODVv2 routers that that route is no longer
+   available.
 
-   Figure 4 illustrates a packet format for an example RREQ message.
+8.1.  Maintaining Route Lifetimes During Packet Forwarding [DONE]
 
-      0                   1                   2                   3
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     | PV=0 |  PF=0  | msg-type=RREQ | MF=4  | MAL=3 |  msg-size=28  |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |  msg-size=28  | msg-hop-limit |      msg.tlvs-length=0        |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |   num-addr=2  |1|0|0|0|0| Rsv | head-length=3 |Head(Orig&Targ)|
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     | Head (bytes for Orig & Target)|   Orig.Tail   |  Target.Tail  |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |      addr.tlvs-length=11      |  type=SeqNum  |0|1|0|1|0|0|Rsv|
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     | Index-start=0 | tlv-length=2  |     Orig.Node Sequence #      |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |  type=Metric  |0|1|0|1|0|0|Rsv| Index-start=0 | tlv-length=1  |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     | OrigNodeHopCt |
-     +-+-+-+-+-+-+-+-+
+   Before using a route to forward a packet, an AODVv2 router MUST check
+   the status of the route as follows.
 
-       Figure 4: Example IPv4 RREQ, with SeqNum and Metric AddrTLVs
+      If the route is marked has been marked as Broken, it cannot be
+      used for forwarding.
+      If Current_Time > Route.ExpirationTime, the route table entry has
+      expired, and cannot be used for forwarding.
+      Similarly, if (Route.ExpirationTime == MAXTIME), and if
+      (Current_Time - Route.LastUsed) > (ACTIVE_INTERVAL +
+      MAX_IDLETIME), the route has expired, and cannot be used for
+      forwarding.
+      Furthermore, if Current_Time - Route.LastUsed >
+      (MAX_SEQNUM_LIFETIME), the route table entry MUST be expunged.
 
-   The fields in Figure 4 are to be interpreted as follows:
+   If any of the above route error conditions hold true, the route
+   cannot be used to forward the packet, and an RERR message MUST be
+   generated (see Section 8.3).
 
-   o  PV=0 (Packet Header Version = 0)
-   o  PF=0 (Packet Flags = 0)
-   o  msg-type=RREQ (first [and only] message is of type RREQ)
-   o  MF=4 (Message Flags = 4 [only msg-hop-limit field is present])
-   o  MAL=3 (Message Address Length indicator [3 for IPv4, 15 for IPv6])
-   o  msg-size=28 (octets -- counting MsgHdr, MsgTLVs, and AddrBlks)
-   o  msg-hop-limit (initially MAX_HOPCOUNT by default)
-   o  msg.tlvs-length=0 (no Message TLVs)
-   o  num-addr=2 (OrigNode and TargNode addresses in RteMsg AddrBlock)
-   o  AddrBlk flags:
+   Otherwise, Route.LastUsed := Current_Time, and the packet is
+   forwarded to the route's next hop.
 
-      *  bit 0 (ahashead): 1
-      *  bit 1 (ahasfulltail): 0
-      *  bit 2 (ahaszerotail): 0
-      *  bit 3 (ahassingleprelen): 0
-      *  bit 4 (ahasmultiprelen): 0
-      *  bits 5-7: RESERVED
-   o  head-length=3 (length of head part of each address is 3 octets)
-   o  Head (3 initial bytes for both Originating & Target addresses)
-   o  Orig.Tail (4th byte of Originating Node IP address)
-   o  Target.Tail (4th byte of Target Node IP address)
-   o  addr.tlvs-length=11 (length in bytes for SeqNum and Metric TLVs
-   o  type=SeqNum (AddrTLV type of first AddrBlk TLV, values 2 octets)
-   o  AddrTLV flags for SeqNumTLV:
+8.2.  Active Next-hop Router Adjacency Monitoring
 
-      *  bit 0 (thastypeext): 0
-      *  bit 1 (thassingleindex): 1
-      *  bit 2 (thasmultiindex): 0
-      *  bit 3 (thasvalue): 1
-      *  bit 4 (thasextlen): 0
-      *  bit 5 (tismultivalue): 0
-      *  bits 6-7: RESERVED
-   o  Index-start=0 (SeqNum TLV values start at index 0)
-   o  tlv-length=2 (so there is only one TLV value, [1 = 2/2])
-   o  Orig.Node Sequence # (first [and only] TLV value for SeqNum TLVs
-   o  type=Metric (AddrTLV type of second AddrBlk TLV, values 1 octet)
-   o  AddrTLV flags for MetricTLV:
+   AODVv2 routers SHOULD monitor connectivity to adjacent routers along
+   active routes.  This monitoring can be accomplished by one or several
+   mechanisms, including:
 
-      *  bit 0 (thastypeext): 0
-      *  bit 1 (thassingleindex): 1
-      *  bit 2 (thasmultiindex): 0
-      *  bit 3 (thasvalue): 1
-      *  bit 4 (thasextlen): 0
-      *  bit 5 (tismultivalue): 0
-      *  bits 6-7: RESERVED
-   o  Index-start=0 (Metric TLV values start at index 0)
-   o  tlv-length=1 (so there is only one TLV value, [1 = 1/1])
-   o  OrigNodeHopCt (first [and only] TLV value for Metric TLVs)
+   o  Other monitoring mechanisms or heuristics
 
+   If a next-hop AODVv2 router has become unreachable, RERR_Gen follows
+   the procedures specified in Section 8.3.2.
 
+8.3.  RERR Generation [DONE]
 
-A.2.  RREP Message Format
+   An RERR message is generated by a AODVv2 router (i.e., RERR_Gen) in
+   order to notify upstream routers that packets cannot be delivered to
+   certain destinations.  An RERR message has the following general
+   structure:
 
-   Figure 5 illustrates a packet format for an example RREP message.
+    +---------------------------------------------------------------+
+    |     RFC 5444 Message Header <msg-hoplimit> <msg-hopcount>     |
+    +---------------------------------------------------------------+
+    |      UnreachableNode AddrBlk (Unreachable Node addresses)     |
+    +---------------------------------------------------------------+
+    |             UnreachableNode SeqNum AddrBlk TLV                |
+    +---------------------------------------------------------------+
 
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       | PV=0 |  PF=0  | msg-type=RREP | MF=4  | MAL=3 |  msg-size=30  |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |  msg-size=30  | msg-hop-limit |      msg.tlvs-length=0        |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |   num-addr=2  |1|0|0|0|0| Rsv | head-length=3 |Head(Orig&Targ)|
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       | Head (bytes for Orig & Target)|   Orig.Tail   |  Target.Tail  |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |      addr.tlvs-length=13      |  type=SeqNum  |0|1|0|1|0|0|Rsv|
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       | Index-start=0 | tlv-length=2  |     Orig.Node Sequence #      |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |    Target.Node Sequence #     |  type=Metric  |0|1|0|1|0|0|Rsv|
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       | Index-start=1 | tlv-length=1  | TargNodeHopCt |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                     Figure 2: RERR message structure
 
-         Figure 5: Example IPv4 RREP, with 2 SeqNums and 1 Metric
+   Required Message Header Fields
+      The RERR MUST contain the following:
 
-   The fields in Figure 5 are to be interpreted as follows:
-   o  PV=0 (Packet Header Version = 0)
-   o  PF=0 (Packet Flags = 0)
-   o  msg-type=RREP (first [and only] message is of type RREP)
-   o  MF=4 (Message Flags = 4 [only msg-hop-limit field is present])
-   o  MAL=3 (Message Address Length indicator [3 for IPv4, 15 for IPv6])
-   o  msg-size=28 (octets -- counting MsgHdr, MsgTLVs, and AddrBlks)
-   o  msg-hop-limit (initially MAX_HOPCOUNT by default)
-   o  msg.tlvs-length=0 (no Message TLVs)
-   o  num-addr=2 (OrigNode and TargNode addresses in RteMsg AddrBlock)
-   o  AddrBlk flags:
-      *  bit 0 (ahashead): 1
-      *  bit 1 (ahasfulltail): 0
-      *  bit 2 (ahaszerotail): 0
-      *  bit 3 (ahassingleprelen): 0
-      *  bit 4 (ahasmultiprelen): 0
-      *  bits 5-7: RESERVED
-   o  head-length=3 (length of head part of each address is 3 octets)
-   o  Head (3 initial bytes for both Originating & Target addresses)
-   o  Orig.Tail (4th byte of Originating Node IP address)
-   o  Target.Tail (4th byte of Target Node IP address)
-   o  addr.tlvs-length=13 (length in bytes for SeqNum and Metric TLVs
-   o  type=SeqNum (AddrTLV type of first AddrBlk TLV, values 2 octets)
-   o  AddrTLV flags for SeqNumTLV:
-      *  bit 0 (thastypeext): 0
-      *  bit 1 (thassingleindex): 1
-      *  bit 2 (thasmultiindex): 0
-      *  bit 3 (thasvalue): 1
-      *  bit 4 (thasextlen): 0
-      *  bit 5 (tismultivalue): 0
-      *  bits 6-7: RESERVED
-   o  Index-start=0 (SeqNum TLV values start at index 0)
-   o  tlv-length=4 (so there is are two TLV values, [2 = 4/2])
-   o  Orig.Node Sequence # (first of two TLV values for SeqNum TLVs
-   o  Targ.Node Sequence # (second of two TLV values for SeqNum TLVs
-   o  type=Metric (AddrTLV type of second AddrBlk TLV, values 1 octet)
-   o  AddrTLV flags for MetricTLV [01010000, same as for SeqNumTLV]
-   o  Index-start=1 (Metric TLV values start at index 1)
-   o  tlv-length=1 (so there is only one TLV value, [1 = 1/1])
-   o  TargNodeHopCt (first [and only] TLV value for Metric TLVs)
+      *  <msg-hop-limit>
+      *  PktSource Message TLV (see Section 15), if the RERR is unicast
+      *  Metric Type Message TLV (see Section 15), if MetricType != 3
 
+   UnreachableNode AddrBlk
+      This Address Block contains the IP addresses unreachable by AODVv2
+      router transmitting the RERR.
+   Sequence Number AddrBlk TLV
+      This Address Block TLV carries the destination sequence number
+      associated with each UnreachableNode when that information is
+      available.
+   UnreachableNode.PrefixLength
+      The prefix length associated with an UnreachableNode.
 
+   There are two kinds of events indicating that packets cannot be
+   delivered to certain destinations.  The two cases differ in the way
+   that the neighboring IP destination address for the RERR is chosen,
+   and in the way that the set of UnreachableNodes is identified.
 
+   In both cases, the <msg-hop-limit> MUST be included and SHOULD be set
+   to MAX_HOPCOUNT.  <msg-hop-count> SHOULD be included and set to 0.
+
+8.3.1.  Case 1: Undeliverable Packet [DONE]
+
+   The first case happens when the router receives a packet from another
+   AODVv2 router but does not have a valid route for the destination of
+   the packet.  In this case, there is exactly one UnreachableNode to be
+   included in the RERR's AddrBlk (either IP.DestinationAddress from a
+   data packet or RREP.AddrBlk[OrigNode]).  The RERR SHOULD be sent to
+   the multicast address LL-MANET-Routers, but RERR_Gen MAY instead send
+   the RERR to the next hop towards the source IP address of the packet
+   which was undeliverable. If a Sequence Number for UnreachableNode is 
+   known, that Sequence Number SHOULD be included in a Seqnum AddrTLV the RERR.  
+   Otherwise all nodes handling the RERR will assume their route through 
+   RERR_Gen towards the UnreachableNode is no longer valid and flag those routes 
+   as broken, regardless of the Sequence Number information for those
+   routes.  RERR_Gen MUST discard the packet or message that triggered
+   generation of the RERR.
+
+8.3.2.  Case 2: Broken Link
+
+   The second case happens when the link breaks to an active adjacent
+   AODVv2 router (i.e., the next hop of an active route).  In this case,
+   the RERR MUST be sent to the multicast address LL-MANET-Routers.
+   All routes (Active, Idle and Expired) that use the broken link MUST 
+   be marked as Broken. For each such Active Route, Route.Dest is
+   added to the set of Unreachable Nodes.
+
+   If the set of UnreachableNodes is empty, no RERR is generated.
+   Otherwise, RERR_Gen generates a new RERR, and the address of each
+   UnreachableNode is inserted into an AddrBlock.  The value for each
+   UnreachableNode's SeqNum (UnreachableNode.SeqNum) MUST be placed in
+   the SeqNum AddrTLV.
+
+8.4.  Receiving and Handling RERR Messages
+
+   When an AODVv2 router (HandlingRtr) receives a RERR message, it uses
+   the information provided to invalidate affected routes.  If the
+   information in the RERR may be relevant to upstream neighbors using
+   those routes, HandlingRtr subsequently sends another RERR to those
+   neighbors.  This operation has the effect of retransmitting the RERR
+   information and is counted as another "hop" for purposes of properly
+   modifying <msg-hop-limit> and <msg-hop-count> in the RERR message
+   header.
+
+   HandlingRtr examines the incoming RERR to assure that it contains
+   <msg-hop-limit> and at least one UnreachableNode.Address.  If the
+   required information does not exist, the incoming RERR message is
+   disregarded and further processing stopped.  Otherwise, for each
+   UnreachableNode.Address, HandlingRtr searches its route table for a
+   route using longest prefix matching.  If no such Route is found,
+   processing is complete for that UnreachableNode.Address.  Otherwise,
+   HandlingRtr verifies the following:
+
+   2.  Route.NextHopAddress is the same as RERR IP.SourceAddress.
+
+   If the Route satisfies all of the above conditions, HandlingRtr
+   sets the Route.Broken flag for that Route. Furthermore, if <msg-hop-
+   limit> is greater than 0, then HandlingRtr adds the UnreachableNode
+   address and TLV information to an AddrBlk for delivery in the
+   outgoing RERR message.
+
+   If there are no UnreachableNode addresses to be transmitted in an
+   RERR to upstream routers, HandlingRtr MUST discard the RERR, and no
+   further action is taken.
+
+   Otherwise, <msg-hop-limit> is decremented by one (1) and processing
+   continues as follows:
+
+   o  Otherwise, if the PktSource Message TLV is present, and
+      HandlingRtr has a Route to PktSource.Addr, then HandlingRtr MUST
+      send the outgoing RERR to Route[PktSource.Addr].NextHop.
+   o  Otherwise, the outgoing RERR MUST be sent to LL-MANET-Routers.
 
 
 

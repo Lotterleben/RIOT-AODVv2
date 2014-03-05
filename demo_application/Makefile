@@ -1,4 +1,3 @@
-export CFLAGS += -DRIOT #-DENABLE_DEBUG
 
 # name of your project
 export PROJECT = demo_application
@@ -8,15 +7,16 @@ export BOARD ?= native
 
 # This has to be the absolute path to the RIOT base directory:
 export RIOTBASE =$(CURDIR)/../../riot/RIOT
+<<<<<<< HEAD
 #USEPKG += oonf_api
 export RIOTLIBS =$(RIOTBASE)/../riot-libs
 export OONFBASE =$(CURDIR)/../../oonf_api
 export AODV_NODE =$(CURDIR)/../aodvv2 
+=======
+>>>>>>> master
 
-EXTERNAL_MODULES +=$(OONFBASE)
-EXTERNAL_MODULES +=$(RIOTLIBS)
-EXTERNAL_MODULES +=$(AODV_NODE)
-export EXTERNAL_MODULES
+USEPKG += oonf_api
+export CFLAGS += -DRIOT #-DENABLE_DEBUG
 
 # Uncomment these lines if you want to use platform support from external
 # repositories:
@@ -58,23 +58,28 @@ else
 endif
 
 USEMODULE += sixlowpan
-USEMODULE += rpl
+USEMODULE += rpl      #what?!
 USEMODULE += destiny
 
+<<<<<<< HEAD
 #testtest
 USEMODULE += transceiver
 
 # oonf
+=======
+# oonf TODO: brauch ich nicht mehr, wa?
+>>>>>>> master
 USEMODULE += net_help 
 USEMODULE += sixlowpan
-USEMODULE += cunit
-USEMODULE += compat_misc
-USEMODULE += oonf_common
-USEMODULE += oonf_rfc5444
+#USEMODULE += cunit
+#USEMODULE += compat_misc
+#USEMODULE += oonf_common
+#USEMODULE += oonf_rfc5444
 
 #aodv
 USEMODULE += aodvv2
 
+<<<<<<< HEAD
 export INCLUDES += -I${RIOTBASE}/core/include/         \
 				   -I$(RIOTBASE)/sys/net/include       \
 				   -I$(RIOTBASE)/drivers/cc110x/       \
@@ -84,5 +89,16 @@ export INCLUDES += -I${RIOTBASE}/core/include/         \
 				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
 				   -I$(AODV_NODE)                      \
 				   -I$(RIOTBASE)/boards/msba2-common/include/ \
+=======
+export INCLUDES += -I$(RIOTBASE)/sys/net/include \
+				   -I$(RIOTBASE)/sys/net/routing/aodvv2/include
+
+# INCLUDES += -I${RIOTBASE}/core/include/         \
+#				   -I$(RIOTBASE)/sys/net/include       \
+#				   -I$(RIOTBASE)/drivers/cc110x/       \
+#				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
+#				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
+#				   -I$(AODV_NODE)                      \
+>>>>>>> master
 
 include $(RIOTBASE)/Makefile.include
