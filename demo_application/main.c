@@ -13,7 +13,7 @@
 
 #include "kernel.h"
 
-#include "include/aodvv2.h"
+#include "aodvv2/aodvv2.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -22,13 +22,10 @@
 #define UDP_BUFFER_SIZE     (128)
 #define RCV_MSG_Q_SIZE      (64)
 
-//#if defined(BOARD_NATIVE)
-//#include <unistd.h>
-static uint8_t transceiver_type = TRANSCEIVER_NATIVE;
-//#endif
-
-static int _sock_snd;
+static int _sock_snd, if_id;
 static sockaddr6_t _sockaddr;
+static ipv6_addr_t prefix;
+
 msg_t msg_q[RCV_MSG_Q_SIZE];
 
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
@@ -61,7 +58,8 @@ void demo_send(char *id_str)
 void demo_print_ip(char* str)
 {
     (void) str;
-    ipv6_iface_print_addrs();
+    // TODO FIX THIS
+    //ipv6_iface_print_addrs();
 }
 
 static void _demo_init_socket(void)
@@ -105,7 +103,7 @@ static void _demo_receiver_thread(void)
         if(rcv_size < 0) {
             DEBUG("[demo]   ERROR receiving data!\n");
         }
-        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(addr_str_rec, &sa_rcv.sin6_addr), buf_rcv);
+        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
     }
 
     destiny_socket_close(sock_rcv);  
@@ -117,8 +115,13 @@ static void _init_tlayer()
     msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
-    sixlowpan_lowpan_init(transceiver_type, getpid(), 0);
+
+    ipv6_addr_init(&prefix, 0xABCD, 0xEF12, 0, 0, 0, 0, 0, 0);
+    if_id = 0; // >1 interface isn't supported anyway, so there
+
+    sixlowpan_lowpan_init_adhoc_interface(if_id, &prefix);
     printf("initializing AODVv2...\n");
+
     aodv_init();
     _demo_init_socket();
 }
@@ -143,7 +146,6 @@ int main(void)
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
 
     shell_run(&shell);
-
 
     return 0;
 }
