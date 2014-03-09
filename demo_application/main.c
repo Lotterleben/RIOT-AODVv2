@@ -56,12 +56,11 @@ void demo_send(char *id_str)
 void demo_print_ip(char* str)
 {
     (void) str;
-    // TODO FIX THIS
-    //ipv6_iface_print_addrs();
 }
 
 void demo_exit(char* str)
 {
+    (void) str;
     exit(0);
 }
 
@@ -118,7 +117,7 @@ static void _init_tlayer()
     msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
-    sixlowpan_lowpan_init();
+    //sixlowpan_lowpan_init();
     printf("initializing AODVv2...\n");
     aodv_init();
     _demo_init_socket();
@@ -127,7 +126,7 @@ static void _init_tlayer()
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"ip", "Print all addresses attached to this device", demo_print_ip},
-    {"exit", "Shut down node", demo_exit},
+    {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };
 
