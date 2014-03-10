@@ -63,18 +63,23 @@ def get_shell_output(sock):
 for each node, determine all nodes in the grid that are >= min_hop_distance away
 '''
 def collect_potential_targnodes():
-    print "i_max: ", i_max, "j_max", j_max
+    global potential_targnodes, min_hop_distance
+    print "i_max:", i_max, "j_max:", j_max
 
     for position, connection in riots.iteritems():
         i = position[0]
         j = position[1]
-        potential_targnodes[position] = []
 
-        i_tn = int(i) + min_hop_distance
-        j_tn = int(j) + min_hop_distance
-        if (i_tn < i_max):
-            pass #TODO
-         
+        i = int(i)
+        j = int(j)
+
+        m_lst = range(0, i)
+        n_lst = range(0, j)
+
+        potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if 
+                                        ((m <= m+min_hop_distance)or(m >= m-min_hop_distance)) 
+                                        or ((n<=n+min_hop_distance)or(n>=n-min_hop_distance))]
+
     print "potential_targnodes: ", potential_targnodes
 
 
