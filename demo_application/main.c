@@ -55,14 +55,6 @@ void demo_send(char* id_str) // hier beschwert er sich: demo_send (id_str=0x3 <A
         printf("%d bytes sent.\n", bytes_sent);
 }
 
-void demo_print_ip(char* str)
-{
-    (void) str;
-    // TODO FIX THIS
-    // nah, just use ifconfig instead...
-    //ipv6_iface_print_addrs();
-}
-
 static void _demo_init_socket(void)
 {
     _sockaddr.sin6_family = AF_INET6;
