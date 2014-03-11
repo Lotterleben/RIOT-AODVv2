@@ -46,9 +46,28 @@ def get_ports():
             if (j > j_max):
                 j_max = j
 
+'''
+parse something like
+ifconfig
+Iface   0   HWaddr: 0x0001 Channel: 0 PAN ID: 0xabcd
+            EUI-64: 00-00-00-ff-fe-00-00-01
+            Source address mode: short
+            Transceivers:
+             * native
+            inet6 addr: error in conversion
+            inet6 addr: ff02::2/128  scope: local [multicast]
+            inet6 addr: fe80::ff:fe00:1/128  scope: local
+            inet6 addr: ff02::1:0:ff00:1/128  scope: local [multicast]
+            inet6 addr: ff02::1/128  scope: local [multicast]
+            inet6 addr: ::1/128  scope: local
+'''
+
 def get_node_ip(data):
-    ips = data.split("\n");
-    return ips[1]
+    lines = data.split("inet6 addr:");
+    #relevant_lines = [l for l in lines if ("fe80" in l)]
+    for line in lines:
+        if ("fe80" in line):
+            return line.strip().split("/")[0]
 
 def get_shell_output(sock):
     # read IP data until ">" marks termination of the shell output
@@ -111,7 +130,7 @@ def test_sender_thread(position, port):
 
     try:
         sock.connect(("127.0.0.1 ", int(port)))
-        sock.sendall("ip\n")
+        sock.sendall("ifconfig\n")
 
         #get all IP addresses of this RIOT
         data = get_shell_output(sock)
