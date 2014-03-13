@@ -176,8 +176,6 @@ def test_sender_thread(position, port):
                 # pick random node
                 with riots_lock:
                     targnode = random.choice(my_targnodes)
-                    print "targnode:", targnode
-                    print "riots[targnode]:", riots[targnode]
                     targnode_ip = riots[targnode][1]
 
                     sys.stdout.write("new random neighbor:%s\n" % targnode_ip)
