@@ -37,8 +37,8 @@ def get_ports():
 
         for port_string in ports_local:
             lst = port_string.split(",")
-            i = lst[0]
-            j = lst[1]
+            i = int(lst[0])
+            j = int(lst[1])
             port = lst[2].rstrip('\n')
             riots[(i,j)] = (port, "")
             if (i > i_max):
@@ -107,7 +107,7 @@ def connect_riots():
         # make sure the main thread isn't killed before we initialize our sockets
         time.sleep(2) 
 
-    print riots
+    print "riots:", riots
     start_new_thread(test_shutdown_thread,())
 
     # after experiment_duration, this function will exit and kill all the threads it generated.
@@ -118,7 +118,7 @@ def test_sender_thread(position, port):
 
     data = my_ip = random_neighbor = ""
     thread_id = threading.currentThread().name
-    global shutdown_queue
+    global shutdown_queue, potential_targnodes
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     with sockets_lock:
@@ -135,6 +135,9 @@ def test_sender_thread(position, port):
         if ("shell: command not found" in data):
             sys.stdout.write("Hickup while retrieving IPs. Exiting. Please try again.\n")
             sys.exit()
+
+        # get all of my potential TargNodes
+        my_targnodes = potential_targnodes[position]
 
         # get relevant IP address
         my_ip = get_node_ip(data)
@@ -163,27 +166,26 @@ def test_sender_thread(position, port):
             time.sleep(some_time)
 
             try:
-                shutdown_queue.get() # we've been told to shut down
+                shutdown_queue.get(False) # we've been told to shut down
                 sys.stdout.write("%s shutting down\n" % thread_id)
                 sock.sendall("exit\n")
                 sys.exit()
 
             except:
                 # no shutdown instruction, continue as usual
-                '''
                 # pick random node
                 with riots_lock:
-                    random_port = random.choice(riots.keys())
-                    random_neighbor = riots[random_port]
-                    sys.stdout.write("new random neighbor:%s\n" % random_neighbor)
+                    targnode = random.choice(my_targnodes)
+                    print "targnode:", targnode
+                    print "riots[targnode]:", riots[targnode]
+                    targnode_ip = riots[targnode][1]
 
-                # send data. just skip the uninitialized ones
-                if ((random_neighbor != my_ip) and (random_neighbor != "")):
+                    sys.stdout.write("new random neighbor:%s\n" % targnode_ip)
+
                     sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
                     sock.sendall("send %s hello\n" % random_neighbor)
 
                     logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
-                '''
 
     except:
         traceback.print_exc()
