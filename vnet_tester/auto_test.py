@@ -15,14 +15,14 @@ import os
 
 experiment_duration = 200
 max_silence_interval = 20
-min_hop_distance = 3
+min_hop_distance = 2
 
 i_max = j_max = 0
 
 riots = {} # key: (i,j) coordinate on the Grid. value: (port, IP)
 riots_lock = threading.Lock()
 riots_complete = threading.Lock()
-potential_targnodes = {} # key: (i,j) coordinate on the Grid. value: [(i,j)]
+potential_targnodes = {} # key: (i,j) coordinate on the Grid. value: [(i,j)] nodes that are far enough away
 num_riots = 0
 sockets = []
 sockets_lock = threading.Lock()
@@ -61,7 +61,6 @@ Iface   0   HWaddr: 0x0001 Channel: 0 PAN ID: 0xabcd
             inet6 addr: ff02::1/128  scope: local [multicast]
             inet6 addr: ::1/128  scope: local
 '''
-
 def get_node_ip(data):
     lines = data.split("inet6 addr:");
     #relevant_lines = [l for l in lines if ("fe80" in l)]
@@ -83,7 +82,7 @@ for each node, determine all nodes in the grid that are >= min_hop_distance away
 '''
 def collect_potential_targnodes():
     global potential_targnodes, min_hop_distance
-    print "i_max:", i_max, "j_max:", j_max
+    print "i_max:", i_max, "j_max:", j_max, "min_hop_distance:", min_hop_distance
 
     for position, connection in riots.iteritems():
         i = position[0]
@@ -92,15 +91,12 @@ def collect_potential_targnodes():
         i = int(i)
         j = int(j)
 
-        m_lst = range(0, i)
-        n_lst = range(0, j)
+        m_lst = range(1, int(i_max)+1)
+        n_lst = range(1, int(j_max)+1)
 
         potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if 
-                                        ((m <= m+min_hop_distance)or(m >= m-min_hop_distance)) 
-                                        or ((n<=n+min_hop_distance)or(n>=n-min_hop_distance))]
-
-    print "potential_targnodes: ", potential_targnodes
-
+                                        ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
+                                        or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
 
 def connect_riots():
     riots_complete.acquire()
@@ -174,7 +170,6 @@ def test_sender_thread(position, port):
 
             except:
                 # no shutdown instruction, continue as usual
-
                 '''
                 # pick random node
                 with riots_lock:
