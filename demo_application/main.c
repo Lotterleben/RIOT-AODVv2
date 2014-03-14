@@ -30,17 +30,16 @@ msg_t msg_q[RCV_MSG_Q_SIZE];
 
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
-void demo_send(char* id_str) // hier beschwert er sich: demo_send (id_str=0x3 <Address 0x3 out of bounds>) 
+void demo_send(int argc, char** argv)
 {
-    char dest_str[IPV6_MAX_ADDR_STR_LEN];  // assuming we're dealing with "full" IPs
-    char msg[25];
-
-    int res = sscanf(id_str, "send %s %s", dest_str, msg);
-
-    if (res != 2) {
+    if (argc != 3) {
         printf("Usage: send <destination ip> <message>\n");
         return;
     }
+
+    char* dest_str = argv[1] ;
+    char* msg = argv[2];
+    
     printf("sending...\n");
 
     // turn dest_str into ipv6_addr_t
@@ -121,7 +120,6 @@ static void _init_tlayer()
 
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
-    {"ip", "Print all addresses attached to this device", demo_print_ip},
     {NULL, NULL, NULL}
 };
 

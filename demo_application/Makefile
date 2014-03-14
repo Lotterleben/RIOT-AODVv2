@@ -55,6 +55,7 @@ USEMODULE += destiny
 USEMODULE += aodvv2
 
 export INCLUDES += -I$(RIOTBASE)/sys/net/include \
-				   -I$(RIOTBASE)/sys/net/routing/aodvv2/include
+				   -I$(RIOTBASE)/sys/net/routing/aodvv2/include \
+				   -I$(RIOTBASE)/pkg/oonf_api/oonf_api/src-api/
 
 include $(RIOTBASE)/Makefile.include
