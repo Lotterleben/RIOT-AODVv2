@@ -22,23 +22,37 @@
 #define UDP_BUFFER_SIZE     (128)
 #define RCV_MSG_Q_SIZE      (64)
 
-static int _sock_snd;
+static int _sock_snd, if_id;
 static sockaddr6_t _sockaddr;
+static ipv6_addr_t prefix;
+
 msg_t msg_q[RCV_MSG_Q_SIZE];
 
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
-void demo_send(char *id_str)
+
+// TODO ifdef for native, msba2.. etc. getpid() geht nur für native
+/* martine:für den iot-lab generier ich das immer aus der Serialnumber der 
+cpu und für native aus der PID. Ich weiß, dass der MSBA2 auch irgendwo eine 
+Serialnumber hat, aber das letzte mal als ich das probiert hatte, kam es zu 
+segfaults an genau der stelle des auslesens
+aber afaik gibts in core/include/config.h was mit id… aber kA wie zuverlässig das ist
+*/
+uint16_t get_hw_addr(void)
 {
-    char dest_str[39];  // assuming we're dealing with "full" IPs
-    char msg[25];
+    return getpid();
+}
 
-    int res = sscanf(id_str, "send %s %s", dest_str, msg);
-
-    if (res != 2) {
+void demo_send(int argc, char** argv)
+{
+    if (argc != 3) {
         printf("Usage: send <destination ip> <message>\n");
         return;
     }
+
+    char* dest_str = argv[1] ;
+    char* msg = argv[2];
+    
     printf("sending...\n");
 
     // turn dest_str into ipv6_addr_t
@@ -115,10 +129,18 @@ static void _demo_receiver_thread(void)
 static void _init_tlayer()
 {    
     msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
+
+    net_if_set_hardware_address(0, get_hw_addr());
+
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
-    //sixlowpan_lowpan_init();
+
+    ipv6_addr_init(&prefix, 0xABCD, 0xEF12, 0, 0, 0, 0, 0, 0);
+    if_id = 0; // >1 interface isn't supported anyway, so there
+
+    sixlowpan_lowpan_init_adhoc_interface(if_id, &prefix);
     printf("initializing AODVv2...\n");
+
     aodv_init();
     _demo_init_socket();
 }
@@ -144,7 +166,6 @@ int main(void)
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
 
     shell_run(&shell);
-
 
     return 0;
 }

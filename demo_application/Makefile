@@ -46,32 +46,16 @@ USEMODULE += vtimer
 ifeq ($(strip $(BOARD)),native)
 	USEMODULE += nativenet
 else
-	#USEMODULE += cc110x
-	USEMODULE += cc110x_ng
+	USEMODULE += cc110x
 endif
-
 USEMODULE += sixlowpan
-USEMODULE += rpl      #what?!
 USEMODULE += destiny
-
-USEMODULE += net_help 
-USEMODULE += sixlowpan
-#USEMODULE += cunit
-#USEMODULE += compat_misc
-#USEMODULE += oonf_common
-#USEMODULE += oonf_rfc5444
 
 #aodv
 USEMODULE += aodvv2
 
 export INCLUDES += -I$(RIOTBASE)/sys/net/include \
-				   -I$(RIOTBASE)/sys/net/routing/aodvv2/include
-
-# INCLUDES += -I${RIOTBASE}/core/include/         \
-#				   -I$(RIOTBASE)/sys/net/include       \
-#				   -I$(RIOTBASE)/drivers/cc110x/       \
-#				   -I$(RIOTBASE)/cpu/$(BOARD)/include  \
-#				   -I$(OONFBASE)/src-api -I$(RIOTLIBS) \
-#				   -I$(AODV_NODE)                      \
+				   -I$(RIOTBASE)/sys/net/routing/aodvv2/include \
+				   -I$(RIOTBASE)/pkg/oonf_api/oonf_api/src-api/
 
 include $(RIOTBASE)/Makefile.include
