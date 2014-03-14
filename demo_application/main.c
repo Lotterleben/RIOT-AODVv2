@@ -22,6 +22,10 @@
 #define UDP_BUFFER_SIZE     (128)
 #define RCV_MSG_Q_SIZE      (64)
 
+// constants from the AODVv2 Draft, version 03
+#define DISCOVERY_ATTEMPTS_MAX 3
+#define RREQ_WAIT_TIME 2000000         // milliseconds. TODO: ausreichend?!
+
 static int _sock_snd, if_id;
 static sockaddr6_t _sockaddr;
 static ipv6_addr_t prefix;
@@ -52,19 +56,33 @@ void demo_send(int argc, char** argv)
 
     char* dest_str = argv[1] ;
     char* msg = argv[2];
+    uint8_t num_attempts = 0;
     
-    printf("sending...\n");
+    printf("[demo]   sending...\n");
 
     // turn dest_str into ipv6_addr_t
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
 
-    int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
-                                            0, &_sockaddr, sizeof _sockaddr);
+    while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
+        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
+                                                0, &_sockaddr, sizeof _sockaddr);
 
-    if (bytes_sent == -1)
-        printf("no bytes sent, probably because there is no route yet.\n");
-    else
-        printf("%d bytes sent.\n", bytes_sent);
+        if (bytes_sent == -1) {
+            printf("[demo]   no bytes sent, probably because there is no route yet.\n");
+            num_attempts++;
+            vtimer_usleep(RREQ_WAIT_TIME);
+        }
+        else {
+            printf("[demo]   %d bytes sent.\n", bytes_sent);
+            return;
+        }
+    }
+    printf("[demo]   Error sending Data: no route found\n");
+}
+
+void demo_exit(int argc, char** argv)
+{
+    exit(0);
 }
 
 static void _demo_init_socket(void)
@@ -121,7 +139,6 @@ static void _init_tlayer()
 
     net_if_set_hardware_address(0, get_hw_addr());
 
-    //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
 
     ipv6_addr_init(&prefix, 0xABCD, 0xEF12, 0, 0, 0, 0, 0, 0);
@@ -136,6 +153,7 @@ static void _init_tlayer()
 
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
+    {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };
 
