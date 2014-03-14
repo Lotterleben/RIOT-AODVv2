@@ -30,6 +30,19 @@ msg_t msg_q[RCV_MSG_Q_SIZE];
 
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
+
+// TODO ifdef for native, msba2.. etc. getpid() geht nur für native
+/* martine:für den iot-lab generier ich das immer aus der Serialnumber der 
+cpu und für native aus der PID. Ich weiß, dass der MSBA2 auch irgendwo eine 
+Serialnumber hat, aber das letzte mal als ich das probiert hatte, kam es zu 
+segfaults an genau der stelle des auslesens
+aber afaik gibts in core/include/config.h was mit id… aber kA wie zuverlässig das ist
+*/
+uint16_t get_hw_addr(void)
+{
+    return getpid();
+}
+
 void demo_send(int argc, char** argv)
 {
     if (argc != 3) {
@@ -105,6 +118,9 @@ static void _demo_receiver_thread(void)
 static void _init_tlayer()
 {    
     msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
+
+    net_if_set_hardware_address(0, get_hw_addr());
+
     //destiny_init_transport_layer();
     printf("initializing 6LoWPAN...\n");
 
