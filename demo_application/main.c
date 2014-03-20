@@ -62,7 +62,7 @@ void demo_send(int argc, char** argv)
     char* msg = argv[2];
     uint8_t num_attempts = 0;
     
-    printf("[demo]   sending...\n");
+    printf("[demo]   sending packet of %i bytes...\n", sizeof(msg) * strlen(msg));
 
     // turn dest_str into ipv6_addr_t
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
@@ -98,7 +98,7 @@ void demo_send_data(int argc, char** argv)
     char* argv_send[3];
     argv_send[0] = "send";
     argv_send[1] = argv[1];
-    argv_send[2] = " This is a test string. It tests things. ";
+    argv_send[2] = "This is a test";
 
     demo_send(3, &argv_send);
 }
