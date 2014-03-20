@@ -13,9 +13,9 @@ import argparse
 import Queue
 import os
 
-experiment_duration = 200
-max_silence_interval = 20
-min_hop_distance = 3
+experiment_duration = 600  # seconds
+max_silence_interval = 20  # seconds
+min_hop_distance = 1 # TODO edit back to 3
 
 i_max = j_max = 0
 
@@ -26,7 +26,7 @@ potential_targnodes = {} # key: (i,j) coordinate on the Grid. value: [(i,j)] nod
 num_riots = 0
 sockets = []
 sockets_lock = threading.Lock()
-ports_local_path = "../../riot/desvirt_mehlis/ports.list" # TODO properly
+ports_local_path = "../../../riot/desvirt_mehlis/ports.list" # TODO properly
 max_shutdown_interval = shutdown_riots = shutdown_window = 0
 shutdown_queue = Queue.Queue()
 
@@ -108,7 +108,8 @@ def connect_riots():
         time.sleep(2) 
 
     print "riots:", riots
-    start_new_thread(test_shutdown_thread,())
+    if (shutdown_riots > 0):
+        start_new_thread(test_shutdown_thread,())
 
     # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration) 
@@ -178,10 +179,10 @@ def test_sender_thread(position, port):
                     targnode = random.choice(my_targnodes)
                     targnode_ip = riots[targnode][1]
 
-                    sys.stdout.write("new random neighbor:%s\n" % targnode_ip)
+                    sys.stdout.write("new random neighbor: %s\n" % targnode_ip)
 
-                    sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
-                    sock.sendall("send_data %s\n" % random_neighbor)
+                    sys.stdout.write("%s Say hi to   %s\n\n" % (port, targnode_ip))
+                    sock.sendall("send_data %s\n" % targnode_ip)
 
                     logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
 
