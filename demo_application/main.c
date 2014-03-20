@@ -2,6 +2,8 @@
 #include <string.h>
 #include <unistd.h> // for getting the pid
 #include <inet_pton.h>
+#include <time.h>
+#include <stdlib.h>
 
 #include "thread.h"
 #include "posix_io.h"
@@ -18,17 +20,19 @@
 #define ENABLE_DEBUG (1)
 #include "debug.h"
 
-#define RANDOM_PORT 1337
+#define RANDOM_PORT         (1337)
 #define UDP_BUFFER_SIZE     (128)
 #define RCV_MSG_Q_SIZE      (64)
+#define DATA_SIZE           (20)
 
 // constants from the AODVv2 Draft, version 03
-#define DISCOVERY_ATTEMPTS_MAX 3
-#define RREQ_WAIT_TIME 2000000         // milliseconds. TODO: ausreichend?!
+#define DISCOVERY_ATTEMPTS_MAX (3)
+#define RREQ_WAIT_TIME         (2000000) // milliseconds.
 
 static int _sock_snd, if_id;
 static sockaddr6_t _sockaddr;
 static ipv6_addr_t prefix;
+static uint8_t random_data[DATA_SIZE];  // assuming we're on a platform where 8 bit == 1 byte
 
 msg_t msg_q[RCV_MSG_Q_SIZE];
 
@@ -64,7 +68,8 @@ void demo_send(int argc, char** argv)
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
 
     while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
-        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, strlen(msg)+1, 
+        int msg_len = strlen(msg)+1;
+        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
                                                 0, &_sockaddr, sizeof _sockaddr);
 
         if (bytes_sent == -1) {
@@ -78,6 +83,24 @@ void demo_send(int argc, char** argv)
         }
     }
     printf("[demo]   Error sending Data: no route found\n");
+}
+
+/*
+    Send a random 20-byte chunk of data to the address supplied by the user
+*/
+void demo_send_data(int argc, char** argv)
+{
+    if (argc != 2) {
+        printf("Usage: send_data <destination ip>\n");
+        return;
+    }
+
+    char* argv_send[3];
+    argv_send[0] = "send";
+    argv_send[1] = argv[1];
+    argv_send[2] = " This is a test string. It tests things. ";
+
+    demo_send(3, &argv_send);
 }
 
 void demo_exit(int argc, char** argv)
@@ -153,6 +176,7 @@ static void _init_tlayer()
 
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
+    {"send_data", "send 20 bytes of data to ip", demo_send_data},
     {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };

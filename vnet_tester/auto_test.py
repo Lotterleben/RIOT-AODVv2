@@ -15,7 +15,7 @@ import os
 
 experiment_duration = 200
 max_silence_interval = 20
-min_hop_distance = 2
+min_hop_distance = 3
 
 i_max = j_max = 0
 
@@ -181,7 +181,7 @@ def test_sender_thread(position, port):
                     sys.stdout.write("new random neighbor:%s\n" % targnode_ip)
 
                     sys.stdout.write("%s Say hi to   %s\n\n" % (port, random_neighbor))
-                    sock.sendall("send %s hello\n" % random_neighbor)
+                    sock.sendall("send_data %s\n" % random_neighbor)
 
                     logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
 
@@ -269,7 +269,7 @@ def main():
         print shutdown_riots
 
 
-    sys.stdout.write("Starting %i seonds of testing...\n" % experiment_duration)
+    sys.stdout.write("Starting %i seconds of testing...\n" % experiment_duration)
 
     get_ports()
     connect_riots()
