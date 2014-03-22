@@ -24,10 +24,14 @@
 #define UDP_BUFFER_SIZE     (128)
 #define RCV_MSG_Q_SIZE      (64)
 #define DATA_SIZE           (20)
+#define STREAM_INTERVAL     (200000)     // milliseconds
+#define NUM_PKTS            (100)
 
 // constants from the AODVv2 Draft, version 03
 #define DISCOVERY_ATTEMPTS_MAX (3)
-#define RREQ_WAIT_TIME         (2000000) // milliseconds.
+#define RREQ_WAIT_TIME         (2000000) // milliseconds
+
+int demo_attempt_to_send(char* dest_str, char* msg);
 
 static int _sock_snd, if_id;
 static sockaddr6_t _sockaddr;
@@ -64,25 +68,7 @@ void demo_send(int argc, char** argv)
     
     printf("[demo]   sending packet of %i bytes...\n", sizeof(msg) * strlen(msg));
 
-    // turn dest_str into ipv6_addr_t
-    inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
-
-    while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
-        int msg_len = strlen(msg)+1;
-        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
-                                                0, &_sockaddr, sizeof _sockaddr);
-
-        if (bytes_sent == -1) {
-            printf("[demo]   no bytes sent, probably because there is no route yet.\n");
-            num_attempts++;
-            vtimer_usleep(RREQ_WAIT_TIME);
-        }
-        else {
-            printf("[demo]   %d bytes sent.\n", bytes_sent);
-            return;
-        }
-    }
-    printf("[demo]   Error sending Data: no route found\n");
+    demo_attempt_to_send(dest_str, msg);
 }
 
 /*
@@ -95,12 +81,37 @@ void demo_send_data(int argc, char** argv)
         return;
     }
 
-    char* argv_send[3];
-    argv_send[0] = "send";
-    argv_send[1] = argv[1];
-    argv_send[2] = "This is a test";
+    demo_attempt_to_send(argv[1], "This is a test");
+}
 
-    demo_send(3, &argv_send);
+void demo_send_stream(int argc, char** argv)
+{
+    if (argc != 2) {
+        printf("Usage: send_stream <destination ip>\n");
+        return;
+    }
+
+    // get some random data
+    char* msg = (char*) malloc(sizeof(char)*81); 
+    char* dest_str = argv[1];
+
+    /* TODO un-uncomment me
+    if (demo_attempt_to_send(dest_str, msg) < 0 ){
+        printf("[demo]   No route found, can't stream data.\n");
+        return;
+    }
+    */
+
+    inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
+
+    for (int i=0; i < NUM_PKTS; i++) {
+        int msg_len = strlen(msg)+1;
+        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
+                                                0, &_sockaddr, sizeof _sockaddr);
+        vtimer_usleep(STREAM_INTERVAL);
+        printf("%i\n", i);
+    }
+    free(msg);
 }
 
 void demo_exit(int argc, char** argv)
@@ -119,6 +130,32 @@ static void _demo_init_socket(void)
         printf("[demo]   Error Creating Socket!\n");
         return;
     }
+}
+
+int demo_attempt_to_send(char* dest_str, char* msg)
+{
+    uint8_t num_attempts = 0;
+
+    // turn dest_str into ipv6_addr_t
+    inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
+
+    while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
+        int msg_len = strlen(msg)+1;
+        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
+                                                0, &_sockaddr, sizeof _sockaddr);
+
+        if (bytes_sent == -1) {
+            printf("[demo]   no bytes sent, probably because there is no route yet.\n");
+            num_attempts++;
+            vtimer_usleep(RREQ_WAIT_TIME);
+        }
+        else {
+            printf("[demo]   %d bytes sent.\n", bytes_sent);
+            return 0;
+        }
+    }
+    printf("[demo]   Error sending Data: no route found\n");
+    return -1;
 }
 
 static void _demo_receiver_thread(void)
@@ -177,6 +214,7 @@ static void _init_tlayer()
 const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"send_data", "send 20 bytes of data to ip", demo_send_data},
+    {"send_stream", "send stream of data to ip", demo_send_stream},
     {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };
