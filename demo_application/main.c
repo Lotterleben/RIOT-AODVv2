@@ -114,6 +114,22 @@ void demo_send_stream(int argc, char** argv)
     free(msg);
 }
 
+
+/*
+    Help emulate a functional NDP implementation (this should be called by every
+    neighbor of a node that was shut down with demo_exit())
+*/
+void demo_remove_neighbor(int argc, char** argv)
+{
+    if (argc != 2) {
+        printf("Usage: rm_neighbor <destination ip>\n");
+        return;
+    }
+    ipv6_addr_t neighbor;
+    inet_pton(AF_INET6, argv[1], &neighbor);
+    ndp_neighbor_cache_remove(&neighbor);
+}
+
 void demo_exit(int argc, char** argv)
 {
     exit(0);
@@ -215,6 +231,7 @@ const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"send_data", "send 20 bytes of data to ip", demo_send_data},
     {"send_stream", "send stream of data to ip", demo_send_stream},
+    {"rm_neighbor", "Help emulate a functional NDP implementation", demo_remove_neighbor},
     {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };

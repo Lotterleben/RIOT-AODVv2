@@ -77,6 +77,12 @@ bachelor's thesis (so far). I may extend it as I go along.
    sequence number information is considered no longer valuable and the
    Expired route MUST BE expunged.
 
+   MAX_SEQNUM_LIFETIME is the time after a reboot during which an AODVv2
+   router MUST NOT transmit any routing messages.  Thus, if all other
+   AODVv2 routers expunge routes to the rebooted router after that time
+   interval, the rebooted AODVv2 router's sequence number will not be
+   considered stale by any other AODVv2 router in the MANET.
+
    When the link to a route's next hop is broken, the route is marked as
    being Broken, and the route may no longer be used.
 
