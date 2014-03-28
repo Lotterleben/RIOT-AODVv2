@@ -29,6 +29,7 @@ sockets_lock = threading.Lock()
 ports_local_path = "../../../riot/desvirt_mehlis/ports.list" # TODO properly
 max_shutdown_interval = shutdown_riots = shutdown_window = 0
 shutdown_queue = Queue.Queue()
+msg_queues = {}
 
 def get_ports():
     with open(ports_local_path, 'r') as f:
@@ -102,7 +103,7 @@ def collect_potential_targnodes():
 return all 1-hop neighbors of position
 '''
 def get_neighbors(position):
-    print "i_max:", i_max, "j_max:", j_max,
+    print "i_max:", i_max, "j_max:", j_max
 
     i = int(position[0])
     j = int(position[1])
@@ -112,7 +113,6 @@ def get_neighbors(position):
 
     neighbors = [(m, n) for m in m_lst for n in n_lst if (1 <= m <= i_max) and (1 <= n <= j_max) and ((m,n) != (i,j))]
 
-    print "neighbors of ", position, neighbors
     return neighbors
 
 
@@ -147,6 +147,9 @@ def test_sender_thread(position, port):
         sock.connect(("127.0.0.1 ", int(port)))
         sock.sendall("ifconfig\n")
 
+        # add own message queue to global msg queue dict
+        msg_queues[position] = Queue.Queue()
+
         #get all IP addresses of this RIOT
         data = get_shell_output(sock)
 
@@ -158,16 +161,13 @@ def test_sender_thread(position, port):
         # get all of my potential TargNodes
         my_targnodes = potential_targnodes[position]
 
-        # get all of my potential neighbors
-        my_neighbors = get_neighbors(position)
-
         # get relevant IP address
         my_ip = get_node_ip(data)
         #sys.stdout.write("{%s} IP: %s\n" % (thread_id, my_ip))
         logging.debug("{%s} IP: %s\n" % (thread_id, my_ip))
 
         with riots_lock:
-            sys.stdout.write("adding node with IP %s to riots...\n" % my_ip)
+            sys.stdout.write("%s adding node with IP %s to riots...\n" % (thread_id, my_ip))
             riots[position] = (port, my_ip)
             global num_riots
             num_riots += 1
@@ -180,17 +180,32 @@ def test_sender_thread(position, port):
 
         riots_complete.release()         # open the gate for the next thread
 
-        sys.stdout.write("unlocked %s\n" % thread_id)
+        sys.stdout.write("%sunlocked\n" % thread_id)
 
         while (True):
             #wait for a little while
             some_time = random.randint(1, max_silence_interval)
             time.sleep(some_time)
 
+            if (not msg_queues[position].empty()):
+                instruction = msg_queues[position].get()
+                sys.stdout.write("%s received instruction: %s\n" % (thread_id, instruction))
+                sock.sendall(instruction)
+
             try:
                 shutdown_queue.get(False) # we've been told to shut down
                 sys.stdout.write("%s shutting down\n" % thread_id)
+
+                # get all of my potential neighbors
+                my_neighbors = get_neighbors(position)
+
+                # shut down my RIOT
                 sock.sendall("exit\n")
+                
+                # emulate NDP of my 1-hop-neighbors noticing my shutdown
+                for neighbor in my_neighbors:
+                    msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
+
                 sys.exit()
 
             except:
@@ -205,7 +220,7 @@ def test_sender_thread(position, port):
                     sys.stdout.write("%s Say hi to   %s\n\n" % (port, targnode_ip))
                     sock.sendall("send_data %s\n" % targnode_ip)
 
-                    logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
+                    #logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
 
     except:
         traceback.print_exc()
@@ -215,13 +230,16 @@ def test_shutdown_thread():
     global shutdown_riots
     global shutdown_queue
 
-    riots_complete.acquire() #wait until everbody is ready
+    riots_complete.acquire() #wait until everybody is ready
     riots_complete.release()
 
     time.sleep(shutdown_window * 2) 
 
     while (shutdown_riots > 0):
         sys.stdout.write("shutting down random node\n")
+
+        #riot = random.choice(msg_queues)
+        #print "hello riot", riot
 
         shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
         shutdown_riots -= 1
