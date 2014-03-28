@@ -98,6 +98,24 @@ def collect_potential_targnodes():
                                         ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
                                         or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
 
+'''
+return all 1-hop neighbors of position
+'''
+def get_neighbors(position):
+    print "i_max:", i_max, "j_max:", j_max,
+
+    i = int(position[0])
+    j = int(position[1])
+
+    m_lst = [i-1, i, i+1]
+    n_lst = [j-1, j, j+1]
+
+    neighbors = [(m, n) for m in m_lst for n in n_lst if (1 <= m <= i_max) and (1 <= n <= j_max) and ((m,n) != (i,j))]
+
+    print "neighbors of ", position, neighbors
+    return neighbors
+
+
 def connect_riots():
     riots_complete.acquire()
     collect_potential_targnodes()
@@ -139,6 +157,9 @@ def test_sender_thread(position, port):
 
         # get all of my potential TargNodes
         my_targnodes = potential_targnodes[position]
+
+        # get all of my potential neighbors
+        my_neighbors = get_neighbors(position)
 
         # get relevant IP address
         my_ip = get_node_ip(data)

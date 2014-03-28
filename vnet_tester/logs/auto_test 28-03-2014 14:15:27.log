@@ -1,0 +1,648 @@
+28-03-2014 14:15:27 {Dummy-1} IP: fe80::ff:fe00:1937
+
+28-03-2014 14:15:29 {Dummy-2} IP: fe80::ff:fe00:1946
+
+28-03-2014 14:15:31 {Dummy-3} IP: fe80::ff:fe00:1934
+
+28-03-2014 14:15:33 {Dummy-4} IP: fe80::ff:fe00:1943
+
+28-03-2014 14:15:35 {Dummy-5} IP: fe80::ff:fe00:1949
+
+28-03-2014 14:15:37 {Dummy-6} IP: fe80::ff:fe00:193a
+
+28-03-2014 14:15:39 {Dummy-7} IP: fe80::ff:fe00:1940
+
+28-03-2014 14:15:41 {Dummy-8} IP: fe80::ff:fe00:193d
+
+28-03-2014 14:15:43 {Dummy-9} IP: fe80::ff:fe00:1931
+
+28-03-2014 14:15:52 {Dummy-4} fe80::ff:fe00:1943
+send_data fe80::ff:fe00:1949
+[aodvv2] fe80::ff:fe00:1949: getting next hop for fe80::ff:fe00:1949
+[aodvv2] aodv_send_rreq()
+[demo]   no bytes sent, probably because there is no route yet.
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          20
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1943
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 00
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1949
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] originating RREQ; updating RREQ table...
+[aodvv2] 65 bytes sent.
+[aodvv2] fe80::ff:fe00:1943: UDP packet received from fe80::ff:fe00:1946
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:1943: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 17
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 3, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:1943: UDP packet received from fe80::ff:fe00:193d
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:1949: getting next hop for fe80::ff:fe00:1949
+[aodvv2] aodv_send_rreq()
+[demo]   no bytes sent, probably because there is no route yet.
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          20
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1943
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 00
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1949
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] originating RREQ; updating RREQ table...
+[aodvv2] 65 bytes sent.
+[aodvv2] fe80::ff:fe00:1949: getting next hop for fe80::ff:fe00:1949
+[aodvv2] aodv_send_rreq()
+[demo]   no bytes sent, probably because there is no route yet.
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          20
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1943
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 00
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1949
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] originating RREQ; updating RREQ table...
+[aodvv2] 65 bytes sent.
+[demo]   Error sending Data: no route found
+>
+28-03-2014 14:15:52 {Dummy-3} fe80::ff:fe00:1934
+ [aodvv2] fe80::ff:fe00:1934: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 17
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 3, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Creating new Routing Table entry...
+[aodvv2] I am not TargNode, forwarding RREQ
+[aodvv2] aodv_send_rreq()
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          16
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1943
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 04
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1949
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] 65 bytes sent.
+[aodvv2] fe80::ff:fe00:1934: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 17
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 3, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:1934: UDP packet received from fe80::ff:fe00:193d
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Updating Routing Table entry...
+[aodvv2] I am not TargNode, forwarding RREQ
+[aodvv2] aodv_send_rreq()
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          18
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1943
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 02
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1949
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] 65 bytes sent.
+[aodvv2] fe80::ff:fe00:1934: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 18
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 2, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+send_data fe80::ff:fe00:1937
+xoxoxoxo fe80::ff:fe00:1937
+[demo]   63 bytes sent.
+>
+28-03-2014 14:15:58 {Dummy-8} fe80::ff:fe00:193d
+ [aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1943
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 20
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 0, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Creating new Routing Table entry...
+[aodvv2] I am not TargNode, forwarding RREQ
+[aodvv2] aodv_send_rreq()
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          19
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1943
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 01
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:1949
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:193d
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:193a
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 18
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 2, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] 65 bytes sent.
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 17
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 3, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1934
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 18
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 2, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 18
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 2, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1931
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 18
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 2, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1943
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 20
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 0, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1943
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 20
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1943
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 0, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:1949
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+send_data fe80::ff:fe00:193a
+[aodvv2] fe80::ff:fe00:193a: getting next hop for fe80::ff:fe00:193a
+now: Seconds: 30 - Microseconds: 507350
+active_interval: Seconds: 5 - Microseconds: 0
+timex_sub(now, active_interval): Seconds: 25 - Microseconds: 507350
+lastUsed: Seconds: 24 - Microseconds: 507950
+[routing] route towards fe80::ff:fe00:1943 Idle
+[aodvv2] aodv_send_rreq()
+[demo]   no bytes sent, probably because there is no route yet.
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       10
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          20
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:193d
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x50
+	|    |    |    |     Type = 0
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0xd0
+	|    |    |    |     Type = 3; Type ext. = 3
+	|    |    |    |     Value length: 1
+	|    |    |    |       0000: 00
+	|    |    `-------------------
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:193a
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] originating RREQ; updating RREQ table...
+[aodvv2] 65 bytes sent.
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:193a
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rrep_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rrep_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 20
+[aodvv2] _cb_rrep_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193d
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+[aodvv2] _cb_rrep_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193a
+	tlv RFC5444_MSGTLV_TARGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 0, exttype: 3
+[aodvv2] _cb_rrep_end_callback() dropped: 0
+	Creating new Routing Table entry...
+.................................
+	 address: fe80::ff:fe00:193a
+	 seqnum: 1
+	 nextHopAddress: fe80::ff:fe00:193a
+	 lastUsed: 30:515432
+	 expirationTime: 45:515432
+	 metricType: 3
+	 metric: 2
+	 state: 0
+	This is my RREP. We are done here, thanks!
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1931
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193d
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193a
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1937
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193d
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193a
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193d: UDP packet received from fe80::ff:fe00:1943
+[aodvv2] reader_handle_packet()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+[aodvv2] _cb_rreq_blocktlv_messagetlvs_okay()
+	 i can has hop limit: 19
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193d
+	tlv RFC5444_MSGTLV_ORIGSEQNUM: 1
+	tlv RFC5444_MSGTLV_METRIC val: 1, exttype: 3
+[aodvv2] _cb_rreq_blocktlv_addresstlvs_okay()
+	message type: 2
+	addr: fe80::ff:fe00:193a
+[aodvv2] _cb_rreq_end_callback() dropped: 0
+	Packet is redundant. Dropping Packet. 5
+[aodvv2] fe80::ff:fe00:193a: getting next hop for fe80::ff:fe00:193a
+[aodvv2] aodv_send_rerr()
+[demo]   no bytes sent, probably because there is no route yet.
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       12
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          20
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:193a
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x10
+	|    |    |    |     Type = 2
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] 56 bytes sent.
+[aodvv2] fe80::ff:fe00:193a: getting next hop for fe80::ff:fe00:193a
+	Routing table entry found, but invalid. Sending RERR.
+[aodvv2] aodv_send_rerr()
+[demo]   no bytes sent, probably because there is no route yet.
+[aodvv2] _write_packet()
+	,------------------
+	|  PACKET
+	|------------------
+	| * Packet version:    0
+	| * Packet flags:      0x0
+	|    ,-------------------
+	|    |  MESSAGE
+	|    |-------------------
+	|    | * Message type:       12
+	|    | * Message flags:      0x40
+	|    | * Address length:     16
+	|    | * Hop limit:          20
+	|    |    ,-------------------
+	|    |    |  Address: fe80::ff:fe00:193a
+	|    |    |    | - TLV
+	|    |    |    |     Flags = 0x10
+	|    |    |    |     Type = 2
+	|    |    |    |     Value length: 2
+	|    |    |    |       0000: 0100
+	|    |    `-------------------
+	|    `-------------------
+	`------------------
+[aodvv2] 56 bytes sent.
+[demo]   Error sending Data: no route found
+>
