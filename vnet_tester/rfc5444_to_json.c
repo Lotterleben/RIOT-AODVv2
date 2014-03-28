@@ -71,7 +71,7 @@ static enum rfc5444_result _rfc5444_to_json_cb_print_addr_tlv(
 static enum rfc5444_result _rfc5444_to_json_cb_print_addr_end(
     struct rfc5444_reader_tlvblock_context *context, bool);
 
-static int addr_index = 0; // super duper unsauber, but what the hell.
+static int addr_index;
 
 /**
  * Add a printer for a rfc5444 reader
@@ -140,7 +140,7 @@ char* rfc5444_to_json(struct autobuf *out, void *buffer, size_t length) {
   rfc5444_to_json_rfc5444_print_remove(&session);
   rfc5444_reader_cleanup(&reader);
 
-  return "heureka\n";
+  return abuf_getptr(out);
 }
 
 /**
@@ -208,7 +208,7 @@ _rfc5444_to_json_cb_print_addr_start(struct rfc5444_reader_tlvblock_context *con
   if (addr_index > 0)
     abuf_puts(session->output, ",");
   addr_index++;
-  
+
   abuf_puts(session->output, "{");
 
   abuf_appendf(session->output, "\"address\": \"%s\"",
