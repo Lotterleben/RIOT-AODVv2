@@ -38,6 +38,10 @@
  * the copyright holders.
  *
  */
+
+/* Turn the relevant info of AODVv2 packets into JSONs.
+not nice, but it does the trick. */ 
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,17 +59,9 @@
 
 #include "constants.h"
 
-static enum rfc5444_result _rfc5444_to_json_cb_print_pkt_start(
-    struct rfc5444_reader_tlvblock_context *context);
-static enum rfc5444_result _rfc5444_to_json_cb_print_pkt_tlv(
-    struct rfc5444_reader_tlvblock_entry *tlv,
-    struct rfc5444_reader_tlvblock_context *context);
-static enum rfc5444_result _rfc5444_to_json_cb_print_pkt_end(
-    struct rfc5444_reader_tlvblock_context *context, bool);
+
 static enum rfc5444_result _rfc5444_to_json_cb_print_msg_start(
     struct rfc5444_reader_tlvblock_context *context);
-static enum rfc5444_result _rfc5444_to_json_cb_print_msg_tlv(
-    struct rfc5444_reader_tlvblock_entry *tlv, struct rfc5444_reader_tlvblock_context *context) ;
 static enum rfc5444_result _rfc5444_to_json_cb_print_msg_end(
     struct rfc5444_reader_tlvblock_context *context, bool);
 static enum rfc5444_result _rfc5444_to_json_cb_print_addr_start(
@@ -88,14 +84,10 @@ rfc5444_to_json_print_add(struct rfc5444_print_session *session,
   /* memorize reader */
   session->_reader = reader;
 
-  session->_pkt.start_callback = _rfc5444_to_json_cb_print_pkt_start;
-  session->_pkt.tlv_callback = _rfc5444_to_json_cb_print_pkt_tlv;
-  session->_pkt.end_callback = _rfc5444_to_json_cb_print_pkt_end;
   rfc5444_reader_add_packet_consumer(reader, &session->_pkt, NULL, 0);
 
   session->_msg.default_msg_consumer = true;
   session->_msg.start_callback = _rfc5444_to_json_cb_print_msg_start;
-  session->_msg.tlv_callback = _rfc5444_to_json_cb_print_msg_tlv;
   session->_msg.end_callback = _rfc5444_to_json_cb_print_msg_end;
   rfc5444_reader_add_message_consumer(reader, &session->_msg, NULL, 0);
 
@@ -129,8 +121,7 @@ rfc5444_to_json_rfc5444_print_remove(struct rfc5444_print_session *session) {
  * @param length length of packet in bytes
  * @return return code of reader, see rfc5444_result enum
  */
-enum rfc5444_result
-rfc5444_to_json(struct autobuf *out, void *buffer, size_t length) {
+char* rfc5444_to_json(struct autobuf *out, void *buffer, size_t length) {
   struct rfc5444_reader reader;
   struct rfc5444_print_session session;
   enum rfc5444_result result;
@@ -138,6 +129,7 @@ rfc5444_to_json(struct autobuf *out, void *buffer, size_t length) {
   memset(&reader, 0, sizeof(reader));
   memset(&session, 0, sizeof(session));
 
+  addr_index = 0;
   session.output = out;
 
   rfc5444_reader_init(&reader);
@@ -148,50 +140,7 @@ rfc5444_to_json(struct autobuf *out, void *buffer, size_t length) {
   rfc5444_to_json_rfc5444_print_remove(&session);
   rfc5444_reader_cleanup(&reader);
 
-  return result;
-}
-
-/**
- * Clear output buffer and print start of packet
- * @param c
- * @param context
- * @return
- */
-static enum rfc5444_result
-_rfc5444_to_json_cb_print_pkt_start(struct rfc5444_reader_tlvblock_context *context) {
-  assert (context->type == RFC5444_CONTEXT_PACKET);
-
-  return RFC5444_OKAY;
-}
-
-/**
- * Print packet TLVs
- * @param c
- * @param tlv
- * @param context
- * @return
- */
-enum rfc5444_result
-_rfc5444_to_json_cb_print_pkt_tlv(struct rfc5444_reader_tlvblock_entry *tlv,
-    struct rfc5444_reader_tlvblock_context *context) {
-
-  assert (context->type == RFC5444_CONTEXT_PACKET);
-
-  return RFC5444_OKAY;
-}
-
-/**
- * Print end of packet and call print callback if necessary
- * @param c
- * @param context
- * @param dropped
- * @return
- */
-enum rfc5444_result
-_rfc5444_to_json_cb_print_pkt_end(struct rfc5444_reader_tlvblock_context *context,
-    bool dropped __attribute__ ((unused))) {
-
-  return RFC5444_OKAY;
+  return "heureka\n";
 }
 
 /**
@@ -215,21 +164,7 @@ _rfc5444_to_json_cb_print_msg_start(struct rfc5444_reader_tlvblock_context *cont
     abuf_appendf(session->output, "\"msg-hop-limit\": %u, ", context->hoplimit);
   }
 
-  return RFC5444_OKAY;
-}
-
-/**
- * Print message TLV
- * @param c
- * @param tlv
- * @param context
- * @return
- */
-enum rfc5444_result
-_rfc5444_to_json_cb_print_msg_tlv(struct rfc5444_reader_tlvblock_entry *tlv,
-    struct rfc5444_reader_tlvblock_context *context) {
-
-  assert (context->type == RFC5444_CONTEXT_MESSAGE);
+  abuf_appendf(session->output, "\"addr-blk\": [");
 
   return RFC5444_OKAY;
 }
@@ -244,8 +179,13 @@ _rfc5444_to_json_cb_print_msg_tlv(struct rfc5444_reader_tlvblock_entry *tlv,
 enum rfc5444_result
 _rfc5444_to_json_cb_print_msg_end(struct rfc5444_reader_tlvblock_context *context,
     bool dropped __attribute__ ((unused))) {
+  struct rfc5444_print_session *session;
+
   assert (context->type == RFC5444_CONTEXT_MESSAGE);
 
+  session = container_of(context->consumer, struct rfc5444_print_session, _msg);
+
+  abuf_puts(session->output, "]}\n");
   return RFC5444_OKAY;
 }
 
@@ -265,15 +205,13 @@ _rfc5444_to_json_cb_print_addr_start(struct rfc5444_reader_tlvblock_context *con
 
   session = container_of(context->consumer, struct rfc5444_print_session, _addr);
 
-  // CAUTION: super scruffy, relies on address order!! (sorry.)
-  if (addr_index == 0) {
-    abuf_puts(session->output, "\"origNode\": {");
-    addr_index++;
-  } else {
-    abuf_puts(session->output, "\"targNode\":{");
-  }
+  if (addr_index > 0)
+    abuf_puts(session->output, ",");
+  addr_index++;
+  
+  abuf_puts(session->output, "{");
 
-  abuf_appendf(session->output, "\"address\": \"%s\",",
+  abuf_appendf(session->output, "\"address\": \"%s\"",
       netaddr_to_string(&buf, &context->addr));
   return RFC5444_OKAY;
 }
@@ -297,9 +235,9 @@ _rfc5444_to_json_cb_print_addr_tlv(struct rfc5444_reader_tlvblock_entry *tlv,
 
   abuf_puts(session->output, "");
   if (tlv->type == RFC5444_MSGTLV_ORIGSEQNUM || tlv->type == RFC5444_MSGTLV_TARGSEQNUM ){
-    abuf_appendf(session->output, "\"seqnum\": %u,", tlv->single_value);
+    abuf_appendf(session->output, ", \"seqnum\": %u", tlv->single_value);
   } else if (tlv->type = RFC5444_MSGTLV_METRIC) {
-    abuf_appendf(session->output, "\"metric\": %u}", tlv->single_value);
+    abuf_appendf(session->output, ", \"metric\": %u", tlv->single_value);
   }
 
   return RFC5444_OKAY;
@@ -321,6 +259,6 @@ _rfc5444_to_json_cb_print_addr_end(struct rfc5444_reader_tlvblock_context *conte
 
   session = container_of(context->consumer, struct rfc5444_print_session, _addr);
 
-  abuf_puts(session->output, "}\n");
+  abuf_puts(session->output, "}");
   return RFC5444_OKAY;
 }

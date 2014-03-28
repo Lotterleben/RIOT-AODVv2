@@ -14,8 +14,8 @@ import Queue
 import os
 
 experiment_duration = 600  # seconds
-max_silence_interval = 20  # seconds
-min_hop_distance = 1 # TODO edit back to 3
+max_silence_interval = 180  # seconds
+min_hop_distance = 3
 
 i_max = j_max = 0
 
@@ -79,6 +79,7 @@ def get_shell_output(sock):
 
 '''
 for each node, determine all nodes in the grid that are >= min_hop_distance away
+TODO: oh, ups... inkludiert das nichtauch querverbindungen?
 '''
 def collect_potential_targnodes():
     global potential_targnodes, min_hop_distance
@@ -97,6 +98,8 @@ def collect_potential_targnodes():
         potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if 
                                         ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
                                         or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
+
+    print potential_targnodes
 
 def connect_riots():
     riots_complete.acquire()
@@ -194,7 +197,7 @@ def test_shutdown_thread():
     global shutdown_riots
     global shutdown_queue
 
-    riots_complete.acquire() #wait until everbody is ready
+    riots_complete.acquire() #wait until everybody is ready
     riots_complete.release()
 
     time.sleep(shutdown_window * 2) 
@@ -225,7 +228,7 @@ def close_connections():
         print "done"
 
 def main():
-    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval
+    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance
 
     timestamp = time.time()
     signal.signal(signal.SIGINT, signal_handler)
@@ -235,6 +238,7 @@ def main():
     parser.add_argument('-s','--shutdown', type = int, help='randomly shut down n nodes during execution')
     parser.add_argument('-t','--time', type = int, help='duration of the experiment (in seconds)')
     parser.add_argument('-i','--interval', type = int, help='max time interval between packet transmissions (in seconds)')
+    parser.add_argument('-m','--min_hop_dist', type = int, help='minimum distance between originating and target node (in hops)')    
 
     args = parser.parse_args()
     
@@ -260,6 +264,10 @@ def main():
         max_silence_interval = args.interval
     else:
         max_silence_interval = 20
+
+    if (args.min_hop_dist):
+        min_hop_distance = args.min_hop_dist
+        print "min_hop_dist:", min_hop_distance
 
     if (args.shutdown > 0):
         shutdown_riots = args.shutdown
