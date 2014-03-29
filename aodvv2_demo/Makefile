@@ -1,6 +1,6 @@
 
 # name of your project
-export PROJECT = demo_application
+export PROJECT = aodvv2_demo
 
 # If no BOARD is found in the environment, use this default:
 export BOARD ?= native
