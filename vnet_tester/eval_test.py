@@ -3,24 +3,44 @@ import argparse
 import traceback
 import sys
 import os
+import xml.etree.ElementTree as ET
 
 working_dir = "./dumps/"
+xml_file_str = ""
 
 def pcap_to_xml(pcap_file_str):
-    global working_dir
+    global working_dir, xml_file_str
 
     # make sure we have a directory to operate in
     if (not os.path.exists(working_dir)):
         os.makedirs(working_dir)
 
     xml_file_str = working_dir + pcap_file_str.split("/")[-1].split(".")[0] + ".xml"
-    print xml_file_str, pcap_file_str
     
     # make pcap python-readable by converting it to xml, store in file
-    os.system("tshark -r %s -V -T pdml >> %s" %(pcap_file_str, xml_file_str))
+    if (os.path.isfile(xml_file_str)):
+        os.remove(xml_file_str)
+    os.system("tshark -r %s -V -Y packetbb -T pdml >> %s" %(pcap_file_str, xml_file_str))
 
 def handle_capture():
-    pass
+    tree = ET.parse(xml_file_str)
+    root = tree.getroot()
+    for packet in root:
+        print packet.tag
+
+        packetbb = packet[-1][-1]
+
+        print "\t", packetbb.attrib
+        
+        header = packetbb[0]
+        tlvblock = packetbb[1]
+        addrblock = packetbb[2]
+
+        print "\theader:", header.attrib
+        print "\t\tmsg type: ", header[0].attrib.get("show")
+        # todo: addressen & tlvs rauspopeln
+        print "\ttlvblock:", tlvblock.attrib
+        print "\taddrblock:", addrblock.attrib
 
 def main():
     pcap_file_str = ""
