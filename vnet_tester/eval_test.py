@@ -5,8 +5,48 @@ import sys
 import os
 import xml.etree.ElementTree as ET
 
+'''
+TODO: kann ich auf fields auch iwie ueber den name anstatt index zugreifen?
+'''
+
 working_dir = "./dumps/"
 xml_file_str = ""
+packets = [] # store ALL the packets!
+
+RFC5444_MSGTYPE_RREQ = 10
+RFC5444_MSGTYPE_RREP = 11
+RFC5444_MSGTYPE_RERR = 12
+
+'''
+take xml.etree.ElementTree.Element, turn it into a dict and store it in packets[]
+'''
+def store_pkt(packetbb):
+    pkt = {}
+    orignode = {}
+    targnode = {}
+
+    header = packetbb[0]
+    tlvblock = packetbb[1]
+    addrblock = packetbb[2]
+
+    msg_type = header[0].attrib.get("show")
+    hop_limit = header[-1].attrib.get("show")
+
+    pkt["msg_type"] = msg_type
+    pkt["hop_limit"] = hop_limit
+
+    if(int(msg_type) == RFC5444_MSGTYPE_RREQ):
+        orignode["addr"] = addrblock[3].get("show")
+        targnode["addr"] = addrblock[4].get("show")        
+
+        pkt["orignode"] = orignode
+        pkt["targnode"] = targnode
+
+        # TODO tlvs
+
+    # TODO other pkt types
+
+    print "\t", pkt
 
 def pcap_to_xml(pcap_file_str):
     global working_dir, xml_file_str
@@ -29,18 +69,7 @@ def handle_capture():
         print packet.tag
 
         packetbb = packet[-1][-1]
-
-        print "\t", packetbb.attrib
-        
-        header = packetbb[0]
-        tlvblock = packetbb[1]
-        addrblock = packetbb[2]
-
-        print "\theader:", header.attrib
-        print "\t\tmsg type: ", header[0].attrib.get("show")
-        # todo: addressen & tlvs rauspopeln
-        print "\ttlvblock:", tlvblock.attrib
-        print "\taddrblock:", addrblock.attrib
+        store_pkt(packetbb)
 
 def main():
     pcap_file_str = ""
