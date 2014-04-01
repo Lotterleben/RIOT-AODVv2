@@ -155,7 +155,8 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     // turn dest_str into ipv6_addr_t
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
 
-    while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
+    // TODO un-uncomment this as soon as bug has been found
+    //while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
         int msg_len = strlen(msg)+1;
         int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
                                                 0, &_sockaddr, sizeof _sockaddr);
@@ -169,8 +170,8 @@ int demo_attempt_to_send(char* dest_str, char* msg)
             printf("[demo]   %d bytes sent.\n", bytes_sent);
             return 0;
         }
-    }
-    printf("[demo]   Error sending Data: no route found\n");
+    //}
+    printf("[demo]  Error sending Data: no route found\n");
     return -1;
 }
 
@@ -190,7 +191,7 @@ static void _demo_receiver_thread(void)
     int sock_rcv = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     
     if (-1 == destiny_socket_bind(sock_rcv, &sa_rcv, sizeof(sa_rcv))) {
-        DEBUG("[demo]   Error: bind to recieve socket failed!\n");
+        DEBUG("[demo]   Error: bind to receive socket failed!\n");
         destiny_socket_close(sock_rcv);
     }
 
