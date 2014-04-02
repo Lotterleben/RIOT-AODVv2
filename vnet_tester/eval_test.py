@@ -13,21 +13,26 @@ working_dir = "./dumps/"
 xml_file_str = ""
 packets = [] # store ALL the packets!
 
-RFC5444_MSGTYPE_RREQ = 10
-RFC5444_MSGTYPE_RREP = 11
-RFC5444_MSGTYPE_RERR = 12
+RFC5444_MSGTYPE_RREQ = "10"
+RFC5444_MSGTYPE_RREP = "11"
+RFC5444_MSGTYPE_RERR = "12"
+
+RFC5444_MSGTLV_ORIGSEQNUM = "0"
+RFC5444_MSGTLV_TARGSEQNUM = "1"
+RFC5444_MSGTLV_UNREACHABLE_NODE_SEQNUM = "2"
+RFC5444_MSGTLV_METRIC = "3"
 
 '''
 take xml.etree.ElementTree.Element, turn it into a dict and store it in packets[]
 '''
-def store_pkt(packetbb):
+def store_pkt(packetbb, ):
     pkt = {}
     orignode = {}
     targnode = {}
 
     header = packetbb[0]
-    tlvblock = packetbb[1]
     addrblock = packetbb[2]
+    tlvblock = addrblock[5] #problem: bei !=2 adressen (RERRs!!) funktioniert das nicht mehr so.. =° rausfinden wie zum fick ich findall richtig benutze
 
     msg_type = header[0].attrib.get("show")
     hop_limit = header[-1].attrib.get("show")
@@ -35,18 +40,47 @@ def store_pkt(packetbb):
     pkt["msg_type"] = msg_type
     pkt["hop_limit"] = hop_limit
 
-    if(int(msg_type) == RFC5444_MSGTYPE_RREQ):
+
+    if((msg_type == RFC5444_MSGTYPE_RREQ) or (msg_type == RFC5444_MSGTYPE_RREP)):
         orignode["addr"] = addrblock[3].get("show")
         targnode["addr"] = addrblock[4].get("show")        
+
+        for tlv in tlvblock:
+            if (tlv.get("name") == "packetbb.tlv"):
+                tlv_indexstart = tlv[3].get("show")
+                tlv_type = tlv[0].get("show")
+                tlv_value = tlv[-1].get("value")
+
+                if (tlv_indexstart == "0"):
+                    node = orignode
+                elif (tlv_indexstart == "1"):
+                    ndoe = targnode
+
+                if ((tlv_type == RFC5444_MSGTLV_ORIGSEQNUM) or (tlv_type == RFC5444_MSGTLV_TARGSEQNUM)):
+                    node["seqnum"] = tlv_value
+
+                elif (tlv_type == RFC5444_MSGTLV_METRIC):
+                    node["metric"] = tlv_value
 
         pkt["orignode"] = orignode
         pkt["targnode"] = targnode
 
-        # TODO tlvs
+    elif(msg_type == RFC5444_MSGTYPE_RERR):
+        unreachable_nodes = []
 
-    # TODO other pkt types
+        # TODO
+
+        pkt["unreachable_nodes"] = unreachable_nodes
+
+    
+    foo = packetbb.findall("tlvblock")
+    print "foo:", foo
+    for f in foo:
+        print f.attrib
+
 
     print "\t", pkt
+    packets.append(pkt)
 
 def pcap_to_xml(pcap_file_str):
     global working_dir, xml_file_str
@@ -82,6 +116,8 @@ def main():
 
     pcap_to_xml(pcap_file_str)
     handle_capture()
+
+    print packets
 
 if __name__ == "__main__":
     main()
