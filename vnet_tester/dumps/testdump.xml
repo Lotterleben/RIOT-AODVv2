@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="pdml2html.xsl"?>
 <!-- You can find pdml2html.xsl in /opt/local/share/wireshark or at http://anonsvn.wireshark.org/trunk/wireshark/pdml2html.xsl. -->
-<pdml version="0" creator="wireshark/1.10.2" time="Wed Apr  2 16:30:34 2014" capture_file="dumps/testdump.log">
+<pdml version="0" creator="wireshark/1.10.2" time="Wed Apr  2 22:11:39 2014" capture_file="dumps/testdump.log">
 <packet>
   <proto name="geninfo" pos="0" showname="General information" size="85">
     <field name="num" pos="0" show="5" showname="Number" value="5" size="85"/>
