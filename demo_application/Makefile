@@ -36,13 +36,14 @@ CFLAGS += -DHAVE_VALGRIND_VALGRIND_H -g
 export QUIET ?= 1
 
 # Modules to include:
-USEMODULE += auto_init
+#USEMODULE += auto_init
 USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += uart0
 USEMODULE += posix
 USEMODULE += ps 
-USEMODULE += vtimer 
+USEMODULE += vtimer
+usemodule += posix
 ifeq ($(strip $(BOARD)),native)
 	USEMODULE += nativenet
 else

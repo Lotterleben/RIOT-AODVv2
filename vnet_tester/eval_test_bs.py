@@ -62,7 +62,7 @@ def store_pkt(packetbb):
 
         # TODO test this
         for addr in addrblock:
-
+            pass
 
         pkt["unreachable_nodes"] = unreachable_nodes
 
@@ -72,6 +72,8 @@ def store_pkt(packetbb):
 
 
 def handle_capture(xml_file_location):
+    print "handling capture..."
+
     xml_file = open(xml_file_location, "r")
     soup = BeautifulSoup(xml_file, "xml")
 
@@ -81,6 +83,8 @@ def handle_capture(xml_file_location):
 
 def pcap_to_xml(pcap_file_str):
     global working_dir, xml_file_location
+
+    print "converting to xml..."
 
     # make sure we have a directory to operate in
     if (not os.path.exists(working_dir)):

@@ -127,7 +127,8 @@ void demo_remove_neighbor(int argc, char** argv)
     }
     ipv6_addr_t neighbor;
     inet_pton(AF_INET6, argv[1], &neighbor);
-    ndp_neighbor_cache_remove(&neighbor);
+    printf("[demo]   TODO fix nc removal!!\n");
+    //ndp_neighbor_cache_remove(&neighbor);
 }
 
 void demo_exit(int argc, char** argv)
