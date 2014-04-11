@@ -127,7 +127,7 @@ void demo_remove_neighbor(int argc, char** argv)
     }
     ipv6_addr_t neighbor;
     inet_pton(AF_INET6, argv[1], &neighbor);
-    printf("TODO: un-uncomment this");
+    printf("[demo]   TODO fix nc removal!!\n");
     //ndp_neighbor_cache_remove(&neighbor);
 }
 

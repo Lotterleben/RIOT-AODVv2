@@ -14,8 +14,8 @@ import Queue
 import os
 
 experiment_duration = 600  # seconds
-max_silence_interval = 20  # seconds
-min_hop_distance = 1 # TODO edit back to 3
+max_silence_interval = 180  # seconds
+min_hop_distance = 3
 
 i_max = j_max = 0
 
@@ -29,7 +29,6 @@ sockets_lock = threading.Lock()
 ports_local_path = "../../../riot/desvirt_mehlis/ports.list" # TODO properly
 max_shutdown_interval = shutdown_riots = shutdown_window = 0
 shutdown_queue = Queue.Queue()
-msg_queues = {}
 
 def get_ports():
     with open(ports_local_path, 'r') as f:
@@ -80,6 +79,7 @@ def get_shell_output(sock):
 
 '''
 for each node, determine all nodes in the grid that are >= min_hop_distance away
+TODO: oh, ups... inkludiert das nichtauch querverbindungen?
 '''
 def collect_potential_targnodes():
     global potential_targnodes, min_hop_distance
@@ -99,22 +99,7 @@ def collect_potential_targnodes():
                                         ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
                                         or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
 
-'''
-return all 1-hop neighbors of position
-'''
-def get_neighbors(position):
-    print "i_max:", i_max, "j_max:", j_max
-
-    i = int(position[0])
-    j = int(position[1])
-
-    m_lst = [i-1, i, i+1]
-    n_lst = [j-1, j, j+1]
-
-    neighbors = [(m, n) for m in m_lst for n in n_lst if (1 <= m <= i_max) and (1 <= n <= j_max) and ((m,n) != (i,j))]
-
-    return neighbors
-
+    print potential_targnodes
 
 def connect_riots():
     riots_complete.acquire()
@@ -147,9 +132,6 @@ def test_sender_thread(position, port):
         sock.connect(("127.0.0.1 ", int(port)))
         sock.sendall("ifconfig\n")
 
-        # add own message queue to global msg queue dict
-        msg_queues[position] = Queue.Queue()
-
         #get all IP addresses of this RIOT
         data = get_shell_output(sock)
 
@@ -167,7 +149,7 @@ def test_sender_thread(position, port):
         logging.debug("{%s} IP: %s\n" % (thread_id, my_ip))
 
         with riots_lock:
-            sys.stdout.write("%s adding node with IP %s to riots...\n" % (thread_id, my_ip))
+            sys.stdout.write("adding node with IP %s to riots...\n" % my_ip)
             riots[position] = (port, my_ip)
             global num_riots
             num_riots += 1
@@ -180,28 +162,20 @@ def test_sender_thread(position, port):
 
         riots_complete.release()         # open the gate for the next thread
 
-        sys.stdout.write("%sunlocked\n" % thread_id)
+        sys.stdout.write("unlocked %s\n" % thread_id)
 
         while (True):
             #wait for a little while
             some_time = random.randint(1, max_silence_interval)
             time.sleep(some_time)
 
-            if (not msg_queues[position].empty()):
-                instruction = msg_queues[position].get()
-                sys.stdout.write("%s received instruction: %s\n" % (thread_id, instruction))
-                sock.sendall(instruction)
+            try:
+                shutdown_queue.get(False) # we've been told to shut down
+                sys.stdout.write("%s shutting down\n" % thread_id)
+                sock.sendall("exit\n")
+                sys.exit()
 
-                if ("exit" in instruction):
-                    # get all of my potential neighbors
-                    my_neighbors = get_neighbors(position)
-                    
-                    # emulate NDP of my 1-hop-neighbors noticing my shutdown
-                    for neighbor in my_neighbors:
-                        msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
-
-                    sys.exit()
-            else:
+            except:
                 # no shutdown instruction, continue as usual
                 # pick random node
                 with riots_lock:
@@ -231,10 +205,7 @@ def test_shutdown_thread():
     while (shutdown_riots > 0):
         sys.stdout.write("shutting down random node\n")
 
-        q = random.choice(msg_queues.values())
-        print "i can haz q", q
-
-        q.put("exit\n")
+        shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
         shutdown_riots -= 1
 
         # wait a little while
@@ -257,7 +228,7 @@ def close_connections():
         print "done"
 
 def main():
-    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval
+    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance
 
     timestamp = time.time()
     signal.signal(signal.SIGINT, signal_handler)
@@ -267,6 +238,7 @@ def main():
     parser.add_argument('-s','--shutdown', type = int, help='randomly shut down n nodes during execution')
     parser.add_argument('-t','--time', type = int, help='duration of the experiment (in seconds)')
     parser.add_argument('-i','--interval', type = int, help='max time interval between packet transmissions (in seconds)')
+    parser.add_argument('-m','--min_hop_dist', type = int, help='minimum distance between originating and target node (in hops)')    
 
     args = parser.parse_args()
     
@@ -292,6 +264,10 @@ def main():
         max_silence_interval = args.interval
     else:
         max_silence_interval = 20
+
+    if (args.min_hop_dist):
+        min_hop_distance = args.min_hop_dist
+        print "min_hop_dist:", min_hop_distance
 
     if (args.shutdown > 0):
         shutdown_riots = args.shutdown
