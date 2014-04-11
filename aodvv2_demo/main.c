@@ -137,7 +137,7 @@ void demo_remove_neighbor(int argc, char** argv)
 */
 void demo_add_neighbor(int argc, char** argv)
 {
-    if (argc != 2) {
+    if (argc != 3) {
         printf("Usage: add_neighbor <neighbor ip> <neighbor ll-addr>\n");
         return;
     }
@@ -257,7 +257,7 @@ const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"send_data", "send 20 bytes of data to ip", demo_send_data},
     {"send_stream", "send stream of data to ip", demo_send_stream},
-    {"rm_neighbor", "add neighbor to Neighbor Cache", demo_add_neighbor},
+    {"add_neighbor", "add neighbor to Neighbor Cache", demo_add_neighbor},
     {"rm_neighbor", "remove neighbor from Neighbor Cache", demo_remove_neighbor},
     {"exit", "Shut down the RIOT", demo_exit},
 

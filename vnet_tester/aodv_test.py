@@ -63,15 +63,15 @@ Iface   0   HWaddr: 0x0001 Channel: 0 PAN ID: 0xabcd
             inet6 addr: ::1/128  scope: local
 '''
 def get_node_addrs(data):
-    lines = data.split("inet6 addr:");
+    lines = data.split("\n");
     ip = ""
     ll_addr = ""
 
     for line in lines:
         if ("fe80" in line):
-            ip = line.strip().split("/")[0]
-        if ("EUI-64" in lines):
-            ll_addr = line.split(" ")
+            ip = line.strip().split("/")[0].split(" ")[-1]
+        elif ("EUI-64" in line):
+            ll_addr = line.split(":")[-1].strip()
 
     return (ip, ll_addr)
 
@@ -107,6 +107,21 @@ def collect_potential_targnodes():
                                         or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
 
     print potential_targnodes
+
+def collect_neighbor_coordinates(position):
+    neighbor_coordinates = []
+    print "type of position", type(position)
+
+    i = int(position[0])
+    j = int(position[1])
+
+    m_lst = range(1, int(i_max)+1)
+    n_lst = range(1, int(j_max)+1)
+
+    neighbor_coordinates = [(m, n) for m in m_lst for n in n_lst if 
+                            ((m == i+1)or(m == i-1)) or ((n==j+1)or(n==j-1))]
+    
+    return neighbor_coordinates
 
 def connect_riots():
     riots_complete.acquire()
@@ -176,14 +191,16 @@ def test_sender_thread(position, port):
         sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
 
         # first, learn about all your neighbors
-        '''
-        all_neighbors_set = False
-        while(not all_neighbors_set):
-            try: 
-                print "todo set neighbor cache entries"
-            except:
-                all_neighbors_set = True
-        '''        
+        print "todo debug learning about my neighbors"
+
+        my_neighbor_coordinates = collect_neighbor_coordinates(position)
+        
+        for neighbor in my_neighbor_coordinates:
+            (ip, ll_addr) = riots[neighbor][1]
+            print type(ip), ip
+            print type(ll_addr), ll_addr
+            sock.sendall("add_neighbor %s %s\n" % (ip, ll_addr))
+
         riots_ready.release() # enable next node to add their neighbors in peace
 
         while (True):
@@ -220,8 +237,6 @@ def test_shutdown_thread():
     global shutdown_queue
 
     riots_complete.acquire() #wait until everybody is ready
-    # tell everyone their neighbors (i.e. emulate working NDP implementation)
-    # TODO
     riots_complete.release()
 
     # actually start sending
