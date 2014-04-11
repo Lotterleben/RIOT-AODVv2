@@ -127,8 +127,32 @@ void demo_remove_neighbor(int argc, char** argv)
     }
     ipv6_addr_t neighbor;
     inet_pton(AF_INET6, argv[1], &neighbor);
-    printf("[demo]   TODO fix nc removal!!\n");
-    //ndp_neighbor_cache_remove(&neighbor);
+    ndp_neighbor_cache_remove(&neighbor);
+    printf("neighbor removed.\n");
+}
+
+/*
+    Help emulate a functional NDP implementation (this should be called for every
+    neighbor of the node on the grid)
+*/
+void demo_add_neighbor(int argc, char** argv)
+{
+    if (argc != 2) {
+        printf("Usage: add_neighbor <neighbor ip> <neighbor ll-addr>\n");
+        return;
+    }
+    ipv6_addr_t neighbor;
+    net_if_eui64_t ll_addr;
+    inet_pton(AF_INET6, argv[1], &neighbor);
+    net_if_hex_to_eui64(&ll_addr, argv[2]);
+
+    // turn ll addr into short hardware addr
+    uint16_t ll_addr_short = sixlowpan_lowpan_eui64_to_short_addr(&ll_addr);
+
+    ndp_neighbor_cache_add(1, &neighbor, &ll_addr_short, 8, 0,NDP_NCE_STATUS_REACHABLE,
+                                  NDP_NCE_TYPE_TENTATIVE, 0xffff);
+
+    printf("neighbor added.\n");
 }
 
 void demo_exit(int argc, char** argv)
@@ -233,8 +257,10 @@ const shell_command_t shell_commands[] = {
     {"send", "send message to ip", demo_send},
     {"send_data", "send 20 bytes of data to ip", demo_send_data},
     {"send_stream", "send stream of data to ip", demo_send_stream},
-    {"rm_neighbor", "Help emulate a functional NDP implementation", demo_remove_neighbor},
+    {"rm_neighbor", "add neighbor to Neighbor Cache", demo_add_neighbor},
+    {"rm_neighbor", "remove neighbor from Neighbor Cache", demo_remove_neighbor},
     {"exit", "Shut down the RIOT", demo_exit},
+
     {NULL, NULL, NULL}
 };
 

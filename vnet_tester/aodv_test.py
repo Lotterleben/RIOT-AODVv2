@@ -19,9 +19,10 @@ min_hop_distance = 3
 
 i_max = j_max = 0
 
-riots = {} # key: (i,j) coordinate on the Grid. value: (port, IP)
+riots = {} # key: (i,j) coordinate on the Grid. value: (port, (IP, link-local addr))
 riots_lock = threading.Lock()
 riots_complete = threading.Lock()
+riots_ready = threading.Lock()
 potential_targnodes = {} # key: (i,j) coordinate on the Grid. value: [(i,j)] nodes that are far enough away
 num_riots = 0
 sockets = []
@@ -61,12 +62,18 @@ Iface   0   HWaddr: 0x0001 Channel: 0 PAN ID: 0xabcd
             inet6 addr: ff02::1/128  scope: local [multicast]
             inet6 addr: ::1/128  scope: local
 '''
-def get_node_ip(data):
+def get_node_addrs(data):
     lines = data.split("inet6 addr:");
-    #relevant_lines = [l for l in lines if ("fe80" in l)]
+    ip = ""
+    ll_addr = ""
+
     for line in lines:
         if ("fe80" in line):
-            return line.strip().split("/")[0]
+            ip = line.strip().split("/")[0]
+        if ("EUI-64" in lines):
+            ll_addr = line.split(" ")
+
+    return (ip, ll_addr)
 
 def get_shell_output(sock):
     # read IP data until ">" marks termination of the shell output
@@ -79,7 +86,7 @@ def get_shell_output(sock):
 
 '''
 for each node, determine all nodes in the grid that are >= min_hop_distance away
-TODO: oh, ups... inkludiert das nichtauch querverbindungen?
+TODO: oh, ups... inkludiert das nicht auch querverbindungen?
 '''
 def collect_potential_targnodes():
     global potential_targnodes, min_hop_distance
@@ -144,13 +151,14 @@ def test_sender_thread(position, port):
         my_targnodes = potential_targnodes[position]
 
         # get relevant IP address
-        my_ip = get_node_ip(data)
-        #sys.stdout.write("{%s} IP: %s\n" % (thread_id, my_ip))
-        logging.debug("{%s} IP: %s\n" % (thread_id, my_ip))
+        my_addrs = get_node_addrs(data)
+        my_ip = my_addrs[0]
+
+        logging.debug("{%s} IP: %s, LL-Addr: %s\n" % (thread_id, my_ip, my_addrs[1]))
 
         with riots_lock:
             sys.stdout.write("adding node with IP %s to riots...\n" % my_ip)
-            riots[position] = (port, my_ip)
+            riots[position] = (port, my_addrs)
             global num_riots
             num_riots += 1
             sys.stdout.write("num_riots %i\n" % num_riots)
@@ -162,7 +170,21 @@ def test_sender_thread(position, port):
 
         riots_complete.release()         # open the gate for the next thread
 
-        sys.stdout.write("unlocked %s\n" % thread_id)
+        sys.stdout.write("riots_complete unlocked at %s\n" % thread_id)
+
+        riots_ready.acquire()
+        sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
+
+        # first, learn about all your neighbors
+        '''
+        all_neighbors_set = False
+        while(not all_neighbors_set):
+            try: 
+                print "todo set neighbor cache entries"
+            except:
+                all_neighbors_set = True
+        '''        
+        riots_ready.release() # enable next node to add their neighbors in peace
 
         while (True):
             #wait for a little while
@@ -180,7 +202,7 @@ def test_sender_thread(position, port):
                 # pick random node
                 with riots_lock:
                     targnode = random.choice(my_targnodes)
-                    targnode_ip = riots[targnode][1]
+                    targnode_ip = riots[targnode][1][0]
 
                     sys.stdout.write("new random neighbor: %s\n" % targnode_ip)
 
@@ -198,7 +220,12 @@ def test_shutdown_thread():
     global shutdown_queue
 
     riots_complete.acquire() #wait until everybody is ready
+    # tell everyone their neighbors (i.e. emulate working NDP implementation)
+    # TODO
     riots_complete.release()
+
+    # actually start sending
+    riots_ready.release()
 
     time.sleep(shutdown_window * 2) 
 
