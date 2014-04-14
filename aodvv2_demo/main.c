@@ -39,7 +39,7 @@ static ipv6_addr_t prefix;
 static uint8_t random_data[DATA_SIZE];  // assuming we're on a platform where 8 bit == 1 byte
 
 msg_t msg_q[RCV_MSG_Q_SIZE];
-
+char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 
 
@@ -146,6 +146,12 @@ void demo_add_neighbor(int argc, char** argv)
     inet_pton(AF_INET6, argv[1], &neighbor);
     net_if_hex_to_eui64(&ll_addr, argv[2]);
 
+    // only add neighbor if it's not already in Cache
+    if (ndp_neighbor_cache_search(&neighbor)!= NULL){
+        printf("IP %s already in Neighbor Cache\n", ipv6_addr_to_str(addr_str, IPV6_MAX_ADDR_STR_LEN, &neighbor));
+        return;
+    }
+
     // turn ll addr into short hardware addr
     uint16_t ll_addr_short = sixlowpan_lowpan_eui64_to_short_addr(&ll_addr);
 
@@ -181,7 +187,7 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
 
     // TODO un-uncomment this as soon as bug has been found
-    //while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
+    while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
         int msg_len = strlen(msg)+1;
         int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
                                                 0, &_sockaddr, sizeof _sockaddr);
@@ -195,7 +201,7 @@ int demo_attempt_to_send(char* dest_str, char* msg)
             printf("[demo]   %d bytes sent.\n", bytes_sent);
             return 0;
         }
-    //}
+    }
     printf("[demo]  Error sending Data: no route found\n");
     return -1;
 }

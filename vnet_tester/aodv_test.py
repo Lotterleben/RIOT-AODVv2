@@ -24,7 +24,7 @@ riots_lock = threading.Lock()
 riots_complete = threading.Lock()
 riots_ready = threading.Lock()
 potential_targnodes = {} # key: (i,j) coordinate on the Grid. value: [(i,j)] nodes that are far enough away
-num_riots = 0
+num_ready_riots = num_riots = 0
 sockets = []
 sockets_lock = threading.Lock()
 ports_local_path = "../../riot/desvirt_mehlis/ports.list" # TODO properly
@@ -111,7 +111,6 @@ def collect_potential_targnodes():
 
 def collect_neighbor_coordinates(position):
     neighbor_coordinates = []
-    print "type of position", type(position)
 
     i = int(position[0])
     j = int(position[1])
@@ -126,6 +125,7 @@ def collect_neighbor_coordinates(position):
 
 def connect_riots():
     riots_complete.acquire()
+    riots_ready.acquire()
     collect_potential_targnodes()
 
     for position, connection in riots.iteritems():
@@ -145,7 +145,7 @@ def test_sender_thread(position, port):
 
     data = my_ip = random_neighbor = ""
     thread_id = threading.currentThread().name
-    global shutdown_queue, potential_targnodes
+    global shutdown_queue, potential_targnodes, num_ready_riots
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     with sockets_lock:
@@ -191,20 +191,22 @@ def test_sender_thread(position, port):
 
         sys.stdout.write("riots_complete unlocked at %s\n" % thread_id)
 
-        riots_ready.acquire()
-        sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
-
         # first, learn about all your neighbors
-        print "todo debug learning about my neighbors"
-
         my_neighbor_coordinates = collect_neighbor_coordinates(position)
         
         for neighbor in my_neighbor_coordinates:
             (ip, ll_addr) = riots[neighbor][1]
             sys.stdout.write("{%s} Adding neighbor %s %s\n" % (thread_id, ip, ll_addr))
             sock.sendall("add_neighbor %s %s\n" % (ip, ll_addr))
+            # make sure that went okay and empty shell output buffer
+            logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
+        num_ready_riots += 1
+
+        if (num_ready_riots < num_riots):
+            riots_ready.acquire()
         riots_ready.release() # enable next node to add their neighbors in peace
+        sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
 
         while (True):
             #wait for a little while
@@ -213,10 +215,13 @@ def test_sender_thread(position, port):
 
             if (not msg_queues[position].empty()):
                 instruction = msg_queues[position].get()
-                sys.stdout.write("%s received instruction: %s\n" % (thread_id, instruction))
+                sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
                 sock.sendall(instruction)
 
             try:
+                shutdown_queue.get(False) # we've been told to shut down
+                sys.stdout.write("{%s} shutting down\n" % thread_id)
+
                 # shut down my RIOT
                 sock.sendall("exit\n")
                 
@@ -225,6 +230,8 @@ def test_sender_thread(position, port):
                     msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
 
                 sys.exit()
+                self.process.terminate() # TODO does this do the trick?
+                sys.stdout.write("{%s} This shouldn't be printed\n")
 
             except:
                 # no shutdown instruction, continue as usual
@@ -233,9 +240,7 @@ def test_sender_thread(position, port):
                     targnode = random.choice(my_targnodes)
                     targnode_ip = riots[targnode][1][0]
 
-                    sys.stdout.write("new random neighbor: %s\n" % targnode_ip)
-
-                    sys.stdout.write("%s Say hi to   %s\n\n" % (port, targnode_ip))
+                    sys.stdout.write("{%s} send_data %s\n\n" % (thread_id, targnode_ip))
                     sock.sendall("send_data %s\n" % targnode_ip) 
 
                     logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
@@ -248,21 +253,22 @@ def test_shutdown_thread():
     global shutdown_riots
     global shutdown_queue
 
-    riots_complete.acquire() #wait until everybody is ready
+    #wait until everybody is ready
+    riots_complete.acquire() 
     riots_complete.release()
 
     # actually start sending
+    riots_ready.acquire()
     riots_ready.release()
 
-    time.sleep(shutdown_window * 2) 
+    print "shutdown window:", shutdown_window * 2 
+    time.sleep(shutdown_window * 2)
 
     while (shutdown_riots > 0):
         sys.stdout.write("shutting down random node\n")
 
-        #shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
-        #shutdown_riots -= 1
-
-
+        shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
+        shutdown_riots -= 1
 
         # wait a little while
         some_time = random.randint(1, max_shutdown_interval)
@@ -284,7 +290,7 @@ def close_connections():
         print "done"
 
 def main():
-    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance
+    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window
 
     timestamp = time.time()
     signal.signal(signal.SIGINT, signal_handler)
