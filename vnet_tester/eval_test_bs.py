@@ -45,7 +45,7 @@ def store_pkt(packetbb):
                 if (tlv_indexstart == "0"):
                     node = orignode
                 elif (tlv_indexstart == "1"):
-                    ndoe = targnode      
+                    node = targnode      
 
                 if ((tlv_type == RFC5444_MSGTLV_ORIGSEQNUM) or (tlv_type == RFC5444_MSGTLV_TARGSEQNUM)):
                     node["seqnum"] = tlv_value
@@ -60,15 +60,24 @@ def store_pkt(packetbb):
     elif(msg_type == RFC5444_MSGTYPE_RERR):
         unreachable_nodes = []
 
+        addresses = addrblock.find_all(attrs = {"name":"packetbb.msg.addr.value6"})
+        tlvs = addrblock.find_all()
+        addr_index = 0
+
         # TODO test this
-        for addr in addrblock:
-            pass
+        for addr in addresses:
+            # format: {ip: seqnum}
+            unreachable_nodes.append({"addr":addr["show"]})
+        
+        for tlv in tlvblock:
+            tlv_value = tlv.find(attrs = {"name":"packetbb.tlv.value"})["value"]
+            unreachable_nodes[addr_index]["seqnum"] = tlv_value # na ob das gut geht-...
+            addr_index += 1
 
         pkt["unreachable_nodes"] = unreachable_nodes
 
     print "\t", pkt
     packets.append(pkt)
-
 
 
 def handle_capture(xml_file_location):
@@ -112,7 +121,7 @@ def main():
     xml_file_location  = pcap_to_xml(pcap_file_str)
     handle_capture(xml_file_location)
 
-    print packets
+    #print packets
 
 if __name__ == "__main__":
     main()
