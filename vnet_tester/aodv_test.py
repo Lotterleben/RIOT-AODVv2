@@ -229,9 +229,7 @@ def test_sender_thread(position, port):
                 for neighbor in my_neighbor_coordinates:
                     msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
 
-                sys.exit()
-                self.process.terminate() # TODO does this do the trick?
-                sys.stdout.write("{%s} This shouldn't be printed\n")
+                self.process.terminate()
 
             except:
                 # no shutdown instruction, continue as usual
