@@ -206,7 +206,9 @@ def test_sender_thread(position, port):
         if (num_ready_riots < num_riots):
             riots_ready.acquire()
         riots_ready.release() # enable next node to add their neighbors in peace
+        #print "type neighbor", type(my_neighbor_coordinates[0]), "type position", type(position)
         sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
+
 
         while (True):
             #wait for a little while
@@ -217,6 +219,7 @@ def test_sender_thread(position, port):
                 instruction = msg_queues[position].get()
                 sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
                 sock.sendall(instruction)
+                logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
             try:
                 shutdown_queue.get(False) # we've been told to shut down
@@ -224,12 +227,15 @@ def test_sender_thread(position, port):
 
                 # shut down my RIOT
                 sock.sendall("exit\n")
-                
+
+                sys.stdout.write("number of my neighbors: %s\n" % len(my_neighbor_coordinates))
                 # emulate NDP of my 1-hop-neighbors noticing my shutdown
                 for neighbor in my_neighbor_coordinates:
                     msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
+                    sys.stdout.write("{%s} notifying neighbor %s of my death\n" % (thread_id, neighbor))
 
-                self.process.terminate()
+                sys.exit()
+                self.process.terminate() # TODO does this do the trick?
 
             except:
                 # no shutdown instruction, continue as usual
@@ -259,7 +265,6 @@ def test_shutdown_thread():
     riots_ready.acquire()
     riots_ready.release()
 
-    print "shutdown window:", shutdown_window * 2 
     time.sleep(shutdown_window * 2)
 
     while (shutdown_riots > 0):
@@ -335,6 +340,8 @@ def main():
         # so that there actually are routes to repair
         shutdown_window = experiment_duration / 3
         max_shutdown_interval = shutdown_window / shutdown_riots
+        print "shutdowns start after", shutdown_window * 2, "seconds" 
+
 
     sys.stdout.write("Starting %i seconds of testing...\n" % experiment_duration)
 
