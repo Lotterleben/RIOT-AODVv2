@@ -27,9 +27,10 @@ potential_targnodes = {} # key: (i,j) coordinate on the Grid. value: [(i,j)] nod
 num_riots = 0
 sockets = []
 sockets_lock = threading.Lock()
-ports_local_path = "../../../riot/desvirt_mehlis/ports.list" # TODO properly
+ports_local_path = "../../riot/desvirt_mehlis/ports.list" # TODO properly
 max_shutdown_interval = shutdown_riots = shutdown_window = 0
 shutdown_queue = Queue.Queue()
+msg_queues = {}
 
 def get_ports():
     with open(ports_local_path, 'r') as f:
@@ -152,7 +153,10 @@ def test_sender_thread(position, port):
 
     try:
         sock.connect(("127.0.0.1 ", int(port)))
-        sock.sendall("ifconfig\n")
+        sock.sendall("ifconfig\n") # why did I do this again? TODO 
+
+        # add own message queue to global msg queue dict
+        msg_queues[position] = Queue.Queue()
 
         #get all IP addresses of this RIOT
         data = get_shell_output(sock)
@@ -197,8 +201,7 @@ def test_sender_thread(position, port):
         
         for neighbor in my_neighbor_coordinates:
             (ip, ll_addr) = riots[neighbor][1]
-            print type(ip), ip
-            print type(ll_addr), ll_addr
+            sys.stdout.write("{%s} Adding neighbor %s %s\n" % (thread_id, ip, ll_addr))
             sock.sendall("add_neighbor %s %s\n" % (ip, ll_addr))
 
         riots_ready.release() # enable next node to add their neighbors in peace
@@ -208,10 +211,19 @@ def test_sender_thread(position, port):
             some_time = random.randint(1, max_silence_interval)
             time.sleep(some_time)
 
+            if (not msg_queues[position].empty()):
+                instruction = msg_queues[position].get()
+                sys.stdout.write("%s received instruction: %s\n" % (thread_id, instruction))
+                sock.sendall(instruction)
+
             try:
-                shutdown_queue.get(False) # we've been told to shut down
-                sys.stdout.write("%s shutting down\n" % thread_id)
+                # shut down my RIOT
                 sock.sendall("exit\n")
+                
+                # emulate NDP of my 1-hop-neighbors noticing my shutdown
+                for neighbor in my_neighbor_coordinates:
+                    msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
+
                 sys.exit()
 
             except:
@@ -224,7 +236,7 @@ def test_sender_thread(position, port):
                     sys.stdout.write("new random neighbor: %s\n" % targnode_ip)
 
                     sys.stdout.write("%s Say hi to   %s\n\n" % (port, targnode_ip))
-                    sock.sendall("send_data %s\n" % targnode_ip)
+                    sock.sendall("send_data %s\n" % targnode_ip) 
 
                     logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
 
@@ -247,8 +259,10 @@ def test_shutdown_thread():
     while (shutdown_riots > 0):
         sys.stdout.write("shutting down random node\n")
 
-        shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
-        shutdown_riots -= 1
+        #shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
+        #shutdown_riots -= 1
+
+
 
         # wait a little while
         some_time = random.randint(1, max_shutdown_interval)
@@ -317,8 +331,6 @@ def main():
         # so that there actually are routes to repair
         shutdown_window = experiment_duration / 3
         max_shutdown_interval = shutdown_window / shutdown_riots
-        print shutdown_riots
-
 
     sys.stdout.write("Starting %i seconds of testing...\n" % experiment_duration)
 
