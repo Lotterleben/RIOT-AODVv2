@@ -97,6 +97,8 @@ def store_data(pkt):
     if (packetbb):
         #print "i can haz packetbb", type(packetbb), type(ip_header)
         data = store_pktbb(packetbb)
+    else:
+        data = pkt.find(attrs = {"name": "data"})["show"]
 
     foo = {"src": src_addr, "dst": dst_addr, "data": data}
 
