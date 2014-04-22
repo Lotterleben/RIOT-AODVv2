@@ -196,10 +196,10 @@ def test_sender_thread(position, port):
         
         for neighbor in my_neighbor_coordinates:
             (ip, ll_addr) = riots[neighbor][1]
-            sys.stdout.write("{%s} Adding neighbor %s %s\n" % (thread_id, ip, ll_addr))
+            #sys.stdout.write("{%s} Adding neighbor %s %s\n" % (thread_id, ip, ll_addr))
             sock.sendall("add_neighbor %s %s\n" % (ip, ll_addr))
             # make sure that went okay and empty shell output buffer
-            logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+            logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
         num_ready_riots += 1
 
@@ -215,14 +215,18 @@ def test_sender_thread(position, port):
             some_time = random.randint(1, max_silence_interval)
             time.sleep(some_time)
 
+            # log whatever has been going on on our node
+            # logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+
             if (not msg_queues[position].empty()):
                 instruction = msg_queues[position].get()
                 sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
+                logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
                 sock.sendall(instruction)
-                logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
             try:
                 shutdown_queue.get(False) # we've been told to shut down
+                logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
                 sys.stdout.write("{%s} shutting down\n" % thread_id)
 
                 # shut down my RIOT
@@ -241,13 +245,14 @@ def test_sender_thread(position, port):
                 # no shutdown instruction, continue as usual
                 # pick random node
                 with riots_lock:
-                    targnode = random.choice(my_targnodes)
-                    targnode_ip = riots[targnode][1][0]
+                    # only attempt to send if potential targnodes exist
+                    if (len(my_targnodes) > 0):
+                        targnode = random.choice(my_targnodes)
+                        targnode_ip = riots[targnode][1][0]
 
-                    sys.stdout.write("{%s} send_data %s\n\n" % (thread_id, targnode_ip))
-                    sock.sendall("send_data %s\n" % targnode_ip) 
-
-                    logging.debug("{%s} %s\n%s" % (thread_id, my_ip, get_shell_output(sock))) # output might not be complete, though...
+                        sys.stdout.write("{%s} send_data %s\n\n" % (thread_id, targnode_ip))
+                        sock.sendall("send_data %s\n" % targnode_ip) 
+                        logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
     except:
         traceback.print_exc()
@@ -283,14 +288,24 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def close_connections():
-        print "\nCleaning up..."
-            
-        with sockets_lock:
-            for socket in sockets:
-                    socket.close
-                    print "socket",socket.fileno(),"closed."
+    global shutdown_riots
 
-        print "done"
+    print "\nCleaning up..."
+
+    for position in riots.keys():
+        print "shutting down",  position
+        msg_queues[position].put("exit\n")
+
+    # wait until everything has been logged
+    time.sleep(20)
+
+    print "Closing sockets..."
+    with sockets_lock:
+        for socket in sockets:
+                socket.close
+                print "socket",socket.fileno(),"closed."
+
+    print "done"
 
 def main():
     global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window
