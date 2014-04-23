@@ -60,7 +60,6 @@ def store_pktbb(packetbb):
                 elif (tlv_type == RFC5444_MSGTLV_METRIC):
                     node["metric"] = tlv_value
 
-
         pkt["orignode"] = orignode
         pkt["targnode"] = targnode
 
@@ -98,7 +97,13 @@ def store_data(pkt):
         #print "i can haz packetbb", type(packetbb), type(ip_header)
         data = store_pktbb(packetbb)
     else:
-        data = pkt.find(attrs = {"name": "data"})["show"]
+        # TODO debug this
+        payload = pkt.find(attrs = {"name": "data.data"})
+        if (payload is None):
+            # found an icmp packet or so
+            return
+        data = payload["show"]
+        print data
 
     foo = {"src": src_addr, "dst": dst_addr, "data": data}
 
