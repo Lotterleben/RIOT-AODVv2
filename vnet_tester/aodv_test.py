@@ -117,10 +117,9 @@ def collect_neighbor_coordinates(position):
 
     m_lst = range(1, int(i_max)+1)
     n_lst = range(1, int(j_max)+1)
-
-    neighbor_coordinates = [(m, n) for m in m_lst for n in n_lst if 
-                            ((m == i+1)or(m == i-1)) or ((n==j+1)or(n==j-1))]
     
+    neighbor_coordinates = [(m,n) for m in m_lst for n in n_lst if ((m == i and ((j-1 == n) or (n == j+1))) or ((m == i+1) or (m == i-1)) and (j-1 <= n <= j+1))]
+
     return neighbor_coordinates
 
 def connect_riots():
@@ -153,7 +152,7 @@ def test_sender_thread(position, port):
 
     try:
         sock.connect(("127.0.0.1 ", int(port)))
-        sock.sendall("ifconfig\n") # why did I do this again? TODO 
+        sock.sendall("ifconfig\n")
 
         # add own message queue to global msg queue dict
         msg_queues[position] = Queue.Queue()
@@ -193,6 +192,7 @@ def test_sender_thread(position, port):
 
         # first, learn about all your neighbors
         my_neighbor_coordinates = collect_neighbor_coordinates(position)
+        sys.stdout.write("%s my neighbors: %s\n" % (position, my_neighbor_coordinates))
         
         for neighbor in my_neighbor_coordinates:
             (ip, ll_addr) = riots[neighbor][1]
@@ -214,9 +214,6 @@ def test_sender_thread(position, port):
             #wait for a little while
             some_time = random.randint(1, max_silence_interval)
             time.sleep(some_time)
-
-            # log whatever has been going on on our node
-            # logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
             if (not msg_queues[position].empty()):
                 instruction = msg_queues[position].get()
@@ -250,9 +247,9 @@ def test_sender_thread(position, port):
                         targnode = random.choice(my_targnodes)
                         targnode_ip = riots[targnode][1][0]
 
-                        sys.stdout.write("{%s} send_data %s\n\n" % (thread_id, targnode_ip))
+                        logging.debug("{%s: %s, %s} send_data to %s %s\n\n" % (thread_id, my_ip, position, targnode_ip, targnode))
                         sock.sendall("send_data %s\n" % targnode_ip) 
-                        logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                        logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
     except:
         traceback.print_exc()
@@ -273,6 +270,7 @@ def test_shutdown_thread():
     time.sleep(shutdown_window * 2)
 
     while (shutdown_riots > 0):
+        # TODO use msg_queues also
         sys.stdout.write("shutting down random node\n")
 
         shutdown_queue.put("foo") #doesn't matter what's in there, as long as it's *something*
@@ -281,6 +279,9 @@ def test_shutdown_thread():
         # wait a little while
         some_time = random.randint(1, max_shutdown_interval)
         time.sleep(some_time)
+
+def start_tcpdump():
+    o
 
 # kill tcp connections on SIGINT
 def signal_handler(signal, frame):

@@ -5,8 +5,8 @@ from mpl_toolkits.axes_grid.axislines import Subplot
 # TODO use as module
 
 # some color constants (TODO: pick proper ones)
-c_sucess = 'chartreuse'
-c_fail = 'burlywood'
+c_sucess = 'cadetblue'
+c_fail = 'LightCoral'
 c_default = "cadetblue"
 
 
@@ -28,32 +28,28 @@ labels : ("exp1", "exp2")
 group1 =(<values for 1st group>)
 group2 =(<values for 2nd group>)
 '''
-def plot_bar(labels, group1, group2):
-    N = 5
+def plot_bars(legend, labels, group1, group2):
+    N = 2
     index_start = 0
     bar_padding = 0.2
     
-    failed_d   = group2
-    successful_d = group1
-
     fig = plt.figure()
     ax = fig.gca()
     style_axes(ax)
 
     ind = np.arange(N)    # the x locations for the groups
     width = 0.35       # the width of the bars: can also be len(x) sequence
+    max_yval = (max(max(group1), max(group2)))
 
-    failed_bar = plt.bar(ind, failed_d, width, color=c_fail, edgecolor = "none")
-    successful_bar = plt.bar(ind+width, successful_d, width, color=c_sucess, edgecolor = "none")
+    bar1 = plt.bar(ind+width, group1, width, color=c_sucess) #, edgecolor = "none")
+    bar2 = plt.bar(ind, group2, width, color=c_fail) #, edgecolor = "none")
 
-    legend = ax.legend((failed_bar[0], successful_bar[0]), labels)
+    legend = ax.legend((bar1[0], bar2[0]), legend)
     legend.get_frame().set_edgecolor('white') # TODO amke borders of colors go away
 
-    plt.ylabel('transmissions')
-    plt.title('did it work?')
-    plt.xticks(ind+width, ('G1', 'G2', 'G3', 'G4', 'G5') )
+    plt.xticks(ind+width, labels)
     plt.xlim([index_start - bar_padding, N + bar_padding]) # don't make let bar stick to y axis
-    plt.yticks(np.arange(0,81,10))
+    plt.yticks(np.arange(0,max_yval,10))
 
     plt.show()
 
