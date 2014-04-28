@@ -24,12 +24,12 @@
 #define UDP_BUFFER_SIZE     (128)
 #define RCV_MSG_Q_SIZE      (64)
 #define DATA_SIZE           (20)
-#define STREAM_INTERVAL     (200000)     // milliseconds
+#define STREAM_INTERVAL     (2000000)     // microseconds
 #define NUM_PKTS            (100)
 
 // constants from the AODVv2 Draft, version 03
-#define DISCOVERY_ATTEMPTS_MAX (3)
-#define RREQ_WAIT_TIME         (2000000) // milliseconds
+#define DISCOVERY_ATTEMPTS_MAX (3) //(3)
+#define RREQ_WAIT_TIME         (2000000) // microseconds = 2 seconds
 
 int demo_attempt_to_send(char* dest_str, char* msg);
 
@@ -41,7 +41,7 @@ static uint8_t random_data[DATA_SIZE];  // assuming we're on a platform where 8 
 msg_t msg_q[RCV_MSG_Q_SIZE];
 char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
-
+timex_t now;
 
 // TODO ifdef for native, msba2.. etc. getpid() geht nur für native
 /* martine:für den iot-lab generier ich das immer aus der Serialnumber der 
@@ -66,8 +66,6 @@ void demo_send(int argc, char** argv)
     char* msg = argv[2];
     uint8_t num_attempts = 0;
     
-    printf("[demo]   sending packet of %i bytes...\n", sizeof(msg) * strlen(msg));
-
     demo_attempt_to_send(dest_str, msg);
 }
 
@@ -101,11 +99,17 @@ void demo_send_stream(int argc, char** argv)
         return;
     }
     */
-
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
+    int msg_len = strlen(msg)+1;
+
+    vtimer_now(&now);
+    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending stream of %i bytes...\n", now.seconds, now.microseconds, sizeof(msg) * strlen(msg));
 
     for (int i=0; i < NUM_PKTS; i++) {
-        int msg_len = strlen(msg)+1;
+        vtimer_now(&now);
+
+        printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
+
         int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
                                                 0, &_sockaddr, sizeof _sockaddr);
         vtimer_usleep(STREAM_INTERVAL);
@@ -114,7 +118,7 @@ void demo_send_stream(int argc, char** argv)
     free(msg);
 }
 
-
+// TOD
 /*
     Help emulate a functional NDP implementation (this should be called by every
     neighbor of a node that was shut down with demo_exit())
@@ -126,11 +130,20 @@ void demo_remove_neighbor(int argc, char** argv)
         return;
     }
     ipv6_addr_t neighbor;
+    ndp_neighbor_cache_t* nc_entry;
     inet_pton(AF_INET6, argv[1], &neighbor);
-    ndp_neighbor_cache_remove(&neighbor);
-    printf("neighbor removed.\n");
+    nc_entry = ndp_neighbor_cache_search(&neighbor);
+    if (nc_entry) {
+        nc_entry->state = NDP_NCE_STATUS_INCOMPLETE;
+        printf("[demo] neighbor removed.\n");
+    }
+    else {
+        printf("[demo] couldn't remove neighbor.\n");
+    }
 }
 
+
+// TODO: don#t remove, mark as broken!!
 /*
     Help emulate a functional NDP implementation (this should be called for every
     neighbor of the node on the grid)
@@ -185,24 +198,27 @@ int demo_attempt_to_send(char* dest_str, char* msg)
 
     // turn dest_str into ipv6_addr_t
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
+    int msg_len = strlen(msg)+1;
+    
+    vtimer_now(&now);
+    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
 
-    // TODO un-uncomment this as soon as bug has been found
     while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
-        int msg_len = strlen(msg)+1;
         int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
                                                 0, &_sockaddr, sizeof _sockaddr);
-
+        
+        vtimer_now(&now);
         if (bytes_sent == -1) {
-            printf("[demo]   no bytes sent, probably because there is no route yet.\n");
+            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   no bytes sent, probably because there is no route yet.\n", now.seconds, now.microseconds);
             num_attempts++;
             vtimer_usleep(RREQ_WAIT_TIME);
         }
         else {
-            printf("[demo]   %d bytes sent.\n", bytes_sent);
+            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   Success sending Data: %d bytes sent.\n", now.seconds, now.microseconds, bytes_sent);
             return 0;
         }
     }
-    printf("[demo]  Error sending Data: no route found\n");
+    //printf("{%" PRIu32 ":%" PRIu32 "}[demo]  Error sending Data: no route found\n", now.seconds, now.microseconds);
     return -1;
 }
 
@@ -213,6 +229,7 @@ static void _demo_receiver_thread(void)
     char buf_rcv[UDP_BUFFER_SIZE];
     char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
     msg_t rcv_msg_q[RCV_MSG_Q_SIZE];
+    timex_t now;
     
     msg_init_queue(rcv_msg_q, RCV_MSG_Q_SIZE);
 
@@ -231,10 +248,12 @@ static void _demo_receiver_thread(void)
         rcv_size = destiny_socket_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0, 
                                           &sa_rcv, &fromlen);
 
+        vtimer_now(&now);
+
         if(rcv_size < 0) {
-            DEBUG("[demo]   ERROR receiving data!\n");
+            DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   ERROR receiving data!\n", now.seconds, now.microseconds);
         }
-        DEBUG("[demo]   UDP packet received from %s: %s\n", ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
+        DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   UDP packet received from %s: %s\n", now.seconds, now.microseconds, ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
     }
 
     destiny_socket_close(sock_rcv);  
