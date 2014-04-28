@@ -161,7 +161,7 @@ def test_sender_thread(position, port):
     global shutdown_queue, potential_targnodes, num_ready_riots
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setblocking(0)
+
     with sockets_lock:
         sockets.append(sock)
 

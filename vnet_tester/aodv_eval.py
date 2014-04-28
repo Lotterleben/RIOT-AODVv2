@@ -131,16 +131,20 @@ def store_pktbb(packetbb):
 
 def evaluate_pcap():
     global packets
+    num_received_rreps = 0
+
     for ip in all_ips:
         my_discoveries = [pkt for pkt in packets if ("orignode" in pkt["data"]) and (ip in pkt["data"]["orignode"]["addr"])]
-        #my_discoveries = [pkt for pkt in packets if (ip in pkt["src"])]
         
         # technically, we can't assume that the RREP actually survived its last hop, 
         # but this should at least provide an educated guess
         received_rreps = [pkt for pkt in my_discoveries if (RFC5444_MSGTYPE_RREP in pkt["data"]["type"]) and (ip in pkt["dst"])]
+        num_received_rreps += len(received_rreps)
 
         #print "discoveries of ", ip, ": ", my_discoveries, "\n4"
-        print len(received_rreps), "RREPs to ", ip, ":", received_rreps
+        #print len(received_rreps), "RREPs to ", ip, ":", received_rreps
+
+    return {"rrep received": num_received_rreps}
 
 def handle_capture(xml_file_location):
     print "handling capture..."
@@ -152,8 +156,9 @@ def handle_capture(xml_file_location):
     for pkt in pcaps:
         store_pcap(pkt)
 
-    evaluate_pcap()
-
+    pcap_results = evaluate_pcap()
+    print "number of received RREPs:", pcap_results["rrep received"]
+    
 def handle_logfile(log_file_location):
     if (not os.path.isfile(log_file_location)):    
         print "Couldn't find log file. Aborting."
@@ -162,12 +167,13 @@ def handle_logfile(log_file_location):
         # todo update me
     results = count_successes(log_file_location)
     print results
+    disc_within_to = results["discoveries within timeout"]
 
-    successes = (results["discoveries"]["success"], results["transmissions"]["success"])
+    successes = ((disc_within_to, 0),(results["discoveries"]["success"] - disc_within_to , results["transmissions"]["success"]))
     failures = ((results["rrep_fail"], 0), (results["discoveries"]["fail"], results["transmissions"]["fail"]))
 
     # TODO discoveries within timeout into plot
-    pp.plot_bars(("successful", "failed at RREP", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
+    pp.plot_bars(("successful within timeout", "successful", "failed at RREP", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
 
 def count_successes(log_file_location):
     print "counting successful route discoveries and transmissions..."
@@ -224,7 +230,6 @@ def count_successes(log_file_location):
 
         # reached log entries of another node
         if (node_switch.match(line)):
-            print line
             if (rreqs_buf > 0):
                 rreqs_total += 1
                 if (rreqs_total <= 3 and rrep_received is True):

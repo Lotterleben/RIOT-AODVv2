@@ -6,7 +6,8 @@ from operator import add
 # TODO use as module
 
 # some color constants (TODO: pick proper ones)
-c_sucess = 'cadetblue'
+c_sucess_top = 'cadetblue'
+c_sucess_bottom = 'Teal'
 c_fail_top = 'LightCoral'
 c_fail_bottom = 'DarkRed'
 c_default = 'cadetblue'
@@ -38,6 +39,9 @@ def plot_bars(legend, labels, success, fail):
     fail_bottom = fail[0]
     fail_top = fail[1]
 
+    success_bottom = success[0]
+    success_top = success[1]
+
     fig = plt.figure()
     ax = fig.gca()
     style_axes(ax)
@@ -45,14 +49,17 @@ def plot_bars(legend, labels, success, fail):
     ind = np.arange(N)    # the x locations for the groups
     width = 0.35       # the width of the bars: can also be len(x) sequence
     fail_sums = map(add, fail_bottom, fail_top)
-    max_yval = (max(max(fail_sums), max(success)))
+    success_sums = map(add, success_bottom, success_top)
 
-    bar1 = plt.bar(ind+width, success, width, color=c_sucess) #, edgecolor = "none")
+    max_yval = (max(max(fail_sums), max(success_sums)))
+
+    bar1_bottom = plt.bar(ind+width, success_bottom, width, color=c_sucess_bottom) #, edgecolor = "none")
+    bar1_top = plt.bar(ind+width, success_top, width, bottom=success_bottom, color=c_sucess_top) #, edgecolor = "none")
+    
     bar2_bottom = plt.bar(ind, fail_bottom, width, color=c_fail_bottom) #, edgecolor = "none")
     bar2_top = plt.bar(ind, fail_top, width, bottom=fail_bottom, color=c_fail_top) #, edgecolor = "none")
 
-
-    legend = ax.legend((bar1[0], bar2_bottom[0], bar2_top[0]), legend)
+    legend = ax.legend((bar1_bottom[0], bar1_top[0], bar2_bottom[0], bar2_top[0]), legend, loc=2)
     legend.get_frame().set_edgecolor('white') # TODO amke borders of colors go away
 
     plt.xticks(ind+width, labels)
@@ -97,7 +104,7 @@ def plot_stacked_bars(legend, labels, group1, group2):
     plt.title('Scores by group and gender')
     plt.xticks(ind+width/2., ('G1', 'G2', 'G3', 'G4', 'G5') )
     plt.yticks(np.arange(0,max_yval,10))
-    plt.legend( (p1[0], p2[0]), ('Men', 'Women') )
+    plt.legend( (p1[0], p2[0]), ('Men', 'Women'))
 
     plt.show()
 def plot_test():
