@@ -2,6 +2,7 @@ import argparse
 import traceback
 import sys
 import os
+import re
 from bs4 import BeautifulSoup, NavigableString
 
 import numpy as np
@@ -22,6 +23,45 @@ DISCOVERY_ATTEMPTS_MAX = 3
 
 working_dir = "./dumps/"
 packets = []
+all_ips = set()
+
+def pcap_to_xml(pcap_file_str):
+    global working_dir, xml_file_location
+
+    print "converting to xml..."
+
+    # make sure we have a directory to operate in
+    if (not os.path.exists(working_dir)):
+        os.makedirs(working_dir)
+
+    xml_file_location = working_dir + pcap_file_str.split("/")[-1].split(".")[0] + ".xml"
+    
+    # make pcap python-readable by converting it to xml, store in file
+    if (os.path.isfile(xml_file_location)):
+        os.remove(xml_file_location)
+
+    os.system("tshark -r %s -V -Y ipv6 -T pdml >> %s" %(pcap_file_str, xml_file_location))
+
+    return xml_file_location
+
+def store_pcap(pkt):
+    ip_header = pkt.find(attrs = {"name":"ipv6"})
+    src_addr = ip_header.find(attrs = {"name":"ipv6.src"})["show"]
+    dst_addr = ip_header.find(attrs = {"name":"ipv6.dst"})["show"]
+    data = ""
+
+    packetbb = pkt.find(attrs = {"name":"packetbb"})
+    if (packetbb):
+        data = store_pktbb(packetbb)
+    else:
+        payload = pkt.find(attrs = {"name": "data.data"})
+        if (payload is None):
+            # found an icmp packet or so
+            return
+        data = payload["show"]
+
+    packet = {"src": src_addr, "dst": dst_addr, "data": data}
+    packets.append(packet)
 
 def store_pktbb(packetbb):
     pkt = {}
@@ -37,10 +77,15 @@ def store_pktbb(packetbb):
 
     addresses = addrblock.find_all(attrs = {"name":"packetbb.msg.addr.value6"})
 
+    pkt["type"] = msg_type
+
     if((msg_type == RFC5444_MSGTYPE_RREQ) or (msg_type == RFC5444_MSGTYPE_RREP)):
         # there is no guarantee that the order is always right but I'm running out of time
         orignode["addr"] = addresses[0]["show"]
         targnode["addr"] = addresses[1]["show"]
+
+        # store IPs for future use
+        all_ips.add(orignode["addr"])
 
         for tlv in tlvblock:
             # whatever
@@ -82,52 +127,20 @@ def store_pktbb(packetbb):
 
         pkt["unreachable_nodes"] = unreachable_nodes
 
-    #print "\t", pkt
     return pkt
 
-def store_data(pkt):
-    ip_header = pkt.find(attrs = {"name":"ipv6"})
-    src_addr = ip_header.find(attrs = {"name":"ipv6.src"})["show"]
-    dst_addr = ip_header.find(attrs = {"name":"ipv6.dst"})["show"]
-    data = ""
+def evaluate_pcap():
+    global packets
+    for ip in all_ips:
+        my_discoveries = [pkt for pkt in packets if ("orignode" in pkt["data"]) and (ip in pkt["data"]["orignode"]["addr"])]
+        #my_discoveries = [pkt for pkt in packets if (ip in pkt["src"])]
+        
+        # technically, we can't assume that the RREP actually survived its last hop, 
+        # but this should at least provide an educated guess
+        received_rreps = [pkt for pkt in my_discoveries if (RFC5444_MSGTYPE_RREP in pkt["data"]["type"]) and (ip in pkt["dst"])]
 
-    #data = pkt.find(attrs = {"name":"ipv6.dst"})["show"]
-    packetbb = pkt.find(attrs = {"name":"packetbb"})
-    if (packetbb):
-        #print "i can haz packetbb", type(packetbb), type(ip_header)
-        data = store_pktbb(packetbb)
-    else:
-        # TODO debug this
-        payload = pkt.find(attrs = {"name": "data.data"})
-        if (payload is None):
-            # found an icmp packet or so
-            return
-        data = payload["show"]
-        print data
-
-    foo = {"src": src_addr, "dst": dst_addr, "data": data}
-
-    print foo
-
-
-def pcap_to_xml(pcap_file_str):
-    global working_dir, xml_file_location
-
-    print "converting to xml..."
-
-    # make sure we have a directory to operate in
-    if (not os.path.exists(working_dir)):
-        os.makedirs(working_dir)
-
-    xml_file_location = working_dir + pcap_file_str.split("/")[-1].split(".")[0] + ".xml"
-    
-    # make pcap python-readable by converting it to xml, store in file
-    if (os.path.isfile(xml_file_location)):
-        os.remove(xml_file_location)
-    os.system("tshark -r %s -V -Y ipv6 -T pdml >> %s" %(pcap_file_str, xml_file_location))
-
-    return xml_file_location
-
+        #print "discoveries of ", ip, ": ", my_discoveries, "\n4"
+        print len(received_rreps), "RREPs to ", ip, ":", received_rreps
 
 def handle_capture(xml_file_location):
     print "handling capture..."
@@ -135,21 +148,11 @@ def handle_capture(xml_file_location):
     xml_file = open(xml_file_location, "r")
     soup = BeautifulSoup(xml_file, "xml")
 
-    ''' commented out for debugging
-    packetbb_pkts = soup.find_all(attrs = {"name":"packetbb"})
-    for pkt in packetbb_pkts:
-        store_pktbb(pkt)
+    pcaps = soup.find_all("packet")
+    for pkt in pcaps:
+        store_pcap(pkt)
 
-    data_pkts = soup.find_all(attrs = {"name":"ipv6"})
-    print data_pkts
-    for pkt in data_pkts:
-        store_data(pkt)
-    '''
-
-    packets = soup.find_all("packet")
-    for pkt in packets:
-        store_data(pkt)
-
+    evaluate_pcap()
 
 def handle_logfile(log_file_location):
     if (not os.path.isfile(log_file_location)):    
@@ -161,37 +164,40 @@ def handle_logfile(log_file_location):
     print results
 
     successes = (results["discoveries"]["success"], results["transmissions"]["success"])
-    failures = (results["discoveries"]["fail"], results["transmissions"]["fail"])
+    failures = ((results["rrep_fail"], 0), (results["discoveries"]["fail"], results["transmissions"]["fail"]))
 
     # TODO discoveries within timeout into plot
-    pp.plot_bars(("successful", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
-
+    pp.plot_bars(("successful", "failed at RREP", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
 
 def count_successes(log_file_location):
     print "counting successful route discoveries and transmissions..."
     logfile = open(log_file_location)
     rreqs_sent = {}
+    rreqs_arrived = 0
     rreqs_total = 0
+    rreqs_buf = 0
+
+    node_switch = re.compile ("(.*) {(.*)} send_data to (.*)") 
+    rrep_received = False
 
     discoveries = {"success" : 0, "fail" : 0}
     discoveries_within_timeout = 0
+    transmissions_total = 0
     transmissions = {"success" : 0, "fail" : 0}
 
+    # (here's to hoping I'll never change that debug output...)
     for line in logfile:
-        # TODO: sowas (aber mit ip des senders..) partsen [demo]   sending packet of %i bytes towards %s...\n"
-
-        # look for successful transmission
-        if ("[demo]  Success sending" in line):
+        # TODO: sowas (aber mit ip des senders..) parsen [demo]   sending packet of %i bytes towards %s...\n"
+        if ("[demo]   sending packet" in line):
+            transmissions_total += 1
+        elif ("[demo]   UDP packet received from" in line):
             transmissions["success"] += 1
-        elif ("[demo]  Error sending" in line):
-            transmissions["fail"] += 1
-
         # look for successful route discovery
-        # (here's to hoping I'll never change that debug output...)
-        elif ("[aodvv2] originating RREQ" in line):
-            # TODO ip rausfiltern
+        elif ("[aodvv2] originating RREQ" in line):  
+            rreqs_buf += 1
+            '''
+            since we're currently only sending 1 RREQ per transmission anyway, we can skip this
             ip = line.split(" ")[4].strip()[:-1]
-            print "originating ip: ", ip #, line
             try:
                 # found (possibly redundant) RREQ
                 if (rreqs_sent[ip] < DISCOVERY_ATTEMPTS_MAX):
@@ -205,29 +211,34 @@ def count_successes(log_file_location):
                 rreqs_sent[ip] = 0
 
             print rreqs_sent
+            '''
 
-        # if rrep found:
+        elif("[aodvv2] TargNode is in client list, sending RREP" in line):
+            rreqs_arrived +=1
+
         elif ("This is my RREP." in line):
             ip = line.split(" ")[1].strip()[:-1]
-            print "found ip: ", ip #, line
+            #print "found ip: ", ip #, line
             discoveries["success"] += 1
-            if (rreqs_sent[ip] < 3 ):
-                print "OMG!!! Success within timeout!"
-                discoveries_within_timeout += 1
-            rreqs_sent[ip] = 0
+            rrep_received = True
 
-    return {"discoveries" : discoveries, "transmissions" : transmissions, "discoveries_within_timeout" : discoveries_within_timeout}
+        # reached log entries of another node
+        if (node_switch.match(line)):
+            print line
+            if (rreqs_buf > 0):
+                rreqs_total += 1
+                if (rreqs_total <= 3 and rrep_received is True):
+                    discoveries_within_timeout += 1
+                rreqs_buf = 0
+                rrep_received = False
 
 
-def plot_bars(labels, values):
+    transmissions["fail"] = transmissions_total - transmissions["success"]
+    discoveries["fail"] = rreqs_total - discoveries["success"]
+    rrep_fails = discoveries["fail"] - rreqs_arrived 
 
-    x_loc = np.arange(2) # the x locations for the groups
-
-    fig, ax = plt.subplots()
-    bars = plt.bar(x_loc, values, color='b',  align='center', alpha=0.4)
-
-    plt.xticks(x_loc, labels)
-    plt.show()
+    return {"discoveries" : discoveries, "transmissions" : transmissions, 
+    "discoveries within timeout" : discoveries_within_timeout, "rrep_fail": rrep_fails}
 
 def main():
     pcap_file_str = ""

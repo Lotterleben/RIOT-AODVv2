@@ -32,6 +32,8 @@ max_shutdown_interval = shutdown_riots = shutdown_window = 0
 shutdown_queue = Queue.Queue()
 msg_queues = {}
 
+plain_mode = False
+
 def get_ports():
     with open(ports_local_path, 'r') as f:
         ports_local = f.readlines()
@@ -82,6 +84,8 @@ def get_shell_output(sock):
 
     while (not(">" in data)):
         chunk = sock.recv(4096)
+        if (chunk == ""):
+            return data
         data += chunk
     return data
 
@@ -107,7 +111,7 @@ def collect_potential_targnodes():
                                         ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
                                         or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
 
-    print potential_targnodes
+    print "potential_targnodes: ", potential_targnodes
 
 def collect_neighbor_coordinates(position):
     neighbor_coordinates = []
@@ -123,6 +127,8 @@ def collect_neighbor_coordinates(position):
     return neighbor_coordinates
 
 def connect_riots():
+    global potential_targnodes, riots
+
     riots_complete.acquire()
     riots_ready.acquire()
     collect_potential_targnodes()
@@ -132,9 +138,17 @@ def connect_riots():
         # make sure the main thread isn't killed before we initialize our sockets
         time.sleep(2) 
 
-    print "riots:", riots
+    logging.debug("riots: %s\n", riots)
     if (shutdown_riots > 0):
         start_new_thread(test_shutdown_thread,())
+
+    if (plain_mode):
+        orignode = random.choice(riots.keys())
+        targnode = random.choice(potential_targnodes[orignode])
+        targnode_ip = riots[targnode][1][0]
+        print "orignode:", orignode, "targnode:", targnode, "targnode_ip", targnode_ip
+
+        msg_queues[orignode].put("send_data %s\n" % targnode_ip)
 
     # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration) 
@@ -147,6 +161,7 @@ def test_sender_thread(position, port):
     global shutdown_queue, potential_targnodes, num_ready_riots
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setblocking(0)
     with sockets_lock:
         sockets.append(sock)
 
@@ -179,7 +194,6 @@ def test_sender_thread(position, port):
             riots[position] = (port, my_addrs)
             global num_riots
             num_riots += 1
-            sys.stdout.write("num_riots %i\n" % num_riots)
 
         # wait until all nodes are initialized. if they are, release the lock 
         # so all nodes can start sending
@@ -211,45 +225,52 @@ def test_sender_thread(position, port):
 
 
         while (True):
-            #wait for a little while
-            some_time = random.randint(1, max_silence_interval)
-            time.sleep(some_time)
-
             if (not msg_queues[position].empty()):
                 instruction = msg_queues[position].get()
                 sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
-                logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                if ("exit" in instruction):
+                    # print last words
+                    sock.sendall("sdfghjkl\n")
+                    logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+
                 sock.sendall(instruction)
-
-            try:
-                shutdown_queue.get(False) # we've been told to shut down
                 logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
-                sys.stdout.write("{%s} shutting down\n" % thread_id)
 
-                # shut down my RIOT
-                sock.sendall("exit\n")
+            if (not plain_mode):
 
-                sys.stdout.write("number of my neighbors: %s\n" % len(my_neighbor_coordinates))
-                # emulate NDP of my 1-hop-neighbors noticing my shutdown
-                for neighbor in my_neighbor_coordinates:
-                    msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
-                    sys.stdout.write("{%s} notifying neighbor %s of my death\n" % (thread_id, neighbor))
+                #wait for a little while
+                some_time = random.randint(1, max_silence_interval)
+                time.sleep(some_time)
 
-                sys.exit()
-                self.process.terminate() # TODO does this do the trick?
+                try:
+                    shutdown_queue.get(False) # we've been told to shut down
+                    logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                    sys.stdout.write("{%s} shutting down\n" % thread_id)
 
-            except:
-                # no shutdown instruction, continue as usual
-                # pick random node
-                with riots_lock:
-                    # only attempt to send if potential targnodes exist
-                    if (len(my_targnodes) > 0):
-                        targnode = random.choice(my_targnodes)
-                        targnode_ip = riots[targnode][1][0]
+                    # shut down my RIOT
+                    sock.sendall("exit\n")
 
-                        logging.debug("{%s: %s, %s} send_data to %s %s\n\n" % (thread_id, my_ip, position, targnode_ip, targnode))
-                        sock.sendall("send_data %s\n" % targnode_ip) 
-                        logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
+                    sys.stdout.write("number of my neighbors: %s\n" % len(my_neighbor_coordinates))
+                    # emulate NDP of my 1-hop-neighbors noticing my shutdown
+                    for neighbor in my_neighbor_coordinates:
+                        msg_queues[neighbor].put("rm_neighbor %s\n" % my_ip)
+                        sys.stdout.write("{%s} notifying neighbor %s of my death\n" % (thread_id, neighbor))
+
+                    sys.exit()
+                    self.process.terminate() # TODO does this do the trick?
+
+                except:
+                    # no shutdown instruction, continue as usual
+                    # pick random node
+                    with riots_lock:
+                        # only attempt to send if potential targnodes exist
+                        if (len(my_targnodes) > 0):
+                            targnode = random.choice(my_targnodes)
+                            targnode_ip = riots[targnode][1][0]
+
+                            logging.debug("{%s: %s, %s} send_data to %s %s\n" % (thread_id, my_ip, position, targnode_ip, targnode))
+                            sock.sendall("send_data %s\n" % targnode_ip)
+                            logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
     except:
         traceback.print_exc()
@@ -280,9 +301,6 @@ def test_shutdown_thread():
         some_time = random.randint(1, max_shutdown_interval)
         time.sleep(some_time)
 
-def start_tcpdump():
-    o
-
 # kill tcp connections on SIGINT
 def signal_handler(signal, frame):
     close_connections()
@@ -298,7 +316,7 @@ def close_connections():
         msg_queues[position].put("exit\n")
 
     # wait until everything has been logged
-    time.sleep(20)
+    time.sleep(10)
 
     print "Closing sockets..."
     with sockets_lock:
@@ -309,7 +327,7 @@ def close_connections():
     print "done"
 
 def main():
-    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window
+    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window, plain_mode
 
     timestamp = time.time()
     signal.signal(signal.SIGINT, signal_handler)
@@ -320,6 +338,7 @@ def main():
     parser.add_argument('-t','--time', type = int, help='duration of the experiment (in seconds)')
     parser.add_argument('-i','--interval', type = int, help='max time interval between packet transmissions (in seconds)')
     parser.add_argument('-m','--min_hop_dist', type = int, help='minimum distance between originating and target node (in hops)')    
+    parser.add_argument('-p','--plain', action='store_true', help='Only start one transmission')    
 
     args = parser.parse_args()
     
@@ -357,6 +376,9 @@ def main():
         shutdown_window = experiment_duration / 3
         max_shutdown_interval = shutdown_window / shutdown_riots
         print "shutdowns start after", shutdown_window * 2, "seconds" 
+
+    if (args.plain):
+        plain_mode = True
 
 
     sys.stdout.write("Starting %i seconds of testing...\n" % experiment_duration)
