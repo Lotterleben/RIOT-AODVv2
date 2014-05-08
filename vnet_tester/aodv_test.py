@@ -12,12 +12,14 @@ from thread import start_new_thread
 import argparse
 import Queue
 import os
+import sys
 
 experiment_duration = 600  # seconds
 max_silence_interval = 180  # seconds
 min_hop_distance = 3
 
 i_max = j_max = 0
+i_min = sys.maxint
 
 riots = {} # key: (i,j) coordinate on the Grid. value: (port, (IP, link-local addr))
 riots_lock = threading.Lock()
@@ -37,18 +39,32 @@ plain_mode = False
 def get_ports():
     with open(ports_local_path, 'r') as f:
         ports_local = f.readlines()
-        global i_max, j_max
+        global i_max, j_max, i_min
 
         for port_string in ports_local:
             lst = port_string.split(",")
-            i = int(lst[0])
-            j = int(lst[1])
-            port = lst[2].rstrip('\n')
-            riots[(i,j)] = (port, "")
-            if (i > i_max):
-                i_max = i
-            if (j > j_max):
-                j_max = j
+
+            # handle grid
+            if (len(lst) is 3):
+                i = int(lst[0])
+                j = int(lst[1])
+                port = lst[2].rstrip('\n')
+                riots[(i,j)] = (port, "")
+                if (i > i_max):
+                    i_max = i
+                if (j > j_max):
+                    j_max = j
+
+                # handle line
+            elif (len(lst) is 2):
+                i = abs(int(lst[0]))
+                port = lst[1].rstrip('\n')
+                riots[(i)] = (port, "")
+                if (i > i_max): #positions are negative, warum auch immer
+                    i_max = i
+
+                if (i < i_min ): #positions are negative, warum auch immer
+                    i_min = i
 
 '''
 parse something like
@@ -94,36 +110,56 @@ for each node, determine all nodes in the grid that are >= min_hop_distance away
 TODO: oh, ups... inkludiert das nicht auch querverbindungen?
 '''
 def collect_potential_targnodes():
-    global potential_targnodes, min_hop_distance
+    global potential_targnodes, min_hop_distance, i_max, i_min
     print "i_max:", i_max, "j_max:", j_max, "min_hop_distance:", min_hop_distance
 
     for position, connection in riots.iteritems():
-        i = position[0]
-        j = position[1]
+        # get positions on grid
+        if (type(position) is tuple):
+            i = position[0]
+            j = position[1]
 
-        i = int(i)
-        j = int(j)
+            i = int(i)
+            j = int(j)
 
-        m_lst = range(1, int(i_max)+1)
-        n_lst = range(1, int(j_max)+1)
+            m_lst = range(1, int(i_max)+1)
+            n_lst = range(1, int(j_max)+1)
 
-        potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if 
-                                        ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
-                                        or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
+            potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if 
+                                            ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
+                                            or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
+
+        elif (type(position) is int):
+                i = position
+                m_lst = range(int(i_min), int(i_max)+1)
+                potential_targnodes[position] = [m for m in m_lst if 
+                                            ((m >= i+min_hop_distance)or(m <= i-min_hop_distance))]
+        else:
+            print "can't interpret position"
 
     print "potential_targnodes: ", potential_targnodes
 
 def collect_neighbor_coordinates(position):
     neighbor_coordinates = []
 
-    i = int(position[0])
-    j = int(position[1])
+    if (type(position) is tuple):
+        i = int(position[0])
+        j = int(position[1])
 
-    m_lst = range(1, int(i_max)+1)
-    n_lst = range(1, int(j_max)+1)
-    
-    neighbor_coordinates = [(m,n) for m in m_lst for n in n_lst if ((m == i and ((j-1 == n) or (n == j+1))) or ((m == i+1) or (m == i-1)) and (j-1 <= n <= j+1))]
+        m_lst = range(1, int(i_max)+1)
+        n_lst = range(1, int(j_max)+1)
+        
+        neighbor_coordinates = [(m,n) for m in m_lst for n in n_lst if ((m == i and ((j-1 == n) or (n == j+1))) or ((m == i+1) or (m == i-1)) and (j-1 <= n <= j+1))]
 
+    elif (type(position) is int):
+        i = position
+        m_lst = range(i_min, i_max+1)
+
+        neighbor_coordinates = [m for m in m_lst if (m == i+1) or (m == i-1)]
+    else:
+        print "can't interpret position"
+
+    print "neighbors of ", position, ": ", neighbor_coordinates
     return neighbor_coordinates
 
 def connect_riots():
@@ -222,7 +258,6 @@ def test_sender_thread(position, port):
         riots_ready.release() # enable next node to add their neighbors in peace
         #print "type neighbor", type(my_neighbor_coordinates[0]), "type position", type(position)
         sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
-
 
         while (True):
             if (not msg_queues[position].empty()):
