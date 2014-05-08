@@ -180,11 +180,15 @@ def connect_riots():
 
     if (plain_mode):
         orignode = random.choice(riots.keys())
-        targnode = random.choice(potential_targnodes[orignode])
-        targnode_ip = riots[targnode][1][0]
-        print "orignode:", orignode, "targnode:", targnode, "targnode_ip", targnode_ip
+        done = False
+        while (not done):
+            if (len(potential_targnodes[orignode]) > 0):
+                targnode = random.choice(potential_targnodes[orignode])
+                targnode_ip = riots[targnode][1][0]
+                print "orignode:", orignode, "targnode:", targnode, "targnode_ip", targnode_ip
 
-        msg_queues[orignode].put("send_data %s\n" % targnode_ip)
+                msg_queues[orignode].put("send_data %s\n" % targnode_ip)
+                done = True
 
     # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration) 
@@ -265,7 +269,7 @@ def test_sender_thread(position, port):
                 sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
                 if ("exit" in instruction):
                     # print last words
-                    sock.sendall("sdfghjkl\n")
+                    sock.sendall("my last words:\n")
                     logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
                 sock.sendall(instruction)
