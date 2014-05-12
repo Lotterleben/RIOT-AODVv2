@@ -43,13 +43,6 @@ char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 timex_t now;
 
-// TODO ifdef for native, msba2.. etc. getpid() geht nur für native
-/* martine:für den iot-lab generier ich das immer aus der Serialnumber der 
-cpu und für native aus der PID. Ich weiß, dass der MSBA2 auch irgendwo eine 
-Serialnumber hat, aber das letzte mal als ich das probiert hatte, kam es zu 
-segfaults an genau der stelle des auslesens
-aber afaik gibts in core/include/config.h was mit id… aber kA wie zuverlässig das ist
-*/
 uint16_t get_hw_addr(void)
 {
     return getpid();
@@ -118,7 +111,6 @@ void demo_send_stream(int argc, char** argv)
     free(msg);
 }
 
-// TOD
 /*
     Help emulate a functional NDP implementation (this should be called by every
     neighbor of a node that was shut down with demo_exit())
@@ -142,8 +134,6 @@ void demo_remove_neighbor(int argc, char** argv)
     }
 }
 
-
-// TODO: don#t remove, mark as broken!!
 /*
     Help emulate a functional NDP implementation (this should be called for every
     neighbor of the node on the grid)
@@ -154,21 +144,22 @@ void demo_add_neighbor(int argc, char** argv)
         printf("Usage: add_neighbor <neighbor ip> <neighbor ll-addr>\n");
         return;
     }
+
+    net_if_eui64_t eut_eui64;
     ipv6_addr_t neighbor;
-    net_if_eui64_t ll_addr;
     inet_pton(AF_INET6, argv[1], &neighbor);
-    net_if_hex_to_eui64(&ll_addr, argv[2]);
 
     // only add neighbor if it's not already in Cache
     if (ndp_neighbor_cache_search(&neighbor)!= NULL){
-        printf("IP %s already in Neighbor Cache\n", ipv6_addr_to_str(addr_str, IPV6_MAX_ADDR_STR_LEN, &neighbor));
+        printf("IP %s already in Neighbor Cache, lladdr-len:%i\n", ipv6_addr_to_str(addr_str, IPV6_MAX_ADDR_STR_LEN, &neighbor), ndp_neighbor_cache_search(&neighbor)->lladdr_len);
         return;
     }
 
-    // turn ll addr into short hardware addr
-    uint16_t ll_addr_short = sixlowpan_lowpan_eui64_to_short_addr(&ll_addr);
+    /* convert & flip */
+    memcpy(&eut_eui64, &neighbor.uint8[8], 8);
+    eut_eui64.uint8[0] ^= 0x02;
 
-    ndp_neighbor_cache_add(1, &neighbor, &ll_addr_short, 8, 0,NDP_NCE_STATUS_REACHABLE,
+    ndp_neighbor_cache_add(0, &neighbor, &neighbor.uint16[7], 2, 0, NDP_NCE_STATUS_REACHABLE,
                                   NDP_NCE_TYPE_TENTATIVE, 0xffff);
 
     printf("neighbor added.\n");
@@ -229,6 +220,8 @@ static void _demo_receiver_thread(void)
     char buf_rcv[UDP_BUFFER_SIZE];
     char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
     msg_t rcv_msg_q[RCV_MSG_Q_SIZE];
+
+    
     timex_t now;
     
     msg_init_queue(rcv_msg_q, RCV_MSG_Q_SIZE);
@@ -294,7 +287,6 @@ int main(void)
     _init_tlayer();
     thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
 
-    // start shell
     posix_open(uart0_handler_pid, 0);
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
