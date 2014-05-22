@@ -3,6 +3,8 @@ import traceback
 import sys
 import os
 import re
+import pprint
+
 from bs4 import BeautifulSoup, NavigableString
 
 import numpy as np
@@ -79,7 +81,7 @@ def store_pktbb(packetbb):
 
     pkt["type"] = msg_type
 
-    if((msg_type == RFC5444_MSGTYPE_RREQ) or (msg_type == RFC5444_MSGTYPE_RREP)):
+    if ((msg_type == RFC5444_MSGTYPE_RREQ) or (msg_type == RFC5444_MSGTYPE_RREP)):
         # there is no guarantee that the order is always right but I'm running out of time
         orignode["addr"] = addresses[0]["show"]
         targnode["addr"] = addresses[1]["show"]
@@ -108,7 +110,7 @@ def store_pktbb(packetbb):
         pkt["orignode"] = orignode
         pkt["targnode"] = targnode
 
-    elif(msg_type == RFC5444_MSGTYPE_RERR):
+    elif (msg_type == RFC5444_MSGTYPE_RERR):
         unreachable_nodes = []
 
         addresses = addrblock.find_all(attrs = {"name":"packetbb.msg.addr.value6"})
@@ -132,22 +134,28 @@ def store_pktbb(packetbb):
 def evaluate_pcap():
     global packets
     num_received_rreps = 0
+    num_discoveries = 0
+
+    #rerrs = [pkt for pkt in packets if (RFC5444_MSGTYPE_RERR in pkt["data"]["type"])]
 
     for ip in all_ips:
         my_discoveries = [pkt for pkt in packets if ("orignode" in pkt["data"]) and (ip in pkt["data"]["orignode"]["addr"])]
-        
+        num_discoveries += len(my_discoveries)/3
+
         # technically, we can't assume that the RREP actually survived its last hop, 
         # but this should at least provide an educated guess
         received_rreps = [pkt for pkt in my_discoveries if (RFC5444_MSGTYPE_RREP in pkt["data"]["type"]) and (ip in pkt["dst"])]
         num_received_rreps += len(received_rreps)
 
+        
         #print "discoveries of ", ip, ": ", my_discoveries, "\n4"
         #print len(received_rreps), "RREPs to ", ip, ":", received_rreps
 
-    return {"rrep received": num_received_rreps}
+    return {"discoveries" : num_discoveries, "rrep received": num_received_rreps}
 
 def handle_capture(xml_file_location):
     print "handling capture..."
+    pp = pprint.PrettyPrinter(indent=2)
 
     xml_file = open(xml_file_location, "r")
     soup = BeautifulSoup(xml_file, "xml")
@@ -156,8 +164,11 @@ def handle_capture(xml_file_location):
     for pkt in pcaps:
         store_pcap(pkt)
 
+    print "all packets: "
+    pp.pprint(packets)
     pcap_results = evaluate_pcap()
     print "number of received RREPs:", pcap_results["rrep received"]
+    print "number of started discoveries:", pcap_results["discoveries"]
     
 def handle_logfile(log_file_location):
     if (not os.path.isfile(log_file_location)):    
@@ -170,10 +181,11 @@ def handle_logfile(log_file_location):
     disc_within_to = results["discoveries within timeout"]
 
     successes = ((disc_within_to, 0),(results["discoveries"]["success"] - disc_within_to , results["transmissions"]["success"]))
-    failures = ((results["rrep_fail"], 0), (results["discoveries"]["fail"], results["transmissions"]["fail"]))
+    failures = ((results["rrep_fail"], 0), (results["discoveries"]["fail"] - results["rrep_fail"], results["transmissions"]["fail"]))
 
-    # TODO discoveries within timeout into plot
     pp.plot_bars(("successful within timeout", "successful", "failed at RREP", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
+    #pp.plot_bars(("successful within timeout", "successful", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
+
 
 def count_successes(log_file_location):
     print "counting successful route discoveries and transmissions..."
@@ -201,23 +213,6 @@ def count_successes(log_file_location):
         # look for successful route discovery
         elif ("[aodvv2] originating RREQ" in line):  
             rreqs_buf += 1
-            '''
-            since we're currently only sending 1 RREQ per transmission anyway, we can skip this
-            ip = line.split(" ")[4].strip()[:-1]
-            try:
-                # found (possibly redundant) RREQ
-                if (rreqs_sent[ip] < DISCOVERY_ATTEMPTS_MAX):
-                    rreqs_sent[ip] += 1
-                # rreq has been sent without success last time; reset counter
-                else:
-                    rreqs_sent[ip] = 1
-                    discoveries["fail"] += 1
-            except:
-                # this is the first rreq to ip
-                rreqs_sent[ip] = 0
-
-            print rreqs_sent
-            '''
 
         elif("[aodvv2] TargNode is in client list, sending RREP" in line):
             rreqs_arrived +=1
@@ -237,13 +232,14 @@ def count_successes(log_file_location):
                 rreqs_buf = 0
                 rrep_received = False
 
-
     transmissions["fail"] = transmissions_total - transmissions["success"]
     discoveries["fail"] = rreqs_total - discoveries["success"]
-    rrep_fails = discoveries["fail"] - rreqs_arrived 
+    
+    print "rreqs_arrived", rreqs_arrived
+    rrep_fail = rreqs_arrived - discoveries["success"]
 
     return {"discoveries" : discoveries, "transmissions" : transmissions, 
-    "discoveries within timeout" : discoveries_within_timeout, "rrep_fail": rrep_fails}
+    "discoveries within timeout" : discoveries_within_timeout, "rrep_fail": rrep_fail}
 
 def main():
     pcap_file_str = ""
