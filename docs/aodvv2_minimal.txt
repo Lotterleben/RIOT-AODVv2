@@ -1,13 +1,11 @@
-This document contains every part of AODVv2 that I want to implement for my
-bachelor's thesis (so far). I may extend it as I go along.
-
-(For example Route Mainenance, which is missing entirely, but may be added partly later on.)
+The following subset of the AODVv2 Draft Specification describes all features
+implemented by RIOT-AODVv2.
 
 ================================================================================
 
 5.  Data Structures
 
-5.1.  Route Table Entry [DONE]
+5.1.  Route Table Entry
 
    The route table entry is a conceptual data structure.
    Implementations may use any internal representation so long as it
@@ -86,7 +84,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    When the link to a route's next hop is broken, the route is marked as
    being Broken, and the route may no longer be used.
 
-5.3.  Router Clients and Client Networks [DONE]
+5.3.  Router Clients and Client Networks
 
    An AODVv2 router may offer routing services to other nodes that are
    not AODVv2 routers.  AODVv2 defines the Sequence Number to be the
@@ -105,7 +103,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    The list of Routing Clients for an AODVv2 router is never empty, 
    since an AODVv2 router is always its own client as well.
 
-5.5.  Sequence Numbers [DONE]
+5.5.  Sequence Numbers
 
    Each AODVv2 router in the network MUST maintain its own sequence
    number.  An AODVv2 router increments its SeqNum as follows.  Most of
@@ -115,7 +113,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    set to one (1).  In other words, the sequence number after 65,535 is
    1.
 
-6.1.  Evaluating Incoming Routing Information [DONE]
+6.1.  Evaluating Incoming Routing Information
 
    Whenever an AODVv2 router (HandlingRtr)
    handles an incoming RteMsg (i.e., RREQ or RREP), for every relevant
@@ -131,7 +129,7 @@ bachelor's thesis (so far). I may extend it as I go along.
       If RteMsg.SeqNum < Route.SeqNum the incoming information is stale.
       Using stale routing information is not allowed, since that might
       result in routing loops.  HandlingRtr MUST NOT update the route
-      table entry using the routing information for RteMsg.Addr. [DONE]
+      table entry using the routing information for RteMsg.Addr.
    3.  More costly::
       (RteMsg.Cost >= Route.Metric) && (Route.Broken==FALSE)
       When RteMsg.SeqNum is the same as in a valid route table entry,
@@ -139,14 +137,14 @@ bachelor's thesis (so far). I may extend it as I go along.
       information still does not offer any improvement over the existing
       route table information if RteMsg.Cost >= Route.Metric.  Using
       such incoming routing information to update a route table entry is
-      not recommended. [DONE]
+      not recommended.
    4.  Offers improvement::
       Incoming routing information that does not match any of the above
       criteria is better than existing routing table information and
       SHOULD be used to improve the route table.  The following pseudo-
       code illustrates whether incoming routing information should be
       used to update an existing route table entry as described in
-      Section 6.2. [DONE]
+      Section 6.2.
 
 5.7.  RREQ Table: Received RREQ Messages
 
@@ -190,7 +188,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    updated to reflect the Current_Time.
 
 
-6.2.  Applying Route Updates To Route Table Entries [DONE]
+6.2.  Applying Route Updates To Route Table Entries
    
    To apply the route update, the route table entry is populated with
    the following information:
@@ -205,9 +203,9 @@ bachelor's thesis (so far). I may extend it as I go along.
    o  Route.Broken flag := FALSE
    o  Route.Metric := (RteMsg.Metric + Cost(L)), where L is the incoming
       link.
-   o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME). [DONE]
+   o  Route.ExpirationTime := Current_Time + (ACTIVE_INTERVAL + MAX_IDLETIME).
 
-6.3.  Route Table Entry Timeouts [DONE]
+6.3.  Route Table Entry Timeouts
    
    During normal operation, AODVv2 does not require any explicit
    timeouts to manage the lifetime of a route.  However, the route table
@@ -227,7 +225,7 @@ bachelor's thesis (so far). I may extend it as I go along.
       MAX_SEQNUM_LIFETIME.
    o  A route MUST be expunged if Current_Time >= Route.ExpirationTime
 
-7.2.  RteMsg Structure [DONE]
+7.2.  RteMsg Structure
    
    RteMsgs have the following general format:
 
@@ -268,7 +266,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    than once, because there is only one OrigNode and only one TargNode
    address in the AddrBlk.
 
-7.3.  RREQ Generation [DONE]
+7.3.  RREQ Generation
 
    The AODVv2 router generating the RREQ (RREQ_Gen) on behalf of its
    client OrigNode follows the steps in this section. OrigNode MUST be
@@ -281,7 +279,7 @@ bachelor's thesis (so far). I may extend it as I go along.
 
    An example RREQ message format is illustrated in Appendix A.1.
 
-7.4.  RREP Generation [DONE]
+7.4.  RREP Generation
 
    Before transmitting a RREP, the routing information of the RREQ is
    processed as specified in Section 6.2; after such processing,
@@ -303,7 +301,7 @@ bachelor's thesis (so far). I may extend it as I go along.
 
    An example message format for RREP is illustrated in Appendix A.2.
 
-7.5.  Handling a Received RteMsg [DONE]
+7.5.  Handling a Received RteMsg
 
    Before an AODVv2 router can make use of a received RteMsg (i.e., RREQ
    or RREP), the router first must verify that the RteMsg is permissible
@@ -342,7 +340,7 @@ bachelor's thesis (so far). I may extend it as I go along.
        traversing the incoming link (i.e., as measured by the network
        interface receiving the incoming RteMsg).
 
-7.5.1.  Additional Handling for Incoming RREQ [DONE]
+7.5.1.  Additional Handling for Incoming RREQ
 
    o  The incoming RREQ MUST be checked against previously received
       information from the RREQ Table Section 7.6.  If the information
@@ -360,7 +358,7 @@ bachelor's thesis (so far). I may extend it as I go along.
       Route[RREQ.TargNode].NextHopAddress. 
       [Note: Done, but not using LL-MANET-Routers yet]
 
-7.5.2.  Additional Handling for Incoming RREP [DONE]
+7.5.2.  Additional Handling for Incoming RREP
 
    o  If no forwarding route exists to OrigNode, then a RERR SHOULD be
       transmitted to RREP.AddrBlk[TargNodeNdx]. Otherwise, if
@@ -369,7 +367,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    o  If HandlingRtr is RREQ_Gen then the RREP satisfies RREQ_Gen's
       earlier RREQ, and RREP processing is completed. 
 
-7.6.  Suppressing Redundant RREQ messages [DONE]
+7.6.  Suppressing Redundant RREQ messages
 
    TODO: shouldn't this be somewhere near 5.7.  RREQ Table: Received RREQ Messages?
 
@@ -395,7 +393,7 @@ bachelor's thesis (so far). I may extend it as I go along.
       Metric.
    o  Otherwise, the incoming RREQ is suppressed.
 
-8.  Route Maintenance and RERR Messages [DONE]
+8.  Route Maintenance and RERR Messages
 
    AODVv2 routers attempt to maintain active routes.  When a routing
    problem is encountered, an AODVv2 router (denoted RERR_Gen) attempts
@@ -407,7 +405,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    quickly notify upstream AODVv2 routers that that route is no longer
    available.
 
-8.1.  Maintaining Route Lifetimes During Packet Forwarding [DONE]
+8.1.  Maintaining Route Lifetimes During Packet Forwarding
 
    Before using a route to forward a packet, an AODVv2 router MUST check
    the status of the route as follows.
@@ -441,7 +439,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    If a next-hop AODVv2 router has become unreachable, RERR_Gen follows
    the procedures specified in Section 8.3.2.
 
-8.3.  RERR Generation [DONE]
+8.3.  RERR Generation
 
    An RERR message is generated by a AODVv2 router (i.e., RERR_Gen) in
    order to notify upstream routers that packets cannot be delivered to
@@ -483,7 +481,7 @@ bachelor's thesis (so far). I may extend it as I go along.
    In both cases, the <msg-hop-limit> MUST be included and SHOULD be set
    to MAX_HOPCOUNT.  <msg-hop-count> SHOULD be included and set to 0.
 
-8.3.1.  Case 1: Undeliverable Packet [DONE]
+8.3.1.  Case 1: Undeliverable Packet
 
    The first case happens when the router receives a packet from another
    AODVv2 router but does not have a valid route for the destination of
