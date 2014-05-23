@@ -179,9 +179,10 @@ def connect_riots():
         start_new_thread(test_shutdown_thread,())
 
     if (plain_mode):
-        orignode = random.choice(riots.keys())
         done = False
         while (not done):
+            orignode = random.choice(riots.keys())
+
             if (len(potential_targnodes[orignode]) > 0):
                 targnode = random.choice(potential_targnodes[orignode])
                 targnode_ip = riots[targnode][1][0]
@@ -268,12 +269,14 @@ def test_sender_thread(position, port):
                 instruction = msg_queues[position].get()
                 sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
                 if ("exit" in instruction):
-                    # print last words
+                    # print last words. hack hack hackity hack
                     sock.sendall("my last words:\n")
                     logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
-
-                sock.sendall(instruction)
-                logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                    sock.sendall(instruction)
+                    time.sleep(max_silence_interval)
+                else:
+                    sock.sendall(instruction)
+                    logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
 
             if (not plain_mode):
 
@@ -355,7 +358,7 @@ def close_connections():
         msg_queues[position].put("exit\n")
 
     # wait until everything has been logged
-    time.sleep(10)
+    time.sleep(max_silence_interval*2)
 
     print "Closing sockets..."
     with sockets_lock:

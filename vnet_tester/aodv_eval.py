@@ -199,6 +199,8 @@ def count_successes(log_file_location):
     rreqs_total = 0
     rreqs_buf = 0
 
+    rreqs_in_transmission = 0
+
     node_switch = re.compile ("(.*) {(.*)} send_data to (.*)") 
     rrep_received = False
     
@@ -230,15 +232,19 @@ def count_successes(log_file_location):
             #targNode = re.search("(.*) sending packet of 15 bytes towards (.*)...", line).groups()[1]
             transmissions_total += 1
 
+            #started new transmission
+            rreqs_in_transmission = 0
+
         elif ("[demo]   UDP packet received from" in line):
             transmissions["success"] += 1
         
         # look for successful route discovery
         elif ("[aodvv2] originating RREQ" in line):
             rreqs_buf += 1
+            rreqs_total += 1
+            rreqs_in_transmission += 1
 
-            print line
-            info = re.search("\[aodvv2\] originating RREQ with SeqNum (\d*) towards (.*); updating RREQ table...", line).groups()
+            info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*); updating RREQ table...", line).groups()
             seqnum = info[0]
             targnode = info[1]
             try:
@@ -258,7 +264,8 @@ def count_successes(log_file_location):
             discoveries["success"] += 1
             rrep_received = True
 
-            info = re.search("(.*):  This is my RREP \(SeqNum: (\d)\). We are done here, thanks (.*)!", line).groups()
+            # this one is more accurate because it filters out duplicately received RREPs
+            info = re.search("(.*):  This is my RREP \(SeqNum: (.*)\). We are done here, thanks (.*)!", line).groups()
             seqnum = info[1]
             targnode = info[2]
             try:
@@ -269,9 +276,9 @@ def count_successes(log_file_location):
     transmissions["fail"] = transmissions_total - transmissions["success"]
     discoveries["fail"] = rreqs_total - discoveries["success"]
     
-    print "rreqs_arrived", rreqs_arrived
     rrep_fail = rreqs_arrived - discoveries["success"]
 
+    print "rreqs_arrived", rreqs_arrived
     print "discovery_logs\n", pp.pprint(discovery_logs)
 
     return {"discoveries" : discoveries, "transmissions" : transmissions, 

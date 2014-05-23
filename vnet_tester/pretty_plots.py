@@ -58,14 +58,17 @@ def plot_bars(legend, labels, success, fail):
     
     bar2_bottom = plt.bar(ind, fail_bottom, width, color=c_fail_bottom) #, edgecolor = "none")
     bar2_top = plt.bar(ind, fail_top, width, bottom=fail_bottom, color=c_fail_top) #, edgecolor = "none")
+    #bar2_top = plt.bar(ind, fail_top, width, color=c_fail_top) #, edgecolor = "none
 
     legend = ax.legend((bar1_bottom[0], bar1_top[0], bar2_bottom[0], bar2_top[0]), legend, loc=2)
-    legend.get_frame().set_edgecolor('white') # TODO amke borders of colors go away
+    #legend = ax.legend((bar1_bottom[0], bar1_top[0], bar2_top[0]), legend, loc=2)
+    legend.get_frame().set_edgecolor('white') 
 
     plt.xticks(ind+width, labels)
     plt.xlim([index_start - bar_padding, N + bar_padding]) # don't make let bar stick to y axis
     plt.yticks(np.arange(0,max_yval,10))
 
+    plt.savefig("plot_bars", format='pdf')
     plt.show()
 
 '''
@@ -107,6 +110,8 @@ def plot_stacked_bars(legend, labels, group1, group2):
     plt.legend( (p1[0], p2[0]), ('Men', 'Women'))
 
     plt.show()
+
+
 def plot_test():
 
     # style
