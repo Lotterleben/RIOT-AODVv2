@@ -190,6 +190,10 @@ def handle_logfile(log_file_location):
 def count_successes(log_file_location):
     print "counting successful route discoveries and transmissions..."
     logfile = open(log_file_location)
+    pp = pprint.PrettyPrinter(indent=2)
+    
+    curr_ip = ""
+
     rreqs_sent = {}
     rreqs_arrived = 0
     rreqs_total = 0
@@ -197,46 +201,78 @@ def count_successes(log_file_location):
 
     node_switch = re.compile ("(.*) {(.*)} send_data to (.*)") 
     rrep_received = False
-
+    
+    discovery_logs = {} # {("ON", "TN") : {SeqNo: times}} -> times == 0 if RD successful, > 0 otherwise
     discoveries = {"success" : 0, "fail" : 0}
     discoveries_within_timeout = 0
     transmissions_total = 0
     transmissions = {"success" : 0, "fail" : 0}
 
     # (here's to hoping I'll never change that debug output...)
+
+    # TODO: ist das logging nicht auch iwie buggy?
+    # rreqs_buf wird erst am ende zurueckgesetzt.. koennen doch mehr als 1 discovery gestartet worden sein?
     for line in logfile:
-        # TODO: sowas (aber mit ip des senders..) parsen [demo]   sending packet of %i bytes towards %s...\n"
+        # reached log entries of another node
+        if (node_switch.match(line)):
+            targNode = ""
+            curr_ip = line.split(": ")[1].split(",")[0].strip()
+
+            if (rreqs_buf > 0):
+                rreqs_total += 1
+                if (rreqs_buf <= 3 and rrep_received is True):
+                    discoveries_within_timeout += 1
+                rreqs_buf = 0
+                rrep_received = False
+
+        # look for successful transmission
         if ("[demo]   sending packet" in line):
+            #targNode = re.search("(.*) sending packet of 15 bytes towards (.*)...", line).groups()[1]
             transmissions_total += 1
+
         elif ("[demo]   UDP packet received from" in line):
             transmissions["success"] += 1
+        
         # look for successful route discovery
-        elif ("[aodvv2] originating RREQ" in line):  
+        elif ("[aodvv2] originating RREQ" in line):
             rreqs_buf += 1
+
+            print line
+            info = re.search("\[aodvv2\] originating RREQ with SeqNum (\d*) towards (.*); updating RREQ table...", line).groups()
+            seqnum = info[0]
+            targnode = info[1]
+            try:
+                discovery_logs[(curr_ip, targnode)][seqnum] += 1  
+            except:
+                try:
+                    discovery_logs[(curr_ip, targnode)][seqnum] = 1
+                except:
+                    discovery_logs[(curr_ip, targnode)] = {} 
+                    discovery_logs[(curr_ip, targnode)][seqnum] = 1
+
 
         elif("[aodvv2] TargNode is in client list, sending RREP" in line):
             rreqs_arrived +=1
 
-        elif ("This is my RREP." in line):
-            ip = line.split(" ")[1].strip()[:-1]
-            #print "found ip: ", ip #, line
+        elif ("This is my RREP" in line):
             discoveries["success"] += 1
             rrep_received = True
 
-        # reached log entries of another node
-        if (node_switch.match(line)):
-            if (rreqs_buf > 0):
-                rreqs_total += 1
-                if (rreqs_total <= 3 and rrep_received is True):
-                    discoveries_within_timeout += 1
-                rreqs_buf = 0
-                rrep_received = False
+            info = re.search("(.*):  This is my RREP \(SeqNum: (\d)\). We are done here, thanks (.*)!", line).groups()
+            seqnum = info[1]
+            targnode = info[2]
+            try:
+                discovery_logs[(curr_ip, targnode)][seqnum] = 0
+            except:
+                print "oops"
 
     transmissions["fail"] = transmissions_total - transmissions["success"]
     discoveries["fail"] = rreqs_total - discoveries["success"]
     
     print "rreqs_arrived", rreqs_arrived
     rrep_fail = rreqs_arrived - discoveries["success"]
+
+    print "discovery_logs\n", pp.pprint(discovery_logs)
 
     return {"discoveries" : discoveries, "transmissions" : transmissions, 
     "discoveries within timeout" : discoveries_within_timeout, "rrep_fail": rrep_fail}
