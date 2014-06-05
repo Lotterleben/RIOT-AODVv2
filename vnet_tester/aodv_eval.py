@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import pprint
+import sys
 
 from bs4 import BeautifulSoup, NavigableString
 
@@ -37,7 +38,7 @@ def pcap_to_xml(pcap_file_str):
         os.makedirs(working_dir)
 
     xml_file_location = working_dir + pcap_file_str.split("/")[-1].split(".")[0] + ".xml"
-    
+
     # make pcap python-readable by converting it to xml, store in file
     if (os.path.isfile(xml_file_location)):
         os.remove(xml_file_location)
@@ -95,11 +96,11 @@ def store_pktbb(packetbb):
                 tlv_indexstart = tlv.find(attrs = {"name":"packetbb.tlv.indexstart"})["show"]
                 tlv_type = tlv.find(attrs = {"name":"packetbb.tlv.type"})["show"]
                 tlv_value = tlv.find(attrs = {"name":"packetbb.tlv.value"})["value"]
-                
+
                 if (tlv_indexstart == "0"):
                     node = orignode
                 elif (tlv_indexstart == "1"):
-                    node = targnode      
+                    node = targnode
 
                 if ((tlv_type == RFC5444_MSGTLV_ORIGSEQNUM) or (tlv_type == RFC5444_MSGTLV_TARGSEQNUM)):
                     node["seqnum"] = tlv_value
@@ -121,7 +122,7 @@ def store_pktbb(packetbb):
         for addr in addresses:
             # format: {ip: seqnum}
             unreachable_nodes.append({"addr":addr["show"]})
-        
+
         for tlv in tlvblock:
             tlv_value = tlv.find(attrs = {"name":"packetbb.tlv.value"})["value"]
             unreachable_nodes[addr_index]["seqnum"] = tlv_value # na ob das gut geht-...
@@ -142,12 +143,11 @@ def evaluate_pcap():
         my_discoveries = [pkt for pkt in packets if ("orignode" in pkt["data"]) and (ip in pkt["data"]["orignode"]["addr"])]
         num_discoveries += len(my_discoveries)/3
 
-        # technically, we can't assume that the RREP actually survived its last hop, 
+        # technically, we can't assume that the RREP actually survived its last hop,
         # but this should at least provide an educated guess
         received_rreps = [pkt for pkt in my_discoveries if (RFC5444_MSGTYPE_RREP in pkt["data"]["type"]) and (ip in pkt["dst"])]
         num_received_rreps += len(received_rreps)
 
-        
         #print "discoveries of ", ip, ": ", my_discoveries, "\n4"
         #print len(received_rreps), "RREPs to ", ip, ":", received_rreps
 
@@ -164,14 +164,14 @@ def handle_capture(xml_file_location):
     for pkt in pcaps:
         store_pcap(pkt)
 
-    print "all packets: "
+    print "pcap evaluation results: "
     pp.pprint(packets)
     pcap_results = evaluate_pcap()
     print "number of received RREPs:", pcap_results["rrep received"]
     print "number of started discoveries:", pcap_results["discoveries"]
-    
+
 def handle_logfile(log_file_location):
-    if (not os.path.isfile(log_file_location)):    
+    if (not os.path.isfile(log_file_location)):
         print "Couldn't find log file. Aborting."
         return
 
@@ -187,11 +187,120 @@ def handle_logfile(log_file_location):
     #pp.plot_bars(("successful within timeout", "successful", "failed"),("Route Discoveries", "Transmissions"), successes, failures)
 
 
+'''
+route discoveries are of the following form:
+{
+    "orignode": "::f00",
+    "targnode": "::bar",
+    "seqnums": [],
+    "success": 0
+}
+'''
 def count_successes(log_file_location):
+    print "counting successful route discoveries and transmissions..."
+    pp = pprint.PrettyPrinter(indent=2)
+
+    logfile = open(log_file_location)
+    route_discoveries = []
+    curr_ip = ""
+    curr_discovery = {}
+    line_number = 0
+
+    for line in logfile:
+        line_number += 1
+        if ("send_data to" in line):
+            curr_ip = re.search(".* \{.*: (.*), \(.*\)\} send_data to .*", line).groups()[0]
+
+        elif ("[demo]   sending packet" in line):
+            # save old discovery (if not empty), record new one
+            if (curr_discovery):
+                route_discoveries.append(curr_discovery)
+            curr_discovery = {}
+
+            curr_discovery["orignode"] = curr_ip
+            curr_discovery["targnode"] = re.search("{(.*)}\[demo\]   sending packet of (.*) bytes towards (.*)...", line).groups()[2]
+            curr_discovery["seqnums"] = []
+            curr_discovery["success"] = 0
+            print curr_discovery
+
+        # look for (successful) discoveries
+        elif ("originating RREQ" in line):
+            info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*); updating RREQ table...", line).groups()
+            seqnum = info[0]
+            targnode = info[1]
+
+            print line_number, ":", line
+            print "1", curr_discovery
+
+            if (curr_discovery and targnode != curr_discovery.get("targnode")):
+                print "ERROR: IP conflict: ", targnode, ", ", curr_discovery.get("targnode")
+                sys.exit()
+                return # double tap!
+
+            curr_discovery["seqnums"].append(seqnum)
+
+        # requested route is direct neighbor
+        elif ("[ndp] found NC entry. Returning dest addr." in line):
+            curr_discovery = {}
+
+            print line_number, ":", line
+            print "3", curr_discovery
+
+        # delete logged attempt if no discovery has taken place because the route was already known
+        elif ("found dest " in line):
+            print line_number, ":", line
+            targnode = re.search(".*found dest (.*) in routing table", line).groups()[0]
+
+            # a route towards dest already exists; the discovery has been successful before it even started.
+            # thus, we can remove it from the discovery list, since there was nothing to discover.
+            if (curr_discovery.get("targnode") == targnode and curr_discovery.get("seqnums") == []):
+                print "hbzd", curr_discovery
+                curr_discovery = {}
+
+        elif ("This is my RREP" in line):
+            info = re.search(".* (.*):  This is my RREP \(SeqNum: (.*)\). We are done here, thanks (.*)!", line).groups()
+            print line
+
+            orignode = info[0]
+            targnode = info[2]
+            seqnum = info[1]
+
+            discovery = [disc for disc in route_discoveries if disc["orignode"] == orignode and disc["targnode"] == targnode and seqnum in disc["seqnums"]]
+            if (curr_discovery["orignode"] == orignode and curr_discovery["targnode"] == targnode and seqnum in curr_discovery["seqnums"]):
+                # RREP in time! wohooo! (oder? TODO verify)
+                discovery.append(curr_discovery)
+
+            if (len(discovery) > 1):
+                print "huch"
+            else:
+                discovery[0]["success"] = 1
+
+
+        # look for (successful) transmissions
+
+        #elif ("UDP packet received" in line):
+            #info = re.search("\[aodvv2\] _aodv_receiver_thread\(\) (.*): UDP packet received from (.*)", line).groups()
+
+            #(item for item in dicts if item["name"] == "Pam").next()
+
+    print "route_discoveries \n", pp.pprint(route_discoveries)
+
+    successful_discoveries = [disc for disc in route_discoveries if disc["success"] == 1]
+
+    discovery_summary = {}
+    discovery_summary["success"] = len (successful_discoveries)
+    discovery_summary["fail"] = len(route_discoveries) - len(successful_discoveries)
+
+    transmission_summary = {"success": 0, "fail": 0}
+
+    return {"discoveries" : discovery_summary, "transmissions" : transmission_summary,
+    "discoveries within timeout" : 0, "rrep_fail": 0}
+
+def count_successes_old(log_file_location):
     print "counting successful route discoveries and transmissions..."
     logfile = open(log_file_location)
     pp = pprint.PrettyPrinter(indent=2)
-    
+
     curr_ip = ""
 
     rreqs_sent = {}
@@ -201,9 +310,9 @@ def count_successes(log_file_location):
 
     rreqs_in_transmission = 0
 
-    node_switch = re.compile ("(.*) {(.*)} send_data to (.*)") 
+    node_switch = re.compile ("(.*) {(.*)} send_data to (.*)")
     rrep_received = False
-    
+
     discovery_logs = {} # {("ON", "TN") : {SeqNo: times}} -> times == 0 if RD successful, > 0 otherwise
     discoveries = {"success" : 0, "fail" : 0}
     discoveries_within_timeout = 0
@@ -237,7 +346,7 @@ def count_successes(log_file_location):
 
         elif ("[demo]   UDP packet received from" in line):
             transmissions["success"] += 1
-        
+
         # look for successful route discovery
         elif ("[aodvv2] originating RREQ" in line):
             rreqs_buf += 1
@@ -248,12 +357,12 @@ def count_successes(log_file_location):
             seqnum = info[0]
             targnode = info[1]
             try:
-                discovery_logs[(curr_ip, targnode)][seqnum] += 1  
+                discovery_logs[(curr_ip, targnode)][seqnum] += 1
             except:
                 try:
                     discovery_logs[(curr_ip, targnode)][seqnum] = 1
                 except:
-                    discovery_logs[(curr_ip, targnode)] = {} 
+                    discovery_logs[(curr_ip, targnode)] = {}
                     discovery_logs[(curr_ip, targnode)][seqnum] = 1
 
 
@@ -275,18 +384,18 @@ def count_successes(log_file_location):
 
     transmissions["fail"] = transmissions_total - transmissions["success"]
     discoveries["fail"] = rreqs_total - discoveries["success"]
-    
+
     rrep_fail = rreqs_arrived - discoveries["success"]
 
     print "rreqs_arrived", rreqs_arrived
     print "discovery_logs\n", pp.pprint(discovery_logs)
 
-    return {"discoveries" : discoveries, "transmissions" : transmissions, 
+    return {"discoveries" : discoveries, "transmissions" : transmissions,
     "discoveries within timeout" : discoveries_within_timeout, "rrep_fail": rrep_fail}
 
 def main():
     pcap_file_str = ""
-    
+
     parser = argparse.ArgumentParser(description='evaluate traffic generated by auto_test')
     parser.add_argument('-p','--pcap', type=str, help='pcap file to evaluate')
     parser.add_argument('-l', '--log', type=str, help='aodv_test log file to evaluate')
