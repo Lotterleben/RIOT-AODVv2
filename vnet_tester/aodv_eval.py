@@ -195,6 +195,13 @@ route discoveries are of the following form:
     "seqnums": [],
     "success": 0
 }
+transmissions are of the following form:
+{
+    "timestamp": "69:635643",
+    "orignode": "::f00",
+    "targnode": "::bar",
+    "success": 0
+}
 '''
 def count_successes(log_file_location):
     print "counting successful route discoveries and transmissions..."
@@ -202,6 +209,7 @@ def count_successes(log_file_location):
 
     logfile = open(log_file_location)
     route_discoveries = []
+    transmissions = []
     curr_ip = ""
     curr_discovery = {}
     line_number = 0
@@ -221,8 +229,10 @@ def count_successes(log_file_location):
             curr_discovery["targnode"] = re.search("{(.*)}\[demo\]   sending packet of (.*) bytes towards (.*)...", line).groups()[2]
             curr_discovery["seqnums"] = []
             curr_discovery["success"] = 0
-            print curr_discovery
+            #print curr_discovery
 
+        '''
+        this seems to be generally correct, but a bug in aodv/desvirt through which neighbors receive packets from their 2 hop neighbors confuses it (and aodv)
         # look for (successful) discoveries
         elif ("originating RREQ" in line):
             info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*); updating RREQ table...", line).groups()
@@ -274,24 +284,43 @@ def count_successes(log_file_location):
                 print "huch"
             else:
                 discovery[0]["success"] = 1
-
+        '''
 
         # look for (successful) transmissions
 
-        #elif ("UDP packet received" in line):
-            #info = re.search("\[aodvv2\] _aodv_receiver_thread\(\) (.*): UDP packet received from (.*)", line).groups()
+        # found initiation of new transmission
+        if ("[demo]   sending packet" in line):
+            [timestamp, targnode] = re.search("{(.*)}\[demo\]   sending packet of 15 bytes towards (.*)...", line).groups()
+            transmission = { "timestamp": timestamp, "orignode": curr_ip, "targnode": targnode, "success": 0}
+            transmissions.append(transmission)
+
+        # found packet that arrived (-> successful transmission)
+        if ("[demo]   UDP packet received" in line):
+            orignode = re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()[0]
+
+            print "orignode: ", orignode, "\ntargnode: ", curr_ip
+            #print transmissions
+
+            suitable_transmissions = [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip and t["success"] == 0]
+            print suitable_transmissions
+            # doesn't matter which one exactly we mark as successful, just pick one.
+            suitable_transmissions[-1]["success"] = 1
 
             #(item for item in dicts if item["name"] == "Pam").next()
 
-    print "route_discoveries \n", pp.pprint(route_discoveries)
+    #print "route_discoveries \n", pp.pprint(route_discoveries)
+    print "transmissions\n", pp.pprint(transmissions)
 
-    successful_discoveries = [disc for disc in route_discoveries if disc["success"] == 1]
+    successful_discoveries = [d for d in route_discoveries if d["success"] == 1]
+    successful_transmissions = [t for t in transmissions if t["success"] == 1]
 
     discovery_summary = {}
     discovery_summary["success"] = len (successful_discoveries)
-    discovery_summary["fail"] = len(route_discoveries) - len(successful_discoveries)
+    discovery_summary["fail"] = len(route_discoveries) - discovery_summary["success"]
 
-    transmission_summary = {"success": 0, "fail": 0}
+    transmission_summary = {}
+    transmission_summary["success"] = len(successful_transmissions)
+    transmission_summary["fail"] = len(transmissions) - transmission_summary["success"]
 
     return {"discoveries" : discovery_summary, "transmissions" : transmission_summary,
     "discoveries within timeout" : 0, "rrep_fail": 0}
