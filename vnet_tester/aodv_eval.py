@@ -306,8 +306,6 @@ def count_successes(log_file_location):
             # doesn't matter which one exactly we mark as successful, just pick one.
             suitable_transmissions[-1]["success"] = 1
 
-            #(item for item in dicts if item["name"] == "Pam").next()
-
     #print "route_discoveries \n", pp.pprint(route_discoveries)
     print "transmissions\n", pp.pprint(transmissions)
 
@@ -324,103 +322,6 @@ def count_successes(log_file_location):
 
     return {"discoveries" : discovery_summary, "transmissions" : transmission_summary,
     "discoveries within timeout" : 0, "rrep_fail": 0}
-
-def count_successes_old(log_file_location):
-    print "counting successful route discoveries and transmissions..."
-    logfile = open(log_file_location)
-    pp = pprint.PrettyPrinter(indent=2)
-
-    curr_ip = ""
-
-    rreqs_sent = {}
-    rreqs_arrived = 0
-    rreqs_total = 0
-    rreqs_buf = 0
-
-    rreqs_in_transmission = 0
-
-    node_switch = re.compile ("(.*) {(.*)} send_data to (.*)")
-    rrep_received = False
-
-    discovery_logs = {} # {("ON", "TN") : {SeqNo: times}} -> times == 0 if RD successful, > 0 otherwise
-    discoveries = {"success" : 0, "fail" : 0}
-    discoveries_within_timeout = 0
-    transmissions_total = 0
-    transmissions = {"success" : 0, "fail" : 0}
-
-    # (here's to hoping I'll never change that debug output...)
-
-    # TODO: ist das logging nicht auch iwie buggy?
-    # rreqs_buf wird erst am ende zurueckgesetzt.. koennen doch mehr als 1 discovery gestartet worden sein?
-    for line in logfile:
-        # reached log entries of another node
-        if (node_switch.match(line)):
-            targNode = ""
-            curr_ip = line.split(": ")[1].split(",")[0].strip()
-
-            if (rreqs_buf > 0):
-                rreqs_total += 1
-                if (rreqs_buf <= 3 and rrep_received is True):
-                    discoveries_within_timeout += 1
-                rreqs_buf = 0
-                rrep_received = False
-
-        # look for successful transmission
-        if ("[demo]   sending packet" in line):
-            #targNode = re.search("(.*) sending packet of 15 bytes towards (.*)...", line).groups()[1]
-            transmissions_total += 1
-
-            #started new transmission
-            rreqs_in_transmission = 0
-
-        elif ("[demo]   UDP packet received from" in line):
-            transmissions["success"] += 1
-
-        # look for successful route discovery
-        elif ("[aodvv2] originating RREQ" in line):
-            rreqs_buf += 1
-            rreqs_total += 1
-            rreqs_in_transmission += 1
-
-            info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*); updating RREQ table...", line).groups()
-            seqnum = info[0]
-            targnode = info[1]
-            try:
-                discovery_logs[(curr_ip, targnode)][seqnum] += 1
-            except:
-                try:
-                    discovery_logs[(curr_ip, targnode)][seqnum] = 1
-                except:
-                    discovery_logs[(curr_ip, targnode)] = {}
-                    discovery_logs[(curr_ip, targnode)][seqnum] = 1
-
-
-        elif("[aodvv2] TargNode is in client list, sending RREP" in line):
-            rreqs_arrived +=1
-
-        elif ("This is my RREP" in line):
-            discoveries["success"] += 1
-            rrep_received = True
-
-            # this one is more accurate because it filters out duplicately received RREPs
-            info = re.search("(.*):  This is my RREP \(SeqNum: (.*)\). We are done here, thanks (.*)!", line).groups()
-            seqnum = info[1]
-            targnode = info[2]
-            try:
-                discovery_logs[(curr_ip, targnode)][seqnum] = 0
-            except:
-                print "oops"
-
-    transmissions["fail"] = transmissions_total - transmissions["success"]
-    discoveries["fail"] = rreqs_total - discoveries["success"]
-
-    rrep_fail = rreqs_arrived - discoveries["success"]
-
-    print "rreqs_arrived", rreqs_arrived
-    print "discovery_logs\n", pp.pprint(discovery_logs)
-
-    return {"discoveries" : discoveries, "transmissions" : transmissions,
-    "discoveries within timeout" : discoveries_within_timeout, "rrep_fail": rrep_fail}
 
 def main():
     pcap_file_str = ""
