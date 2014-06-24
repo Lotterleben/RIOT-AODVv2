@@ -216,8 +216,13 @@ def count_successes(log_file_location):
 
     for line in logfile:
         line_number += 1
-        if ("send_data to" in line):
-            curr_ip = re.search(".* \{.*: (.*), \(.*\)\} send_data to .*", line).groups()[0]
+
+        node_log_start = re.search(".* {Dummy-.*: (.*), \(., .\)}", line) # TODO match more thoroughly
+
+        if (node_log_start):
+            curr_ip = node_log_start.groups()[0]
+            print line
+            print curr_ip
 
         elif ("[demo]   sending packet" in line):
             # save old discovery (if not empty), record new one
@@ -231,8 +236,8 @@ def count_successes(log_file_location):
             curr_discovery["success"] = 0
             #print curr_discovery
 
-        '''
-        this seems to be generally correct, but a bug in aodv/desvirt through which neighbors receive packets from their 2 hop neighbors confuses it (and aodv)
+        ##this seems to be generally correct, but a bug in aodv/desvirt through which neighbors receive packets from their 2 hop neighbors confuses it (and aodv)
+
         # look for (successful) discoveries
         elif ("originating RREQ" in line):
             info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*); updating RREQ table...", line).groups()
@@ -283,11 +288,11 @@ def count_successes(log_file_location):
             if (len(discovery) > 1):
                 print "huch"
             else:
+                print discovery
                 discovery[0]["success"] = 1
-        '''
+
 
         # look for (successful) transmissions
-
         # found initiation of new transmission
         if ("[demo]   sending packet" in line):
             [timestamp, targnode] = re.search("{(.*)}\[demo\]   sending packet of 15 bytes towards (.*)...", line).groups()
@@ -297,7 +302,7 @@ def count_successes(log_file_location):
         # found packet that arrived (-> successful transmission)
         if ("[demo]   UDP packet received" in line):
             orignode = re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()[0]
-
+            print line
             print "orignode: ", orignode, "\ntargnode: ", curr_ip
             #print transmissions
 
