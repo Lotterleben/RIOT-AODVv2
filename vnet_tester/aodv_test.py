@@ -13,6 +13,9 @@ import argparse
 import Queue
 import os
 import sys
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
 
 experiment_duration = 600  # seconds
 max_silence_interval = 180  # seconds
@@ -55,7 +58,7 @@ def get_ports():
                 if (j > j_max):
                     j_max = j
 
-                # handle line
+            # handle line
             elif (len(lst) is 2):
                 i = abs(int(lst[0]))
                 port = lst[1].rstrip('\n')
@@ -125,14 +128,14 @@ def collect_potential_targnodes():
             m_lst = range(1, int(i_max)+1)
             n_lst = range(1, int(j_max)+1)
 
-            potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if 
-                                            ((m >= i+min_hop_distance)or(m <= i-min_hop_distance)) 
+            potential_targnodes[position] = [(m, n) for m in m_lst for n in n_lst if
+                                            ((m >= i+min_hop_distance)or(m <= i-min_hop_distance))
                                             or ((n>=j+min_hop_distance)or(n<=j-min_hop_distance))]
 
         elif (type(position) is int):
                 i = position
                 m_lst = range(int(i_min), int(i_max)+1)
-                potential_targnodes[position] = [m for m in m_lst if 
+                potential_targnodes[position] = [m for m in m_lst if
                                             ((m >= i+min_hop_distance)or(m <= i-min_hop_distance))]
         else:
             print "can't interpret position"
@@ -148,7 +151,7 @@ def collect_neighbor_coordinates(position):
 
         m_lst = range(1, int(i_max)+1)
         n_lst = range(1, int(j_max)+1)
-        
+
         neighbor_coordinates = [(m,n) for m in m_lst for n in n_lst if ((m == i and ((j-1 == n) or (n == j+1))) or ((m == i+1) or (m == i-1)) and (j-1 <= n <= j+1))]
 
     elif (type(position) is int):
@@ -172,7 +175,7 @@ def connect_riots():
     for position, connection in riots.iteritems():
         start_new_thread(test_sender_thread,(position,connection[0]))
         # make sure the main thread isn't killed before we initialize our sockets
-        time.sleep(2) 
+        time.sleep(2)
 
     logging.debug("riots: %s\n", riots)
     if (shutdown_riots > 0):
@@ -192,7 +195,7 @@ def connect_riots():
                 done = True
 
     # after experiment_duration, this function will exit and kill all the threads it generated.
-    time.sleep(experiment_duration) 
+    time.sleep(experiment_duration)
 
 def test_sender_thread(position, port):
     sys.stdout.write("Port: %s\n" % port)
@@ -236,7 +239,7 @@ def test_sender_thread(position, port):
             global num_riots
             num_riots += 1
 
-        # wait until all nodes are initialized. if they are, release the lock 
+        # wait until all nodes are initialized. if they are, release the lock
         # so all nodes can start sending
         if (num_riots < len(riots)):
             riots_complete.acquire() # blocking wait
@@ -248,13 +251,13 @@ def test_sender_thread(position, port):
         # first, learn about all your neighbors
         my_neighbor_coordinates = collect_neighbor_coordinates(position)
         sys.stdout.write("%s my neighbors: %s\n" % (position, my_neighbor_coordinates))
-        
+
         for neighbor in my_neighbor_coordinates:
             (ip, ll_addr) = riots[neighbor][1]
             #sys.stdout.write("{%s} Adding neighbor %s %s\n" % (thread_id, ip, ll_addr))
             sock.sendall("add_neighbor %s %s\n" % (ip, ll_addr))
             # make sure that went okay and empty shell output buffer
-            logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+            logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
         num_ready_riots += 1
 
@@ -271,12 +274,12 @@ def test_sender_thread(position, port):
                 if ("exit" in instruction):
                     # print last words. hack hack hackity hack
                     sock.sendall("my last words:\n")
-                    logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                    logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
                     sock.sendall(instruction)
                     time.sleep(max_silence_interval)
                 else:
                     sock.sendall(instruction)
-                    logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                    logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
             if (not plain_mode):
 
@@ -286,7 +289,7 @@ def test_sender_thread(position, port):
 
                 try:
                     shutdown_queue.get(False) # we've been told to shut down
-                    logging.debug("{%s: %s}\n%s" % (thread_id, my_ip, get_shell_output(sock)))
+                    logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
                     sys.stdout.write("{%s} shutting down\n" % thread_id)
 
                     # shut down my RIOT
@@ -323,7 +326,7 @@ def test_shutdown_thread():
     global shutdown_queue
 
     #wait until everybody is ready
-    riots_complete.acquire() 
+    riots_complete.acquire()
     riots_complete.release()
 
     # actually start sending
@@ -379,21 +382,21 @@ def main():
     parser.add_argument('-s','--shutdown', type = int, help='randomly shut down n nodes during execution')
     parser.add_argument('-t','--time', type = int, help='duration of the experiment (in seconds)')
     parser.add_argument('-i','--interval', type = int, help='max time interval between packet transmissions (in seconds)')
-    parser.add_argument('-m','--min_hop_dist', type = int, help='minimum distance between originating and target node (in hops)')    
-    parser.add_argument('-p','--plain', action='store_true', help='Only start one transmission')    
+    parser.add_argument('-m','--min_hop_dist', type = int, help='minimum distance between originating and target node (in hops)')
+    parser.add_argument('-p','--plain', action='store_true', help='Only start one transmission')
 
     args = parser.parse_args()
-    
+
     if (args.debug):
         print "ALL OUTPUT GENERATED WILL NOT BE STORED IN A LOGFILE."
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
     else:
         if (not os.path.exists("./logs")):
             os.makedirs("./logs")
-        
+
         date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
         logfile_name = "logs/auto_test "+date+".log"
-        
+
         print "writing logs to", logfile_name
         logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
 
@@ -413,11 +416,11 @@ def main():
 
     if (args.shutdown > 0):
         shutdown_riots = args.shutdown
-        #only shut down RIOTs in the last 3rd of the experiment 
+        #only shut down RIOTs in the last 3rd of the experiment
         # so that there actually are routes to repair
         shutdown_window = experiment_duration / 3
         max_shutdown_interval = shutdown_window / shutdown_riots
-        print "shutdowns start after", shutdown_window * 2, "seconds" 
+        print "shutdowns start after", shutdown_window * 2, "seconds"
 
     if (args.plain):
         plain_mode = True
