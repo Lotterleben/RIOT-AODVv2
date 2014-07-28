@@ -58,7 +58,7 @@ void demo_send(int argc, char** argv)
     char* dest_str = argv[1] ;
     char* msg = argv[2];
     uint8_t num_attempts = 0;
-    
+
     demo_attempt_to_send(dest_str, msg);
 }
 
@@ -83,7 +83,7 @@ void demo_send_stream(int argc, char** argv)
     }
 
     // get some random data
-    char* msg = (char*) malloc(sizeof(char)*81); 
+    char* msg = (char*) malloc(sizeof(char)*81);
     char* dest_str = argv[1];
 
     /* TODO un-uncomment me
@@ -103,7 +103,7 @@ void demo_send_stream(int argc, char** argv)
 
         printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
 
-        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
+        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len,
                                                 0, &_sockaddr, sizeof _sockaddr);
         vtimer_usleep(STREAM_INTERVAL);
         printf("%i\n", i);
@@ -190,14 +190,14 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     // turn dest_str into ipv6_addr_t
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
     int msg_len = strlen(msg)+1;
-    
+
     vtimer_now(&now);
     printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
 
     while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
-        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len, 
+        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len,
                                                 0, &_sockaddr, sizeof _sockaddr);
-        
+
         vtimer_now(&now);
         if (bytes_sent == -1) {
             printf("{%" PRIu32 ":%" PRIu32 "}[demo]   no bytes sent, probably because there is no route yet.\n", now.seconds, now.microseconds);
@@ -221,16 +221,16 @@ static void _demo_receiver_thread(void)
     char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
     msg_t rcv_msg_q[RCV_MSG_Q_SIZE];
 
-    
+
     timex_t now;
-    
+
     msg_init_queue(rcv_msg_q, RCV_MSG_Q_SIZE);
 
     sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
                            .sin6_port = HTONS(RANDOM_PORT) };
 
     int sock_rcv = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    
+
     if (-1 == destiny_socket_bind(sock_rcv, &sa_rcv, sizeof(sa_rcv))) {
         DEBUG("[demo]   Error: bind to receive socket failed!\n");
         destiny_socket_close(sock_rcv);
@@ -238,7 +238,7 @@ static void _demo_receiver_thread(void)
 
     DEBUG("[demo]   ready to receive data\n");
     for(;;) {
-        rcv_size = destiny_socket_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0, 
+        rcv_size = destiny_socket_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0,
                                           &sa_rcv, &fromlen);
 
         vtimer_now(&now);
@@ -249,12 +249,12 @@ static void _demo_receiver_thread(void)
         DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   UDP packet received from %s: %s\n", now.seconds, now.microseconds, ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
     }
 
-    destiny_socket_close(sock_rcv);  
+    destiny_socket_close(sock_rcv);
 }
 
 /* init transport layer & routing stuff*/
 static void _init_tlayer()
-{    
+{
     msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
 
     net_if_set_hardware_address(0, get_hw_addr());
@@ -285,7 +285,7 @@ const shell_command_t shell_commands[] = {
 int main(void)
 {
     _init_tlayer();
-    thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, "_demo_receiver_thread");
+    thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
     posix_open(uart0_handler_pid, 0);
 
