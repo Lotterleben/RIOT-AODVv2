@@ -1,6 +1,6 @@
 
 # name of your project
-export PROJECT = aodvv2_demo
+export APPLICATION = aodvv2_demo
 
 # If no BOARD is found in the environment, use this default:
 export BOARD ?= native
@@ -41,7 +41,7 @@ USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += uart0
 USEMODULE += posix
-USEMODULE += ps 
+USEMODULE += ps
 USEMODULE += vtimer
 usemodule += posix
 ifeq ($(strip $(BOARD)),native)
