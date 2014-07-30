@@ -14,6 +14,7 @@
 #include "net_help.h"
 
 #include "kernel.h"
+#include <config.h>
 
 #include "aodvv2/aodvv2.h"
 
@@ -45,7 +46,7 @@ timex_t now;
 
 uint16_t get_hw_addr(void)
 {
-    return getpid();
+    return sysconfig.id;
 }
 
 void demo_send(int argc, char** argv)
@@ -264,7 +265,8 @@ static void _init_tlayer()
     ipv6_addr_init(&prefix, 0xABCD, 0xEF12, 0, 0, 0, 0, 0, 0);
     if_id = 0; // >1 interface isn't supported anyway, so there
 
-    sixlowpan_lowpan_init_adhoc_interface(if_id, &prefix);
+    //sixlowpan_lowpan_init_adhoc_interface(if_id, &prefix);
+    sixlowpan_lowpan_init_interface(if_id);
     printf("initializing AODVv2...\n");
 
     aodv_init();
@@ -278,7 +280,6 @@ const shell_command_t shell_commands[] = {
     {"add_neighbor", "add neighbor to Neighbor Cache", demo_add_neighbor},
     {"rm_neighbor", "remove neighbor from Neighbor Cache", demo_remove_neighbor},
     {"exit", "Shut down the RIOT", demo_exit},
-
     {NULL, NULL, NULL}
 };
 
