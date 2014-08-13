@@ -35,7 +35,7 @@ def plot_bars(legend, labels, success, fail):
     N = 2
     index_start = 0
     bar_padding = 0.2
-    
+
     fail_bottom = fail[0]
     fail_top = fail[1]
 
@@ -55,16 +55,19 @@ def plot_bars(legend, labels, success, fail):
 
     bar1_bottom = plt.bar(ind+width, success_bottom, width, color=c_sucess_bottom) #, edgecolor = "none")
     bar1_top = plt.bar(ind+width, success_top, width, bottom=success_bottom, color=c_sucess_top) #, edgecolor = "none")
-    
+
     bar2_bottom = plt.bar(ind, fail_bottom, width, color=c_fail_bottom) #, edgecolor = "none")
     bar2_top = plt.bar(ind, fail_top, width, bottom=fail_bottom, color=c_fail_top) #, edgecolor = "none")
     #bar2_top = plt.bar(ind, fail_top, width, color=c_fail_top) #, edgecolor = "none
 
-    legend = ax.legend((bar1_bottom[0], bar1_top[0], bar2_bottom[0], bar2_top[0]), legend, loc=2)
+    #legend = ax.legend((bar1_bottom[0], bar1_top[0], bar2_bottom[0], bar2_top[0]), legend, loc=2)
+    legend = ax.legend((bar1_top[0], bar2_top[0]), legend, loc=2)
+
     #legend = ax.legend((bar1_bottom[0], bar1_top[0], bar2_top[0]), legend, loc=2)
-    legend.get_frame().set_edgecolor('white') 
+    legend.get_frame().set_edgecolor('white')
 
     plt.xticks(ind+width, labels)
+    plt.ylabel("number of discoveries/transmissions")
     plt.xlim([index_start - bar_padding, N + bar_padding]) # don't make let bar stick to y axis
     plt.yticks(np.arange(0,max_yval,10))
 
@@ -87,7 +90,7 @@ def plot_curve(values, ylabel, xlabel):
     plt.xlabel(xlabel)
 
     plt.show()
-    
+
 def plot_stacked_bars(legend, labels, group1, group2):
     N = 5
     menMeans   = (20, 35, 30, 35, 27)
@@ -124,7 +127,7 @@ def plot_test():
 
     # values
     plt.plot([1,2,3,4])
-    
+
     # context
     plt.ylabel('some numbers')
 

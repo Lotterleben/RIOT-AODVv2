@@ -15,6 +15,7 @@ import os
 import sys
 import pprint
 
+
 pp = pprint.PrettyPrinter(indent=2)
 
 experiment_duration = 600  # seconds
@@ -142,7 +143,7 @@ def collect_potential_targnodes():
 
     print "potential_targnodes: ", potential_targnodes
 
-def collect_neighbor_coordinates(position):
+def collect_neighbor_coordinates(position, i_max, j_max):
     neighbor_coordinates = []
 
     if (type(position) is tuple):
@@ -178,6 +179,7 @@ def connect_riots():
         time.sleep(2)
 
     logging.debug("riots: %s\n", riots)
+
     if (shutdown_riots > 0):
         start_new_thread(test_shutdown_thread,())
 
@@ -249,7 +251,7 @@ def test_sender_thread(position, port):
         sys.stdout.write("riots_complete unlocked at %s\n" % thread_id)
 
         # first, learn about all your neighbors
-        my_neighbor_coordinates = collect_neighbor_coordinates(position)
+        my_neighbor_coordinates = collect_neighbor_coordinates(position, i_max, j_max)
         sys.stdout.write("%s my neighbors: %s\n" % (position, my_neighbor_coordinates))
 
         for neighbor in my_neighbor_coordinates:
@@ -388,7 +390,7 @@ def main():
     args = parser.parse_args()
 
     if (args.debug):
-        print "ALL OUTPUT GENERATED WILL NOT BE STORED IN A LOGFILE."
+        print "ALL OUTPUT GENERATED WILL NOT BE STORED IN A LOGFILE.\n"
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
     else:
         if (not os.path.exists("./logs")):
