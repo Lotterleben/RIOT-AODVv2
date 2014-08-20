@@ -39,6 +39,17 @@ shutdown_queue = Queue.Queue()
 msg_queues = {}
 
 plain_mode = False
+date = ""
+dir_name = ""
+
+
+class FileFilter(logging.Filter):
+
+    def __init__(self, thread_name):
+        self.thread_name = thread_name
+
+    def filter(self, record):
+        return (record.threadName == self.thread_name)
 
 def get_ports():
     with open(ports_local_path, 'r') as f:
@@ -199,6 +210,24 @@ def connect_riots():
     # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration)
 
+def set_up_logging(position, port, thread_id):
+    # logging -d, ignore
+    if (not os.path.exists(dir_name)):
+        return
+
+    file_name = "%s_%s_%s" % (position, port, date)
+
+    # define handler that logs everything from this node to another separate file
+    file_handler = logging.FileHandler("%s/%s.log" % (dir_name, file_name))
+    file_handler.setLevel(logging.DEBUG)
+
+    # filter for messages from this RIOT only
+    file_filter = FileFilter(thread_id)
+    file_handler.addFilter(file_filter)
+
+    # add handler to the root logger
+    logging.getLogger('').addHandler(file_handler)
+
 def test_sender_thread(position, port):
     sys.stdout.write("Port: %s\n" % port)
 
@@ -214,6 +243,9 @@ def test_sender_thread(position, port):
     try:
         sock.connect(("127.0.0.1 ", int(port)))
         sock.sendall("ifconfig\n")
+
+        # set up individual logfile
+        set_up_logging(position, port, thread_id)
 
         # add own message queue to global msg queue dict
         msg_queues[position] = Queue.Queue()
@@ -374,10 +406,11 @@ def close_connections():
     print "done"
 
 def main():
-    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window, plain_mode
+    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window, plain_mode, dir_name
 
     timestamp = time.time()
     signal.signal(signal.SIGINT, signal_handler)
+    log_format = '%(levelname)-8s %(threadName)s: %(asctime)s %(message)s'
 
     parser = argparse.ArgumentParser(description='Initiate traffic on a vnet of RIOTs.')
     parser.add_argument('-d','--debug', action='store_true', help='print debug output to console rather than to a logfile')
@@ -391,16 +424,21 @@ def main():
 
     if (args.debug):
         print "ALL OUTPUT GENERATED WILL NOT BE STORED IN A LOGFILE.\n"
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+        logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt='%d-%m-%Y_%H:%M:%S')
     else:
-        if (not os.path.exists("./logs")):
-            os.makedirs("./logs")
+        logdir_name = "./logs"
+        if (not os.path.exists(logdir_name)):
+            os.makedirs(logdir_name)
 
-        date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %H:%M:%S')
-        logfile_name = "logs/auto_test "+date+".log"
+        date = datetime.datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y_%H:%M:%S')
+
+        dir_name = "%s/%s" % (logdir_name, date)
+        os.makedirs(dir_name)
+
+        logfile_name = "%s/auto_test_%s.log" %(dir_name, date)
 
         print "writing logs to", logfile_name
-        logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%d-%m-%Y %H:%M:%S')
+        logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format=log_format, datefmt='%d-%m-%Y_%H:%M:%S')
 
     if (args.time):
         experiment_duration = args.time
