@@ -83,9 +83,13 @@ void demo_send_stream(int argc, char** argv)
         return;
     }
 
-    // get some random data
-    char* msg = (char*) malloc(sizeof(char)*81);
     char* dest_str = argv[1];
+
+    int msg_size = sizeof(char)*81;
+    char* msg = (char*) malloc(msg_size);
+
+    memset(msg, 'a', msg_size);
+    msg[msg_size - 1] = '\0';
 
     /* TODO un-uncomment me
     if (demo_attempt_to_send(dest_str, msg) < 0 ){
@@ -171,19 +175,6 @@ void demo_exit(int argc, char** argv)
     exit(0);
 }
 
-static void _demo_init_socket(void)
-{
-    _sockaddr.sin6_family = AF_INET6;
-    _sockaddr.sin6_port = HTONS(RANDOM_PORT);
-
-    _sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
-    if(-1 == _sock_snd) {
-        printf("[demo]   Error Creating Socket!\n");
-        return;
-    }
-}
-
 int demo_attempt_to_send(char* dest_str, char* msg)
 {
     uint8_t num_attempts = 0;
@@ -212,6 +203,24 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     }
     //printf("{%" PRIu32 ":%" PRIu32 "}[demo]  Error sending Data: no route found\n", now.seconds, now.microseconds);
     return -1;
+}
+
+int demo_print_routingtable(int argc, char** argv)
+{
+    print_routingtable();
+}
+
+static void _demo_init_socket(void)
+{
+    _sockaddr.sin6_family = AF_INET6;
+    _sockaddr.sin6_port = HTONS(RANDOM_PORT);
+
+    _sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+
+    if(-1 == _sock_snd) {
+        printf("[demo]   Error Creating Socket!\n");
+        return;
+    }
 }
 
 static void _demo_receiver_thread(void)
@@ -274,6 +283,7 @@ static void _init_tlayer()
 }
 
 const shell_command_t shell_commands[] = {
+    {"print_rt", "print routingtable", demo_print_routingtable},
     {"send", "send message to ip", demo_send},
     {"send_data", "send 20 bytes of data to ip", demo_send_data},
     {"send_stream", "send stream of data to ip", demo_send_stream},
