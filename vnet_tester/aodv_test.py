@@ -39,9 +39,9 @@ shutdown_queue = Queue.Queue()
 msg_queues = {}
 
 plain_mode = False
+dont_send = False
 date = ""
 dir_name = ""
-
 
 class FileFilter(logging.Filter):
 
@@ -178,7 +178,7 @@ def collect_neighbor_coordinates(position, i_max, j_max):
     return neighbor_coordinates
 
 def connect_riots():
-    global potential_targnodes, riots
+    global potential_targnodes, riots, dont_send
 
     riots_complete.acquire()
     riots_ready.acquire()
@@ -195,8 +195,7 @@ def connect_riots():
         start_new_thread(test_shutdown_thread,())
 
     if (plain_mode):
-        done = False
-        while (not done):
+        while (not dont_send):
             orignode = random.choice(riots.keys())
 
             if (len(potential_targnodes[orignode]) > 0):
@@ -205,17 +204,18 @@ def connect_riots():
                 print "orignode:", orignode, "targnode:", targnode, "targnode_ip", targnode_ip
 
                 msg_queues[orignode].put("send_data %s\n" % targnode_ip)
-                done = True
+                dont_send = True
 
     # after experiment_duration, this function will exit and kill all the threads it generated.
     time.sleep(experiment_duration)
 
-def set_up_logging(position, port, thread_id):
+def set_up_logging(ip, position, port, thread_id):
     # logging -d, ignore
     if (not os.path.exists(dir_name)):
         return
 
-    file_name = "%s_%s_%s" % (position, port, date)
+    ip = ip.split(":")[-1]
+    file_name = "%s_%s_%s_%s" % (ip, position, port, date)
 
     # define handler that logs everything from this node to another separate file
     file_handler = logging.FileHandler("%s/%s.log" % (dir_name, file_name))
@@ -229,12 +229,12 @@ def set_up_logging(position, port, thread_id):
     logging.getLogger('').addHandler(file_handler)
 
 def test_sender_thread(position, port):
+    global shutdown_queue, potential_targnodes, num_ready_riots, dont_send
+
     sys.stdout.write("Port: %s\n" % port)
 
     data = my_ip = random_neighbor = ""
     thread_id = threading.currentThread().name
-    global shutdown_queue, potential_targnodes, num_ready_riots
-
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     with sockets_lock:
@@ -243,9 +243,6 @@ def test_sender_thread(position, port):
     try:
         sock.connect(("127.0.0.1 ", int(port)))
         sock.sendall("ifconfig\n")
-
-        # set up individual logfile
-        set_up_logging(position, port, thread_id)
 
         # add own message queue to global msg queue dict
         msg_queues[position] = Queue.Queue()
@@ -260,10 +257,18 @@ def test_sender_thread(position, port):
 
         # get all of my potential TargNodes
         my_targnodes = potential_targnodes[position]
+        has_targnodes = len(my_targnodes) > 0
+
+        '''
+        TODO FIXME: this will set dont_sent to true for ALL threads if one has len == 0....!!
+        '''
 
         # get relevant IP address
         my_addrs = get_node_addrs(data)
         my_ip = my_addrs[0]
+
+        # set up individual logfile
+        set_up_logging(my_ip, position, port, thread_id)
 
         logging.debug("{%s} IP: %s, LL-Addr: %s\n" % (thread_id, my_ip, my_addrs[1]))
 
@@ -315,8 +320,7 @@ def test_sender_thread(position, port):
                     sock.sendall(instruction)
                     logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
-            if (not plain_mode):
-
+            elif (not plain_mode):
                 #wait for a little while
                 some_time = random.randint(1, max_silence_interval)
                 time.sleep(some_time)
@@ -343,7 +347,9 @@ def test_sender_thread(position, port):
                     # pick random node
                     with riots_lock:
                         # only attempt to send if potential targnodes exist
-                        if (len(my_targnodes) > 0):
+                        #sys.stdout.write("dont_send: %r\n" % dont_send)
+                        if (has_targnodes and not dont_send):
+                            #sys.stdout.write("foo")
                             targnode = random.choice(my_targnodes)
                             targnode_ip = riots[targnode][1][0]
 
@@ -352,6 +358,7 @@ def test_sender_thread(position, port):
                             logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
     except:
+        print "something went wrong"
         traceback.print_exc()
         sys.exit()
 
@@ -386,27 +393,28 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def close_connections():
-    global shutdown_riots
+    global shutdown_riots, dont_send
 
-    print "\nCleaning up..."
+    sys.stdout.write("\nClosing connections...\n")
+    dont_send = True
 
     for position in riots.keys():
-        print "shutting down",  position
+        sys.stdout.write("shutting down %s\n" % (position,))
         msg_queues[position].put("exit\n")
 
     # wait until everything has been logged
     time.sleep(max_silence_interval*2)
 
-    print "Closing sockets..."
+    sys.stdout.write("Closing sockets...\n")
     with sockets_lock:
         for socket in sockets:
                 socket.close
-                print "socket",socket.fileno(),"closed."
+                sys.stdout.write("socket %i closed.\n" % socket.fileno())
 
-    print "done"
+    sys.stdout.write("done\n")
 
 def main():
-    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window, plain_mode, dir_name
+    global shutdown_riots, max_silence_interval, experiment_duration, max_shutdown_interval, min_hop_distance, shutdown_window, dont_send, plain_mode, dir_name
 
     timestamp = time.time()
     signal.signal(signal.SIGINT, signal_handler)
@@ -419,6 +427,7 @@ def main():
     parser.add_argument('-i','--interval', type = int, help='max time interval between packet transmissions (in seconds)')
     parser.add_argument('-m','--min_hop_dist', type = int, help='minimum distance between originating and target node (in hops)')
     parser.add_argument('-p','--plain', action='store_true', help='Only start one transmission')
+    parser.add_argument('-ds','--dontsend', action='store_true', help='Do not send anything, just set up the network')
 
     args = parser.parse_args()
 
@@ -465,6 +474,9 @@ def main():
     if (args.plain):
         plain_mode = True
 
+    if (args.dontsend):
+        print "dontsentwtf"
+        dont_send = True
 
     sys.stdout.write("Starting %i seconds of testing...\n" % experiment_duration)
 
