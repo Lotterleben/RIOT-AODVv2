@@ -450,7 +450,7 @@ def main():
         dir_name = "%s/%s" % (logdir_name, date)
         os.makedirs(dir_name)
 
-        logfile_name = "%s/auto_test_%s.log" %(dir_name, date)
+        logfile_name = "%s/aodv_test_%s.log" %(dir_name, date)
 
         print "writing logs to", logfile_name
         logging.basicConfig(filename=logfile_name, level=logging.DEBUG, format=log_format, datefmt='%d-%m-%Y_%H:%M:%S')
