@@ -14,7 +14,7 @@ import Queue
 import os
 import sys
 import pprint
-
+import json
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -190,6 +190,12 @@ def connect_riots():
         time.sleep(2)
 
     logging.debug("riots: %s\n", riots)
+
+    # write info about riots to file for easier gdb debuggingthings
+    # I am going straight to hell for this.
+    ip_info_file = open("./ip_port.info", "w")
+    ip_info_file.write(json.dumps(dict({(v[0],v[1][0]) for k,v in riots.iteritems()})))
+    ip_info_file.close()
 
     if (shutdown_riots > 0):
         start_new_thread(test_shutdown_thread,())
