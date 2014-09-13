@@ -37,7 +37,6 @@ int demo_attempt_to_send(char* dest_str, char* msg);
 static int _sock_snd, if_id;
 static sockaddr6_t _sockaddr;
 static ipv6_addr_t prefix;
-static uint8_t random_data[DATA_SIZE];  // assuming we're on a platform where 8 bit == 1 byte
 
 msg_t msg_q[RCV_MSG_Q_SIZE];
 char addr_str[IPV6_MAX_ADDR_STR_LEN];
@@ -58,7 +57,6 @@ void demo_send(int argc, char** argv)
 
     char* dest_str = argv[1] ;
     char* msg = argv[2];
-    uint8_t num_attempts = 0;
 
     demo_attempt_to_send(dest_str, msg);
 }
@@ -108,8 +106,8 @@ void demo_send_stream(int argc, char** argv)
 
         printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
 
-        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len,
-                                                0, &_sockaddr, sizeof _sockaddr);
+        destiny_socket_sendto(_sock_snd, msg, msg_len, 0, &_sockaddr, sizeof _sockaddr);
+
         vtimer_usleep(STREAM_INTERVAL);
         printf("%i\n", i);
     }
@@ -205,7 +203,7 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     return -1;
 }
 
-int demo_print_routingtable(int argc, char** argv)
+void demo_print_routingtable(int argc, char** argv)
 {
     print_routingtable();
 }

@@ -179,7 +179,7 @@ def handle_logfile(log_file_location):
 
         # todo update me
     results = count_successes(log_file_location)
-    print results
+    print "results: ", results
     disc_within_to = results["discoveries within timeout"]
 
     successes = ((disc_within_to, 0),(results["discoveries"]["success"] - disc_within_to , results["transmissions"]["success"]))
@@ -240,6 +240,7 @@ def count_successes(log_file_location):
             curr_discovery["targnode"] = re.search("{(.*)}\[demo\]   sending packet of (.*) bytes towards (.*)...", line).groups()[2]
             curr_discovery["seqnums"] = []
             curr_discovery["success"] = 0
+            curr_discovery["rreq_arrived"] = 0
             #print curr_discovery
 
         ##this seems to be generally correct, but a bug in aodv/desvirt through which neighbors receive packets from their 2 hop neighbors confuses it (and aodv)
@@ -254,7 +255,7 @@ def count_successes(log_file_location):
             #print "1", curr_discovery
 
             if (curr_discovery and targnode != curr_discovery.get("targnode")):
-                print "ERROR: IP conflict: ", targnode, ", ", curr_discovery.get("targnode")
+                print "ERROR: IP conflict: ", targnode, ", ", curr_discovery.get("targnode"), "in line ", line_number
                 sys.exit()
                 return # double tap!
 
@@ -308,9 +309,10 @@ def count_successes(log_file_location):
         # found packet that arrived (-> successful transmission)
         if ("[demo]   UDP packet received" in line):
             orignode = re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()[0]
-            #print line
-            #print "orignode: ", orignode, "\ntargnode: ", curr_ip
+            print line_number, ":", line
             #print transmissions
+            print "orignode: ", orignode, "\ncurr_ip: ", curr_ip
+            print [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip]
 
             suitable_transmissions = [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip and t["success"] == 0]
             #print suitable_transmissions
