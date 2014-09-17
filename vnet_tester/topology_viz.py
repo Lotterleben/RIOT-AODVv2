@@ -31,7 +31,7 @@ def prep_graphviz(info):
                 # i'm a horrible, horrible person.
 
     gv_str += "}"
-    print gv_str
+    return gv_str
 
 def get_suffix(ip):
     return ":" + ip.split(":")[-1]
