@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+
+tmux new-session -d -s foo 'echo 1; bash'
+tmux send-keys 'echo 2; bash' 'C-m'
+tmux rename-window 'Foo'
+tmux select-window -t foo:0
+tmux split-window -h 'echo 3; bash'
+tmux send-keys 'echho 4; bash' 'C-m'
+tmux split-window -v -t 0 'echo 4; bash'
+tmux send-keys 'echo 5; bash' 'C-m'
+tmux split-window -v -t 1 'echo 6; bash'
+tmux -2 attach-session -t foo
