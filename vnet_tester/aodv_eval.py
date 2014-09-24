@@ -221,7 +221,8 @@ def count_successes(log_file_location):
 
         # reached original topology info; convert it to graphviz-readable format and print
         if ("riots:" in line):
-            print tv.prep_graphviz(line)
+            info = info.split("riots: ")[1]
+            print "graphviz:\n", tv.prep_graphviz(info)
 
         node_log_start = re.search(".* {Dummy-.*: (.*), \(., .\)}", line) # TODO match more thoroughly
 
@@ -251,8 +252,8 @@ def count_successes(log_file_location):
             seqnum = info[0]
             targnode = info[1]
 
-            #print line_number, ":", line
-            #print "1", curr_discovery
+            print line_number, ":", line
+            print "1", curr_discovery
 
             if (curr_discovery and targnode != curr_discovery.get("targnode")):
                 print "ERROR: IP conflict: ", targnode, ", ", curr_discovery.get("targnode"), "in line ", line_number
@@ -306,18 +307,23 @@ def count_successes(log_file_location):
             transmission = { "timestamp": timestamp, "orignode": curr_ip, "targnode": targnode, "success": 0}
             transmissions.append(transmission)
 
+        '''
         # found packet that arrived (-> successful transmission)
         if ("[demo]   UDP packet received" in line):
             orignode = re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()[0]
             print line_number, ":", line
             #print transmissions
             print "orignode: ", orignode, "\ncurr_ip: ", curr_ip
-            print [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip]
+            print "transmissions:", transmissions
+            print "matching transmissions", [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip]
 
             suitable_transmissions = [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip and t["success"] == 0]
             #print suitable_transmissions
             # doesn't matter which one exactly we mark as successful, just pick one.
-            suitable_transmissions[-1]["success"] = 1
+            # TODO: herausfinden, warum es success: ... lines ohne suitable transmission gibt. doppelt gesendet?
+            if (len(suitable_transmissions) > 1):
+                suitable_transmissions[-1]["success"] = 1
+        '''
 
     print "route_discoveries \n", pp.pprint(route_discoveries)
     #print "transmissions\n", pp.pprint(transmissions)

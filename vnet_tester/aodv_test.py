@@ -16,6 +16,8 @@ import sys
 import pprint
 import json
 
+import topology_viz as tv
+
 pp = pprint.PrettyPrinter(indent=2)
 
 experiment_duration = 600  # seconds
@@ -190,6 +192,8 @@ def connect_riots():
         time.sleep(2)
 
     logging.debug("riots: %s\n", riots)
+    print "graphviz:\n", tv.prep_graphviz(str(riots))
+
 
     # write info about riots to file for easier gdb debuggingthings
     # I am going straight to hell for this.
