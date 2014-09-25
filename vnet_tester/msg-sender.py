@@ -25,7 +25,7 @@ def run(cmd, s_port):
     (out, err) = proc.communicate()
     return out
 
-def send_data(source, target):
+def prepare_send_cmd(source, target, msg=""):
     if source == target:
         print("Error: Node cannot send message to itself")
         return
@@ -45,9 +45,11 @@ def send_data(source, target):
     t_ip = config[t_port]
 
     print("Sending data from node with IP %s (%s) to IP %s (%s)" % (s_ip, s_port, t_ip, t_port))
-
-    cmd = "send_data %s" % (t_ip)
-    run(cmd, s_port)
+    if (msg == ""):
+        cmd = "send_data %s" % (t_ip)
+    else:
+        cmd = "send %s %s" % (t_ip, msg)
+    return cmd
 
 def handle_cmd(cmd):
     parts = cmd.split(" ")
@@ -63,34 +65,29 @@ def handle_cmd(cmd):
     cmd = parts[1]
 
     if (cmd == "print_rt"):
-        run(cmd, node_port)
-
+        #run(cmd, node_port)
+        pass
     elif (cmd == "send_data"):
         try:
             target_number = int(parts[2])
         except:
             print("Error: target node number (1,2,3,...) not specified")
             return
-        send_data(node_number, target_number)
-
+        cmd = prepare_send_cmd(node_number, target_number)
     elif (cmd == "send"):
         try:
             target_number = int(parts[2])
             parts[3]
-        except ValueError:
+        except:
             print("Usage: <node number> send <destination node number> <message>")
             return
-        target_port = ports[target_number]
-        target_ip = config[target_port]
-        msg = parts[3]
-
-        print("Sending message %s from node with IP %s (%s) to IP %s (%s)" % (msg, node_ip, node_port, target_ip, target_port))
-
-        cmd = "send %s %s" % (target_ip, msg)
-        run(cmd, node_port)
-
+        cmd = prepare_send_cmd(node_number, target_number, parts[3])
     else:
         print("unknown command: ", cmd)
+        return
+
+    run(cmd, node_port)
+
 
 while True:
     try:

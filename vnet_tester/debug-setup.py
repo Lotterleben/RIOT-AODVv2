@@ -56,10 +56,10 @@ if len(procs) != 4:
 tmux_cmd = """
     tmux new-session -d -s foo "python msg-sender.py \\"%(ip_port_info)s\\"; bash"
     tmux select-window -t foo:0
-    tmux split-window -h -t 1 'gdb program %(pid1)s -x %(cwd)s/default_breakpoints; bash'
-    tmux split-window -h 'gdb program %(pid2)s -x %(cwd)s/default_breakpoints; bash'
-    tmux split-window -v -t 1 'gdb program %(pid3)s -x %(cwd)s/default_breakpoints; bash'
-    tmux split-window -v -t 2 'gdb program %(pid4)s -x %(cwd)s/default_breakpoints; bash'
+    tmux split-window -h -t 1 'sudo gdb program %(pid1)s -x %(cwd)s/default_breakpoints; bash'
+    tmux split-window -h 'sudo gdb program %(pid2)s -x %(cwd)s/default_breakpoints; bash'
+    tmux split-window -v -t 1 'sudo gdb program %(pid3)s -x %(cwd)s/default_breakpoints; bash'
+    tmux split-window -v -t 2 'sudo gdb program %(pid4)s -x %(cwd)s/default_breakpoints; bash'
     tmux -2 attach-session -t foo
 """ % {
     'ip_port_info': json.dumps(ip_port_info).replace('"', '\\\\\\"'),
