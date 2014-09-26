@@ -245,10 +245,6 @@ def count_successes(log_file_location):
             curr_discovery["seqnums"] = []
             curr_discovery["success"] = 0
             curr_discovery["rreq_arrived"] = 0
-            print curr_discovery
-            route_discoveries.append(curr_discovery) # TODO: was this the line that broke ita all?!
-
-        ##this seems to be generally correct, but a bug in aodv/desvirt through which neighbors receive packets from their 2 hop neighbors confuses it (and aodv)
 
         # look for (successful) discoveries
         elif ("originating RREQ" in line):
@@ -265,6 +261,11 @@ def count_successes(log_file_location):
                 return # double tap!
 
             curr_discovery["seqnums"].append(seqnum)
+
+            # TODO do this more elegantly
+            # this is the first time this discovery is started -> add it to list of started discoveries
+            if (len(curr_discovery["seqnums"]) == 1):
+                route_discoveries.append(curr_discovery)
 
         # requested route is direct neighbor
         elif ("[ndp] found NC entry. Returning dest addr." in line):
@@ -291,7 +292,7 @@ def count_successes(log_file_location):
             targnode = info[2]
             seqnum = info[1]
 
-            # mark success
+            # mark success in route_discoveries
             discovery = [disc for disc in route_discoveries if disc["orignode"] == orignode and disc["targnode"] == targnode and seqnum in disc["seqnums"]]
             if (len(discovery) > 1):
                 print "WARNING: More than 1 suitable discovery found for line: \n", line
