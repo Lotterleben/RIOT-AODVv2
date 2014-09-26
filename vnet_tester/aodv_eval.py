@@ -221,18 +221,21 @@ def count_successes(log_file_location):
 
         # reached original topology info; convert it to graphviz-readable format and print
         if ("riots:" in line):
-            info = info.split("riots: ")[1]
+            info = line.split("riots: ")[1]
+            print info
             print "graphviz:\n", tv.prep_graphviz(info)
 
-        node_log_start = re.search(".* {Dummy-.*: (.*), \(., .\)}", line) # TODO match more thoroughly
+        node_log_start = re.search(".* {Dummy-.*: (.*), .*\}", line) # TODO match more thoroughly
 
         if (node_log_start):
             curr_ip = node_log_start.groups()[0]
-            #print line
-            #print curr_ip
+            print line
+            print curr_ip
 
         elif ("[demo]   sending packet" in line):
             # save old discovery (if not empty), record new one
+            print line
+
             if (curr_discovery):
                 route_discoveries.append(curr_discovery)
             curr_discovery = {}
@@ -242,7 +245,8 @@ def count_successes(log_file_location):
             curr_discovery["seqnums"] = []
             curr_discovery["success"] = 0
             curr_discovery["rreq_arrived"] = 0
-            #print curr_discovery
+            print curr_discovery
+            route_discoveries.append(curr_discovery) # TODO: was this the line that broke ita all?!
 
         ##this seems to be generally correct, but a bug in aodv/desvirt through which neighbors receive packets from their 2 hop neighbors confuses it (and aodv)
 
@@ -282,12 +286,19 @@ def count_successes(log_file_location):
 
         elif ("This is my RREP" in line):
             info = re.search(".* (.*):  This is my RREP \(SeqNum: (.*)\). We are done here, thanks (.*)!", line).groups()
-            #print line
 
             orignode = info[0]
             targnode = info[2]
             seqnum = info[1]
 
+            # mark success
+            discovery = [disc for disc in route_discoveries if disc["orignode"] == orignode and disc["targnode"] == targnode and seqnum in disc["seqnums"]]
+            if (len(discovery) > 1):
+                print "WARNING: More than 1 suitable discovery found for line: \n", line
+            discovery[0]["success"] = 1
+
+            # what the fuck?! TODO figure out whyt I was thinking when I wrote this.
+            '''
             discovery = [disc for disc in route_discoveries if disc["orignode"] == orignode and disc["targnode"] == targnode and seqnum in disc["seqnums"]]
             if (curr_discovery["orignode"] == orignode and curr_discovery["targnode"] == targnode and seqnum in curr_discovery["seqnums"]):
                 # RREP in time! wohooo! (oder? TODO verify)
@@ -298,7 +309,7 @@ def count_successes(log_file_location):
             else:
                 print discovery
                 discovery[0]["success"] = 1
-
+            '''
 
         # look for (successful) transmissions
         # found initiation of new transmission
