@@ -215,12 +215,14 @@ def count_successes(log_file_location):
     curr_ip = ""
     curr_discovery = {"orignode": "", "targnode": ""}
     line_number = 0
+    num_success_transm = 0
 
     for line in logfile:
         line_number += 1
 
         # reached original topology info; convert it to graphviz-readable format and print
         if ("riots:" in line):
+            print "xoxo"
             info = line.split("riots: ")[1]
             print info
             print "graphviz:\n", tv.prep_graphviz(info)
@@ -229,7 +231,7 @@ def count_successes(log_file_location):
 
         if (node_log_start):
             curr_ip = node_log_start.groups()[0]
-            print "setting current IP to:", curr_ip
+            #print "setting current IP to:", curr_ip
 
         elif ("getting next hop for" in line): # TODO gegen getting next hop for
             # save old discovery (if not empty), record new one
@@ -241,7 +243,7 @@ def count_successes(log_file_location):
             if (orignode != curr_ip):
                 print "ERROR: current IP ", curr_ip, "differs from orignode ", orignode
 
-            print curr_discovery
+            #print curr_discovery
 
             # only add new discovery if it is not a Route Discovery Retry
             if (not (curr_discovery["orignode"] == orignode and curr_discovery["targnode"] == targnode)):
@@ -253,7 +255,7 @@ def count_successes(log_file_location):
                 curr_discovery["success"] = 0
                 curr_discovery["rreq_arrived"] = 0
 
-                print "new discovery: ", curr_discovery
+                #print "new discovery: ", curr_discovery
 
         # look for (successful) discoveries
         elif ("originating RREQ" in line):
@@ -261,8 +263,8 @@ def count_successes(log_file_location):
             seqnum = info[0]
             targnode = info[1]
 
-            print line_number, ":", line
-            print curr_discovery
+            #print line_number, ":", line
+            #print curr_discovery
 
             if (curr_discovery and targnode != curr_discovery.get("targnode")):
                 print "ERROR: IP conflict between targnode of discovery: ", targnode, " and expected targnode: ", curr_discovery.get("targnode"), "in line ", line_number
@@ -312,18 +314,31 @@ def count_successes(log_file_location):
         # found initiation of new transmission
         if ("[demo]   sending packet" in line):
             [timestamp, targnode] = re.search("{(.*)}\[demo\]   sending packet of 15 bytes towards (.*)...", line).groups()
-            transmission = { "timestamp": timestamp, "orignode": curr_ip, "targnode": targnode, "success": 0}
+            transmission = {}
+            transmission = {"timestamp": timestamp, "orignode": curr_ip, "targnode": targnode, "success": 0}
             transmissions.append(transmission)
 
-        '''
-        # found packet that arrived (-> successful transmission)
         if ("[demo]   UDP packet received" in line):
             orignode = re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()[0]
+            print "orignode", orignode
+            print "targnode", curr_ip
+            print "matching transmissions", [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip]
+            #print transmissions
+            print "\n"
+
+                # found packet that arrived (-> successful transmission)
+        if ("[demo]   UDP packet received" in line):
+            num_success_transm += 1
+
+            orignode = re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()[0]
+            # problem: packet comes from next hop, not originating node! -> embed info in message?
+
+            '''
             print line_number, ":", line
             print re.search(".*\[demo\].*UDP packet received from (.*):.*", line).groups()
             #print transmissions
             print "orignode: ", orignode, "targnode: ", targnode ,"\ncurr_ip: ", curr_ip
-            print "transmissions:", transmissions
+            #print "transmissions:", transmissions
             print "matching transmissions", [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip]
 
             suitable_transmissions = [t for t in transmissions if t["orignode"] == orignode and t["targnode"] == curr_ip and t["success"] == 0]
@@ -334,8 +349,9 @@ def count_successes(log_file_location):
                 suitable_transmissions[-1]["success"] = 1
             '''
 
-    print "route_discoveries \n", pp.pprint(route_discoveries)
-    #print "transmissions\n", pp.pprint(transmissions)
+    #print "route_discoveries \n", pp.pprint(route_discoveries)
+    print "transmissions\n", pp.pprint(transmissions)
+    print "successful transmissions: ", num_success_transm
 
     successful_discoveries = [d for d in route_discoveries if d["success"] == 1]
     in_timeout_discoveries = [d for d in route_discoveries if len(d["seqnums"]) <3 and d["success"] == 1]
@@ -346,7 +362,7 @@ def count_successes(log_file_location):
     discovery_summary["fail"] = len(route_discoveries) - discovery_summary["success"]
 
     transmission_summary = {}
-    transmission_summary["success"] = len(successful_transmissions)
+    transmission_summary["success"] = num_success_transm #len(successful_transmissions)
     transmission_summary["fail"] = len(transmissions) - transmission_summary["success"]
 
     return {"discoveries" : discovery_summary, "transmissions" : transmission_summary,
