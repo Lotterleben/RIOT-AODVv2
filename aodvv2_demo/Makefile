@@ -51,7 +51,7 @@ else
 	USEMODULE += cc110x
 endif
 USEMODULE += sixlowpan
-USEMODULE += destiny
+USEMODULE += udp
 
 #aodv
 USEMODULE += aodvv2

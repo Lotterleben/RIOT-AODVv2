@@ -10,7 +10,7 @@
 #include "shell.h"
 #include "shell_commands.h"
 #include "board_uart0.h"
-#include "destiny.h"
+#include "udp.h"
 #include "net_help.h"
 
 #include "kernel.h"
@@ -106,7 +106,7 @@ void demo_send_stream(int argc, char** argv)
 
         printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
 
-        destiny_socket_sendto(_sock_snd, msg, msg_len, 0, &_sockaddr, sizeof _sockaddr);
+        socket_base_sendto(_sock_snd, msg, msg_len, 0, &_sockaddr, sizeof _sockaddr);
 
         vtimer_usleep(STREAM_INTERVAL);
         printf("%i\n", i);
@@ -185,7 +185,7 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
 
     while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
-        int bytes_sent = destiny_socket_sendto(_sock_snd, msg, msg_len,
+        int bytes_sent = socket_base_sendto(_sock_snd, msg, msg_len,
                                                 0, &_sockaddr, sizeof _sockaddr);
 
         vtimer_now(&now);
@@ -213,7 +213,7 @@ static void _demo_init_socket(void)
     _sockaddr.sin6_family = AF_INET6;
     _sockaddr.sin6_port = HTONS(RANDOM_PORT);
 
-    _sock_snd = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    _sock_snd = socket_base_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
     if(-1 == _sock_snd) {
         printf("[demo]   Error Creating Socket!\n");
@@ -237,16 +237,16 @@ static void _demo_receiver_thread(void)
     sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
                            .sin6_port = HTONS(RANDOM_PORT) };
 
-    int sock_rcv = destiny_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    int sock_rcv = socket_base_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
-    if (-1 == destiny_socket_bind(sock_rcv, &sa_rcv, sizeof(sa_rcv))) {
+    if (-1 == socket_base_bind(sock_rcv, &sa_rcv, sizeof(sa_rcv))) {
         DEBUG("[demo]   Error: bind to receive socket failed!\n");
-        destiny_socket_close(sock_rcv);
+        socket_base_close(sock_rcv);
     }
 
     DEBUG("[demo]   ready to receive data\n");
     for(;;) {
-        rcv_size = destiny_socket_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0,
+        rcv_size = socket_base_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0,
                                           &sa_rcv, &fromlen);
 
         vtimer_now(&now);
@@ -257,7 +257,7 @@ static void _demo_receiver_thread(void)
         DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   UDP packet received from %s: %s\n", now.seconds, now.microseconds, ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
     }
 
-    destiny_socket_close(sock_rcv);
+    socket_base_close(sock_rcv);
 }
 
 /* init transport layer & routing stuff*/
