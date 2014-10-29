@@ -221,7 +221,7 @@ static void _demo_init_socket(void)
     }
 }
 
-static void _demo_receiver_thread(void)
+static void *_demo_receiver_thread(void)
 {
     uint32_t fromlen;
     int32_t rcv_size;
