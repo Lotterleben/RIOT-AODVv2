@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "aodvv2/aodvv2.h"
+#include "nativenet.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -280,6 +281,11 @@ static void _init_tlayer()
     _demo_init_socket();
 }
 
+void demo_print_transceiverbuffer(int argc, char** argv)
+{
+    DEBUG("TRANSCEIVER_BUFFER_SIZE: %d \n", TRANSCEIVER_BUFFER_SIZE);
+}
+
 const shell_command_t shell_commands[] = {
     {"print_rt", "print routingtable", demo_print_routingtable},
     {"send", "send message to ip", demo_send},
@@ -287,6 +293,7 @@ const shell_command_t shell_commands[] = {
     {"send_stream", "send stream of data to ip", demo_send_stream},
     {"add_neighbor", "add neighbor to Neighbor Cache", demo_add_neighbor},
     {"rm_neighbor", "remove neighbor from Neighbor Cache", demo_remove_neighbor},
+    {"tb_size", "print sie of transceiver buffer", demo_print_transceiverbuffer},
     {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };
