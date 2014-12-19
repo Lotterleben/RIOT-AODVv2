@@ -194,7 +194,6 @@ def connect_riots():
     logging.debug("riots: %s\n", riots)
     print "graphviz:\n", tv.prep_graphviz(str(riots))
 
-
     # write info about riots to file for easier gdb debuggingthings
     # I am going straight to hell for this.
     ip_info_file = open("./ip_port.info", "w")
@@ -281,6 +280,10 @@ def test_sender_thread(position, port):
         set_up_logging(my_ip, position, port, thread_id)
 
         logging.debug("{%s} IP: %s, LL-Addr: %s\n" % (thread_id, my_ip, my_addrs[1]))
+
+        # log transceiver size
+        sock.sendall("tb_size\n")
+        logging.debug("{%s: %s, %s}\n%s" % (thread_id, my_ip, position, get_shell_output(sock)))
 
         with riots_lock:
             sys.stdout.write("adding node with IP %s to riots...\n" % my_ip)
