@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "aodvv2/aodvv2.h"
+#include "aodvv2/aodv_debug.h"
 #include "nativenet.h"
 
 #define ENABLE_DEBUG (1)
@@ -33,6 +34,7 @@
 #define DISCOVERY_ATTEMPTS_MAX (3) //(3)
 #define RREQ_WAIT_TIME         (2000000) // microseconds = 2 seconds
 
+//void demo_eval_callback(char* eval_output);
 int demo_attempt_to_send(char* dest_str, char* msg);
 
 static int _sock_snd, if_id;
@@ -261,6 +263,11 @@ static void *_demo_receiver_thread(void *arg)
     socket_base_close(sock_rcv);
 }
 
+void demo_eval_callback(char* eval_output)
+{
+    printf(eval_output);
+}
+
 /* init transport layer & routing stuff*/
 static void _init_tlayer()
 {
@@ -277,6 +284,7 @@ static void _init_tlayer()
     sixlowpan_lowpan_init_interface(if_id);
     printf("initializing AODVv2...\n");
 
+    set_eval_callback(demo_eval_callback);
     aodv_init();
     _demo_init_socket();
 }
@@ -301,6 +309,7 @@ const shell_command_t shell_commands[] = {
 int main(void)
 {
     _init_tlayer();
+
     thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
     posix_open(uart0_handler_pid, 0);
