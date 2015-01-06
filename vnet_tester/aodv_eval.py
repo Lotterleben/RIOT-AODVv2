@@ -259,7 +259,7 @@ def count_successes(log_file_location):
 
         # look for (successful) discoveries
         elif ("originating RREQ" in line):
-            info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*); updating RREQ table...", line).groups()
+            info = re.search("\[aodvv2\] originating RREQ with SeqNum (.*) towards (.*) via .*; updating RREQ table...", line).groups()
             seqnum = info[0]
             targnode = info[1]
 
