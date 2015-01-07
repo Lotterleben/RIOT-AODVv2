@@ -59,6 +59,9 @@ uint16_t get_hw_addr(void)
 
 void demo_exit(int argc, char** argv)
 {
+    printf("Shutting down RIOT...\n");
+    fclose(logfile);
+    printf("Logfile closed. Bye.");
     exit(0);
 }
 
@@ -71,7 +74,7 @@ void _demo_init_logdir(char* logdir_name)
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    snprintf(logdir_name, LOGDIR_NAME_SZ, "./logs/%d-%d-%d_%d:%d:%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    snprintf(logdir_name, LOGDIR_NAME_SZ, "./logs/%d-%d-%d_%d:%d:%d/", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
     mkdir(logdir_name, S_IWUSR | S_IROTH);
 }
 
@@ -86,14 +89,9 @@ void _demo_init_logfile(char* logdir_name)
 
     printf("My IP is: %s\n", addr_str);
 
-    char* filename = "xoxo";
-
-    //strcat(filepath, filename);
-    strncat(logdir_name, filename, 4);//strlen(filename));
-    printf(logdir_name);
-    printf("\n");
-
-    //logfile = fopen(filepath, "w");
+    printf("Setting up logfile...\n");
+    strncat(logdir_name, addr_str, IPV6_MAX_ADDR_STR_LEN);//strlen(filename));
+    logfile = fopen(logdir_name, "w");
 }
 
 void _demo_ifconfig_list(int if_id, char *addr_str)
