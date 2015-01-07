@@ -88,9 +88,8 @@ void _demo_init_logfile(char* logdir_name)
     }
 
     printf("My IP is: %s\n", addr_str);
-
-    printf("Setting up logfile...\n");
     strncat(logdir_name, addr_str, IPV6_MAX_ADDR_STR_LEN);//strlen(filename));
+    printf("Setting up logfile at %s ...\n", logdir_name);
     logfile = fopen(logdir_name, "w");
 }
 
@@ -328,7 +327,12 @@ void demo_print_routingtable(int argc, char** argv)
 void _demo_eval_callback(char* eval_output)
 {
     // TODO. actually write to file
-    printf(eval_output);
+    if (! logfile) {
+        printf(eval_output);
+    }
+    else {
+        fprintf(logfile, eval_output);
+    }
 }
 
 /* init transport layer & routing stuff*/
