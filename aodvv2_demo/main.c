@@ -48,37 +48,37 @@ uint16_t get_hw_addr(void)
     return sysconfig.id;
 }
 
-void demo_send(int argc, char** argv)
+int demo_send(int argc, char** argv)
 {
     if (argc != 3) {
         printf("Usage: send <destination ip> <message>\n");
-        return;
+        return 1;
     }
 
     char* dest_str = argv[1] ;
     char* msg = argv[2];
 
-    demo_attempt_to_send(dest_str, msg);
+    return demo_attempt_to_send(dest_str, msg);
 }
 
 /*
     Send a random 20-byte chunk of data to the address supplied by the user
 */
-void demo_send_data(int argc, char** argv)
+int demo_send_data(int argc, char** argv)
 {
     if (argc != 2) {
         printf("Usage: send_data <destination ip>\n");
-        return;
+        return 1;
     }
 
-    demo_attempt_to_send(argv[1], "This is a test");
+    return demo_attempt_to_send(argv[1], "This is a test");
 }
 
-void demo_send_stream(int argc, char** argv)
+int  demo_send_stream(int argc, char** argv)
 {
     if (argc != 2) {
         printf("Usage: send_stream <destination ip>\n");
-        return;
+        return 1;
     }
 
     char* dest_str = argv[1];
@@ -112,17 +112,19 @@ void demo_send_stream(int argc, char** argv)
         printf("%i\n", i);
     }
     free(msg);
+
+    return 0;
 }
 
 /*
     Help emulate a functional NDP implementation (this should be called by every
     neighbor of a node that was shut down with demo_exit())
 */
-void demo_remove_neighbor(int argc, char** argv)
+int demo_remove_neighbor(int argc, char** argv)
 {
     if (argc != 2) {
         printf("Usage: rm_neighbor <destination ip>\n");
-        return;
+        return 1;
     }
     ipv6_addr_t neighbor;
     ndp_neighbor_cache_t* nc_entry;
@@ -131,9 +133,11 @@ void demo_remove_neighbor(int argc, char** argv)
     if (nc_entry) {
         nc_entry->state = NDP_NCE_STATUS_INCOMPLETE;
         printf("[demo] neighbor removed.\n");
+        return 0;
     }
     else {
         printf("[demo] couldn't remove neighbor.\n");
+        return 1;
     }
 }
 
@@ -141,11 +145,11 @@ void demo_remove_neighbor(int argc, char** argv)
     Help emulate a functional NDP implementation (this should be called for every
     neighbor of the node on the grid)
 */
-void demo_add_neighbor(int argc, char** argv)
+int demo_add_neighbor(int argc, char** argv)
 {
     if (argc != 3) {
         printf("Usage: add_neighbor <neighbor ip> <neighbor ll-addr>\n");
-        return;
+        return 1;
     }
 
     net_if_eui64_t eut_eui64;
@@ -155,24 +159,29 @@ void demo_add_neighbor(int argc, char** argv)
     // only add neighbor if it's not already in Cache
     if (ndp_neighbor_cache_search(&neighbor)!= NULL){
         printf("IP %s already in Neighbor Cache, lladdr-len:%i\n", ipv6_addr_to_str(addr_str, IPV6_MAX_ADDR_STR_LEN, &neighbor), ndp_neighbor_cache_search(&neighbor)->lladdr_len);
-        return;
+        return 1;
     }
 
     /* convert & flip */
     memcpy(&eut_eui64, &neighbor.uint8[8], 8);
     eut_eui64.uint8[0] ^= 0x02;
 
-    ndp_neighbor_cache_add(0, &neighbor, &neighbor.uint16[7], 2, 0, NDP_NCE_STATUS_REACHABLE,
+    int res = ndp_neighbor_cache_add(0, &neighbor, &neighbor.uint16[7], 2, 0, NDP_NCE_STATUS_REACHABLE,
                                   NDP_NCE_TYPE_TENTATIVE, 0xffff);
 
-    printf("neighbor added.\n");
+    if(0 == res) {
+        printf("neighbor added.\n");
+        return 0;
+    }
+    return 1;
 }
 
-void demo_exit(int argc, char** argv)
+int demo_exit(int argc, char** argv)
 {
     (void)argc;
     (void)argv;
     exit(0);
+    return 0;
 }
 
 int demo_attempt_to_send(char* dest_str, char* msg)
@@ -205,11 +214,12 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     return -1;
 }
 
-void demo_print_routingtable(int argc, char** argv)
+int demo_print_routingtable(int argc, char** argv)
 {
     (void)argc;
     (void)argv;
     print_routingtable();
+    return 0;
 }
 
 static void _demo_init_socket(void)
