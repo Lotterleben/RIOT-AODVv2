@@ -41,7 +41,7 @@ static ipv6_addr_t prefix;
 msg_t msg_q[RCV_MSG_Q_SIZE];
 char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
-timex_t now;
+timex_t _now;
 
 uint16_t get_hw_addr(void)
 {
@@ -98,13 +98,13 @@ void demo_send_stream(int argc, char** argv)
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
     int msg_len = strlen(msg)+1;
 
-    vtimer_now(&now);
-    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending stream of %i bytes...\n", now.seconds, now.microseconds, sizeof(msg) * strlen(msg));
+    vtimer_now(&_now);
+    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending stream of %i bytes...\n", _now.seconds, _now.microseconds, sizeof(msg) * strlen(msg));
 
     for (int i=0; i < NUM_PKTS; i++) {
-        vtimer_now(&now);
+        vtimer_now(&_now);
 
-        printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
+        printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", _now.seconds, _now.microseconds, msg_len, dest_str);
 
         socket_base_sendto(_sock_snd, msg, msg_len, 0, &_sockaddr, sizeof _sockaddr);
 
@@ -170,6 +170,8 @@ void demo_add_neighbor(int argc, char** argv)
 
 void demo_exit(int argc, char** argv)
 {
+    (void)argc;
+    (void)argv;
     exit(0);
 }
 
@@ -181,30 +183,32 @@ int demo_attempt_to_send(char* dest_str, char* msg)
     inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
     int msg_len = strlen(msg)+1;
 
-    vtimer_now(&now);
-    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", now.seconds, now.microseconds, msg_len, dest_str);
+    vtimer_now(&_now);
+    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", _now.seconds, _now.microseconds, msg_len, dest_str);
 
     while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
         int bytes_sent = socket_base_sendto(_sock_snd, msg, msg_len,
                                                 0, &_sockaddr, sizeof _sockaddr);
 
-        vtimer_now(&now);
+        vtimer_now(&_now);
         if (bytes_sent == -1) {
-            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   no bytes sent, probably because there is no route yet.\n", now.seconds, now.microseconds);
+            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   no bytes sent, probably because there is no route yet.\n", _now.seconds, _now.microseconds);
             num_attempts++;
             vtimer_usleep(RREQ_WAIT_TIME);
         }
         else {
-            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   Success sending Data: %d bytes sent.\n", now.seconds, now.microseconds, bytes_sent);
+            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   Success sending Data: %d bytes sent.\n", _now.seconds, _now.microseconds, bytes_sent);
             return 0;
         }
     }
-    //printf("{%" PRIu32 ":%" PRIu32 "}[demo]  Error sending Data: no route found\n", now.seconds, now.microseconds);
+    //printf("{%" PRIu32 ":%" PRIu32 "}[demo]  Error sending Data: no route found\n", _now.seconds, _now.microseconds);
     return -1;
 }
 
 void demo_print_routingtable(int argc, char** argv)
 {
+    (void)argc;
+    (void)argv;
     print_routingtable();
 }
 
@@ -223,6 +227,8 @@ static void _demo_init_socket(void)
 
 static void *_demo_receiver_thread(void *arg)
 {
+    (void)arg;
+
     uint32_t fromlen;
     int32_t rcv_size;
     char buf_rcv[UDP_BUFFER_SIZE];
@@ -230,7 +236,7 @@ static void *_demo_receiver_thread(void *arg)
     msg_t rcv_msg_q[RCV_MSG_Q_SIZE];
 
 
-    timex_t now;
+    timex_t _now2;
 
     msg_init_queue(rcv_msg_q, RCV_MSG_Q_SIZE);
 
@@ -249,12 +255,12 @@ static void *_demo_receiver_thread(void *arg)
         rcv_size = socket_base_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0,
                                           &sa_rcv, &fromlen);
 
-        vtimer_now(&now);
+        vtimer_now(&_now2);
 
         if(rcv_size < 0) {
-            DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   ERROR receiving data!\n", now.seconds, now.microseconds);
+            DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   ERROR receiving data!\n", _now2.seconds, _now2.microseconds);
         }
-        DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   UDP packet received from %s: %s\n", now.seconds, now.microseconds, ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
+        DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   UDP packet received from %s: %s\n", _now2.seconds, _now2.microseconds, ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
     }
 
     socket_base_close(sock_rcv);
