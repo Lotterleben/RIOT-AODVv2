@@ -39,7 +39,7 @@ static sockaddr6_t _sockaddr;
 static ipv6_addr_t prefix;
 
 msg_t msg_q[RCV_MSG_Q_SIZE];
-char addr_str[IPV6_MAX_ADDR_STR_LEN];
+static char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
 timex_t _now;
 
