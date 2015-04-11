@@ -274,10 +274,11 @@ static void *_demo_receiver_thread(void *arg)
     }
 
     socket_base_close(sock_rcv);
+    return NULL;
 }
 
 /* init transport layer & routing stuff*/
-static void _init_tlayer()
+static void _init_tlayer(void)
 {
     msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
 
