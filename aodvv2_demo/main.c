@@ -40,7 +40,7 @@ static ipv6_addr_t prefix;
 
 msg_t msg_q[RCV_MSG_Q_SIZE];
 static char addr_str[IPV6_MAX_ADDR_STR_LEN];
-char _rcv_stack_buf[KERNEL_CONF_STACKSIZE_MAIN];
+char _rcv_stack_buf[THREAD_STACKSIZE_MAIN];
 timex_t _now;
 
 uint16_t get_hw_addr(void)
@@ -311,7 +311,7 @@ const shell_command_t shell_commands[] = {
 int main(void)
 {
     _init_tlayer();
-    thread_create(_rcv_stack_buf, KERNEL_CONF_STACKSIZE_MAIN, PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
+    thread_create(_rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
     posix_open(uart0_handler_pid, 0);
 
