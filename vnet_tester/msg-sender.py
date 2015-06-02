@@ -7,12 +7,14 @@ import sys
 import json
 
 
-print(sys.argv[1])
 config = json.loads(sys.argv[1])
 ports = config.keys()
 
 
 print("\nAvailable nodes:\n")
+print(sys.argv[1])
+print(config)
+print(ports)
 for index, port in enumerate(ports):
     print("\t[%d] Port: %s IP: %s" % (index, port, config[port]))
 

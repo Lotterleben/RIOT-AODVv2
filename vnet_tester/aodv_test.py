@@ -192,8 +192,7 @@ def connect_riots():
         time.sleep(2)
 
     logging.debug("riots: %s\n", riots)
-    print "graphviz:\n", tv.prep_graphviz(str(riots))
-
+    #print "graphviz:\n", tv.prep_graphviz(str(riots))
 
     # write info about riots to file for easier gdb debuggingthings
     # I am going straight to hell for this.
@@ -316,7 +315,7 @@ def test_sender_thread(position, port):
         #print "type neighbor", type(my_neighbor_coordinates[0]), "type position", type(position)
         sys.stdout.write("riots_ready unlocked at %s\n" % thread_id)
 
-        while (True):
+        while (not dont_send):
             if (not msg_queues[position].empty()):
                 instruction = msg_queues[position].get()
                 sys.stdout.write("{%s} received instruction: %s\n" % (thread_id, instruction))
@@ -485,15 +484,16 @@ def main():
         plain_mode = True
 
     if (args.dontsend):
-        print "dontsentwtf"
         dont_send = True
+        experiment_duration = 1
 
     sys.stdout.write("Starting %i seconds of testing...\n" % experiment_duration)
 
     get_ports()
     connect_riots()
 
-    close_connections()
+    if (not dont_send):
+        close_connections()
 
 if __name__ == "__main__":
     main()
