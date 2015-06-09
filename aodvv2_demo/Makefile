@@ -44,7 +44,7 @@ USEMODULE += posix
 USEMODULE += ps
 USEMODULE += vtimer
 USEMODULE += config
-usemodule += posix
+
 ifeq ($(strip $(BOARD)),native)
 	USEMODULE += nativenet
 else
