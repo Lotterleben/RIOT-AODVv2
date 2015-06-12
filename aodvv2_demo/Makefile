@@ -9,7 +9,7 @@ export BOARD ?= native
 export RIOTBASE =$(CURDIR)/../../riot/RIOT
 
 USEPKG += oonf_api
-export CFLAGS += -DRIOT #-DENABLE_DEBUG
+export CFLAGS += -DRIOT -DTEST_SETUP #-DENABLE_DEBUG
 
 # Uncomment these lines if you want to use platform support from external
 # repositories:
