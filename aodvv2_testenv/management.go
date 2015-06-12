@@ -35,6 +35,7 @@ func setup_network() {
     fmt.Println("done.")
 }
 
+/* load port numbers, sorted by position, from the ports.info file behind path into info. */
 func load_position_port_info_line(path string) (info []riot_info) {
     var keys []int
     /* temporarily store info under wonky position numbers such as -47, -48, ... */
@@ -83,8 +84,19 @@ func load_position_port_info_line(path string) (info []riot_info) {
     return info
 }
 
+func crank_this_mofo_up(index int, port int) {
+    fmt.Printf("HELLO THIS IS %d SPEAKING\n", index)
+}
+
 func connect_to_RIOTs() {
+    done := make(chan bool, 1)
     riot_line = load_position_port_info_line(desvirt_path)
+
+    for index, elem := range riot_line {
+        go crank_this_mofo_up(index, elem.port)
+    }
+
+    <-done
 }
 
 func main() {
