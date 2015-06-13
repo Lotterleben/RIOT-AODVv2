@@ -13,6 +13,12 @@ import (
     "sync"
 )
 
+/* content_type */
+const (
+    CONTENT_TYPE_JSON = iota
+    CONTENT_TYPE_OTHER = iota
+)
+
 /* All channels for communication of a RIOT node */
 type stream_channels struct {
     snd       chan string /* Send commands to the node */
@@ -36,6 +42,14 @@ func check(e error) {
         fmt.Println("OMG EVERYBODY PANIC")
         panic(e)
     }
+}
+
+/* Figure out the type of the content of a string */
+func get_content_type(str string) int {
+    if strings.HasPrefix(str, "{") {
+        return CONTENT_TYPE_JSON
+    }
+    return CONTENT_TYPE_OTHER
 }
 
 /* Set up the network. This will be switched to our own abstraction (hopefully soon). */
@@ -114,10 +128,11 @@ func (s stream_channels) sort_stream(reader *bufio.Reader) {
 
             /* If there's something left, check line content and sort */
             if (len(str) > 0) {
-                if strings.HasPrefix(str, "{") {
+                switch (get_content_type(str)){
+                case CONTENT_TYPE_JSON:
                     /* this line contains a JSON */
                     s.rcv_json <- str
-                } else {
+                case CONTENT_TYPE_OTHER:
                     /* this line contains something else */
                     s.rcv_other <- str
                 }
