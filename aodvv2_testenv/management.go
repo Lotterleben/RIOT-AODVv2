@@ -6,10 +6,17 @@ import (
     "net"
     "os"
     "os/exec"
+    "regexp"
     "sort"
     "strings"
     "strconv"
 )
+
+/* All channels onto which the output of a RIOT node is sorted */
+type stream_channels struct {
+    json  chan string
+    other chan string
+}
 
 type riot_info struct {
     port int
@@ -85,23 +92,34 @@ func load_position_port_info_line(path string) (info []riot_info) {
     return info
 }
 
-/* Read lines from reader until ">" marks termination of the shell output.
- * Then, return the output. */
-
-func read_shell_output(reader *bufio.Reader) (output string) {
+/* Sort every line which arrives through reader onto one of the channels from
+ * s, depending on the line's content. */
+func (s stream_channels) sort_stream(reader *bufio.Reader) {
+    fmt.Println("sort_stream started...")
 
     for {
-        line, err := reader.ReadString('\n')
+        str, err := reader.ReadString('\n')
         check(err)
 
-        fmt.Print(line)
+        if len(str)>0 {
+            if strings.HasPrefix(str, ">") {
+                /* end of a shell command execution, create clean newline */
+                s.other <- ">\n"
+                /* remove > from str*/
+                str = str[1:]
+            }
 
-        if line == ">" {
-            fmt.Println("got it")
-            return output
+            /* If there's something left, check line content and sort */
+            if (len(str) > 0) {
+                if strings.HasPrefix(str, "{") {
+                    /* this line contains a JSON */
+                    s.json <- str
+                } else {
+                    /* this line contains something else */
+                    s.other <- str
+                }
+            }
         }
-
-        fmt.Sprint(output, line)
     }
 }
 
@@ -111,25 +129,28 @@ func crank_this_mofo_up(index int, port int) {
     conn, err := net.Dial("tcp", fmt.Sprint("localhost:",port))
     check(err)
 
-    conn.Write([]byte("ifconfig\n"))
+    /*create channels*/
+    json_chan  := make(chan string)
+    other_chan := make(chan string)
+    channels   := stream_channels{json: json_chan, other: other_chan}
+
+    /*sort that stuff out*/
     connbuf := bufio.NewReader(conn)
+    go channels.sort_stream(connbuf)
 
-    ifconf := read_shell_output(connbuf)
-    fmt.Printf(ifconf)
+    conn.Write([]byte("ifconfig\n"))
 
-    fmt.Printf("xoxo")
-
-
-    /*
+    /* find my IP address in the output */
     for {
-        str, err := connbuf.ReadString('\n')
-        if len(str)>0 {
-            fmt.Print(str)
-        }
+        str := <- other_chan
+        r, _ := regexp.Compile("inet6 addr: (fe80(.*))/.*scope: local")
+        match := r.FindAllStringSubmatch(str, -1)
 
-        check(err)
+        if len(match) >0 {
+            riot_line[index].ip = match[0][1]
+            break
+        }
     }
-    */
 }
 
 func connect_to_RIOTs() {
@@ -145,5 +166,7 @@ func connect_to_RIOTs() {
 
 func main() {
     //setup_network()
+    foo:="asdf"
+    fmt.Println(foo[1:])
     connect_to_RIOTs()
 }
