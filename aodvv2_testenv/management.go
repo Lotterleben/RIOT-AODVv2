@@ -3,6 +3,7 @@ package main
 import (
     "bufio"
     "fmt"
+    "net"
     "os"
     "os/exec"
     "sort"
@@ -84,8 +85,51 @@ func load_position_port_info_line(path string) (info []riot_info) {
     return info
 }
 
+/* Read lines from reader until ">" marks termination of the shell output.
+ * Then, return the output. */
+
+func read_shell_output(reader *bufio.Reader) (output string) {
+
+    for {
+        line, err := reader.ReadString('\n')
+        check(err)
+
+        fmt.Print(line)
+
+        if line == ">" {
+            fmt.Println("got it")
+            return output
+        }
+
+        fmt.Sprint(output, line)
+    }
+}
+
 func crank_this_mofo_up(index int, port int) {
     fmt.Printf("HELLO THIS IS %d SPEAKING\n", index)
+
+    conn, err := net.Dial("tcp", fmt.Sprint("localhost:",port))
+    check(err)
+
+    conn.Write([]byte("ifconfig\n"))
+    connbuf := bufio.NewReader(conn)
+
+    ifconf := read_shell_output(connbuf)
+    fmt.Printf(ifconf)
+
+    fmt.Printf("xoxo")
+
+
+    /*
+    for {
+        str, err := connbuf.ReadString('\n')
+        if len(str)>0 {
+            fmt.Print(str)
+        }
+
+        check(err)
+    }
+    */
 }
 
 func connect_to_RIOTs() {
