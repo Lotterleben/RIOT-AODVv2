@@ -10,17 +10,20 @@ import (
     "sort"
     "strings"
     "strconv"
+    "sync"
 )
 
-/* All channels onto which the output of a RIOT node is sorted */
+/* All channels for communication of a RIOT node */
 type stream_channels struct {
-    json  chan string
-    other chan string
+    snd       chan string /* Send commands to the node */
+    rcv_json  chan string /* Receive JSONs */
+    rcv_other chan string /* Receive other stuff */
 }
 
 type riot_info struct {
     port int
     ip   string
+    channels stream_channels
 }
 
 const MAX_LINE_LEN = 10
@@ -104,7 +107,7 @@ func (s stream_channels) sort_stream(reader *bufio.Reader) {
         if len(str)>0 {
             if strings.HasPrefix(str, ">") {
                 /* end of a shell command execution, create clean newline */
-                s.other <- ">\n"
+                s.rcv_other <- ">\n"
                 /* remove > from str*/
                 str = str[1:]
             }
@@ -113,26 +116,29 @@ func (s stream_channels) sort_stream(reader *bufio.Reader) {
             if (len(str) > 0) {
                 if strings.HasPrefix(str, "{") {
                     /* this line contains a JSON */
-                    s.json <- str
+                    s.rcv_json <- str
                 } else {
                     /* this line contains something else */
-                    s.other <- str
+                    s.rcv_other <- str
                 }
             }
         }
     }
 }
 
-func crank_this_mofo_up(index int, port int) {
+/* Goroutine at place index in the line which takes care of the RIOT behind port */
+func crank_this_mofo_up(index int, port int, wg *sync.WaitGroup) {
     fmt.Printf("HELLO THIS IS %d SPEAKING\n", index)
 
     conn, err := net.Dial("tcp", fmt.Sprint("localhost:",port))
     check(err)
 
-    /*create channels*/
-    json_chan  := make(chan string)
-    other_chan := make(chan string)
-    channels   := stream_channels{json: json_chan, other: other_chan}
+    /* create channels and add them to the info about this thread stored in riot_line*/
+    send_chan  := make(chan string) /* messages from the main routine */
+    json_chan  := make(chan string) /* JSON messages from the RIOT */
+    other_chan := make(chan string) /* other messages from the RIOT */
+    channels   := stream_channels{rcv_json: json_chan, rcv_other: other_chan, snd: send_chan}
+    riot_line[index].channels = channels
 
     /*sort that stuff out*/
     connbuf := bufio.NewReader(conn)
@@ -140,6 +146,7 @@ func crank_this_mofo_up(index int, port int) {
 
     conn.Write([]byte("ifconfig\n"))
 
+    fmt.Println("getting my IP...")
     /* find my IP address in the output */
     for {
         str := <- other_chan
@@ -148,25 +155,67 @@ func crank_this_mofo_up(index int, port int) {
 
         if len(match) >0 {
             riot_line[index].ip = match[0][1]
+            fmt.Println("my IP is", match[0][1])
             break
+        }
+    }
+
+    /* Signal to main that we're ready to go */
+    (*wg).Done()
+
+    /* Read and handle any input from the outside (i.e. main)
+     * (just assume every message from main is a command for now) */
+    for {
+        message := <- send_chan
+        if !strings.HasSuffix(message, "\n") {
+            /* make sure command ends with a newline */
+            fmt.Sprint(message, "\n")
+        }
+
+        conn.Write([]byte(message))
+    }
+}
+
+/* Send a command to the RIOT behind stream_channels. */
+func (s stream_channels) send (command string) {
+    s.snd <- command
+}
+
+/* Look for string matching exp in the channels (TODO: use regex, determine which channel to search) */
+func (s stream_channels) expect (exp string) {
+    for {
+        foo := <- s.rcv_other
+        if foo == exp {
+            fmt.Println(exp)
+            return
         }
     }
 }
 
 func connect_to_RIOTs() {
-    done := make(chan bool, 1)
     riot_line = load_position_port_info_line(desvirt_path)
 
+    var wg sync.WaitGroup
+    wg.Add(len(riot_line))
+
     for index, elem := range riot_line {
-        go crank_this_mofo_up(index, elem.port)
+        fmt.Println(index, elem, len(riot_line))
+        go crank_this_mofo_up(index, elem.port, &wg)
     }
 
-    <-done
+    /* wait for all goroutines to finish setup before we go on */
+    wg.Wait()
+}
+
+func start_experiments() {
+    fmt.Println("starting experiments...")
+    beginning := riot_line[0]
+    beginning.channels.send("hlp\n")
+    beginning.channels.expect("hlp\n")
 }
 
 func main() {
-    //setup_network()
-    foo:="asdf"
-    fmt.Println(foo[1:])
+    setup_network()
     connect_to_RIOTs()
+    start_experiments()
 }
