@@ -112,8 +112,6 @@ func load_position_port_info_line(path string) (info []riot_info) {
 /* Sort every line which arrives through reader onto one of the channels from
  * s, depending on the line's content. */
 func (s stream_channels) sort_stream(reader *bufio.Reader) {
-    fmt.Println("sort_stream started...")
-
     for {
         str, err := reader.ReadString('\n')
         check(err)
@@ -143,8 +141,6 @@ func (s stream_channels) sort_stream(reader *bufio.Reader) {
 
 /* Goroutine at place index in the line which takes care of the RIOT behind port */
 func crank_this_mofo_up(index int, port int, wg *sync.WaitGroup) {
-    fmt.Printf("HELLO THIS IS %d SPEAKING\n", index)
-
     conn, err := net.Dial("tcp", fmt.Sprint("localhost:",port))
     check(err)
 
@@ -161,7 +157,7 @@ func crank_this_mofo_up(index int, port int, wg *sync.WaitGroup) {
 
     conn.Write([]byte("ifconfig\n"))
 
-    fmt.Println("getting my IP...")
+    fmt.Println(port,"/",index,": getting my IP...")
     /* find my IP address in the output */
     for {
         str := <- other_chan
@@ -170,7 +166,7 @@ func crank_this_mofo_up(index int, port int, wg *sync.WaitGroup) {
 
         if len(match) >0 {
             riot_line[index].ip = match[0][1]
-            fmt.Println("my IP is", match[0][1])
+            fmt.Println(port,"/",index,": my IP is", match[0][1])
             break
         }
     }
@@ -196,11 +192,24 @@ func (s stream_channels) send (command string) {
     s.snd <- command
 }
 
-/* Look for string matching exp in the channels (TODO: use regex, determine which channel to search) */
-func (s stream_channels) expect (exp string) {
+/* Look for string matching exp in the channels (TODO: actually use JSON) */
+func (s stream_channels) expect_JSON (exp string) {
     for {
-        foo := <- s.rcv_other
-        if foo == exp {
+        content := <- s.rcv_json
+        /* TODO: use JSON parser. */
+        if content == exp {
+            fmt.Println(exp)
+            return
+        }
+    }
+}
+
+/* Look for string matching exp in the channels (TODO: use regex) */
+func (s stream_channels) expect_other (exp string) {
+    for {
+        content := <- s.rcv_other
+        /* TODO: use JSON parser. */
+        if content == exp {
             fmt.Println(exp)
             return
         }
@@ -214,7 +223,6 @@ func connect_to_RIOTs() {
     wg.Add(len(riot_line))
 
     for index, elem := range riot_line {
-        fmt.Println(index, elem, len(riot_line))
         go crank_this_mofo_up(index, elem.port, &wg)
     }
 
@@ -226,11 +234,11 @@ func start_experiments() {
     fmt.Println("starting experiments...")
     beginning := riot_line[0]
     beginning.channels.send("hlp\n")
-    beginning.channels.expect("hlp\n")
+    beginning.channels.expect_other("hlp\n")
 }
 
 func main() {
-    setup_network()
+    //setup_network()
     connect_to_RIOTs()
     start_experiments()
 }
