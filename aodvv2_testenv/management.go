@@ -193,9 +193,11 @@ func (s stream_channels) send (command string) {
 }
 
 /* Look for string matching exp in the channels (TODO: actually use JSON) */
-func (s stream_channels) expect_JSON (json_str string) Message {
+func (s stream_channels) expect_JSON (json_str string) {
+    /*
     var expected Message
     var received Message
+
     err := json.Unmarshal([]byte(json_str), &expected)
     check(err)
 
@@ -204,12 +206,12 @@ func (s stream_channels) expect_JSON (json_str string) Message {
         err := json.Unmarshal([]byte(json_str), &expected)
         check(err)
 
-        /* TODO: use JSON parser. */
         if reflect.DeepEqual(expected, received) {
             fmt.Println(json_str)
             return
         }
     }
+    */
 }
 
 /* Look for string matching exp in the channels (TODO: use regex) */
