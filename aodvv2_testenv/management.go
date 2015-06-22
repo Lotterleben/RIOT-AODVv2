@@ -138,13 +138,13 @@ func (s stream_channels) sort_stream(conn *net.Conn, logger *log.Logger) {
 
         if len(str)>0 {
             if strings.HasPrefix(str, ">") {
-
                 /* end of a shell command execution, create clean newline */
-                //s.rcv_other <- ">\n"
+                s.rcv_other <- ">\n"
                 /* remove > from str*/
                 str = strings.TrimPrefix(str, "> ")
             }
-            /* If there's something left, check line content and sort */
+
+            /* If there's something left, log, check line content and sort */
             if (len(str) > 0) {
                 logger.Print(str)
                 switch (get_content_type(str)){
