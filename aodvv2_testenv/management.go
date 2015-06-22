@@ -3,14 +3,18 @@ package main
 import (
     "bufio"
     "fmt"
+    "encoding/json"
+    "log"
     "net"
     "os"
     "os/exec"
+    "reflect"
     "regexp"
     "sort"
     "strings"
     "strconv"
     "sync"
+    "time"
 )
 
 /* content_type */
@@ -18,6 +22,9 @@ const (
     CONTENT_TYPE_JSON = iota
     CONTENT_TYPE_OTHER = iota
 )
+
+/* better safe than sorry */
+const CHAN_BUF_SIZE = 500
 
 /* All channels for communication of a RIOT node */
 type stream_channels struct {
@@ -46,6 +53,7 @@ func check(e error) {
 
 /* Figure out the type of the content of a string */
 func get_content_type(str string) int {
+    //fmt.Printf("x%sx\n", str)
     if strings.HasPrefix(str, "{") {
         return CONTENT_TYPE_JSON
     }
@@ -58,6 +66,16 @@ func setup_network() {
     out, err := exec.Command("bash","../mgmt.sh").Output()
     fmt.Printf("Output:\n%s\nErrors:\n%s\n", out, err)
     fmt.Println("done.")
+}
+
+/* Create the log directory for experiment experiment_name and return the path towards it */
+func setup_logdir_path(experiment_name string) string {
+    t := time.Now()
+    logdir_path := fmt.Sprintf("./logs/%s_%s", t.Format("02:Jan:06_15:04_MST"), experiment_name)
+    err := os.Mkdir(logdir_path, 0776)
+    check(err)
+
+    return logdir_path
 }
 
 /* load port numbers, sorted by position, from the ports.info file behind path into info. */
@@ -111,21 +129,24 @@ func load_position_port_info_line(path string) (info []riot_info) {
 
 /* Sort every line which arrives through reader onto one of the channels from
  * s, depending on the line's content. */
-func (s stream_channels) sort_stream(reader *bufio.Reader) {
+func (s stream_channels) sort_stream(conn *net.Conn, logger *log.Logger) {
+    reader := bufio.NewReader(*conn)
+
     for {
         str, err := reader.ReadString('\n')
         check(err)
 
         if len(str)>0 {
             if strings.HasPrefix(str, ">") {
-                /* end of a shell command execution, create clean newline */
-                s.rcv_other <- ">\n"
-                /* remove > from str*/
-                str = str[1:]
-            }
 
+                /* end of a shell command execution, create clean newline */
+                //s.rcv_other <- ">\n"
+                /* remove > from str*/
+                str = strings.TrimPrefix(str, "> ")
+            }
             /* If there's something left, check line content and sort */
             if (len(str) > 0) {
+                logger.Print(str)
                 switch (get_content_type(str)){
                 case CONTENT_TYPE_JSON:
                     /* this line contains a JSON */
@@ -139,23 +160,67 @@ func (s stream_channels) sort_stream(reader *bufio.Reader) {
     }
 }
 
-/* Goroutine at place index in the line which takes care of the RIOT behind port */
-func crank_this_mofo_up(index int, port int, wg *sync.WaitGroup) {
-    conn, err := net.Dial("tcp", fmt.Sprint("localhost:",port))
+/* Send a command to the RIOT behind stream_channels. */
+func (s stream_channels) send (command string) {
+    s.snd <- command
+}
+
+/* Look for string matching exp in the channels (TODO: actually use JSON) */
+func (s stream_channels) expect_JSON (json_str string) {
+    expected := make(map[string]interface{})
+    received := make(map[string]interface{})
+
+    err := json.Unmarshal([]byte(json_str), &expected)
     check(err)
 
+    for {
+        received_str := <- s.rcv_json
+
+        err := json.Unmarshal([]byte(received_str), &received)
+        check(err)
+
+        if reflect.DeepEqual(expected, received) {
+            return
+        }
+    }
+}
+
+/* Look for string matching exp in the channels (TODO: use regex) */
+func (s stream_channels) expect_other (exp string) {
+    for {
+        content := <- s.rcv_other
+        if content == exp {
+            fmt.Println(exp)
+            return
+        }
+    }
+}
+
+/* Goroutine at place index in the line which takes care of the RIOT behind port */
+func control_riot(index int, port int, wg *sync.WaitGroup, logdir_path string) {
+    logfile_path := fmt.Sprintf("%s/riot_%d_port_%d.log", logdir_path, index, port)
+    logfile, err := os.Create(logfile_path)
+    check(err)
+    defer logfile.Close()
+
+    logger := log.New(logfile, "", log.Lshortfile)
+
+    conn, err := net.Dial("tcp", fmt.Sprint("localhost:",port))
+    check(err)
+    defer conn.Close()
+
     /* create channels and add them to the info about this thread stored in riot_line*/
-    send_chan  := make(chan string) /* messages from the main routine */
-    json_chan  := make(chan string) /* JSON messages from the RIOT */
-    other_chan := make(chan string) /* other messages from the RIOT */
+    send_chan  := make(chan string, CHAN_BUF_SIZE) /* messages from the main routine */
+    json_chan  := make(chan string, CHAN_BUF_SIZE) /* JSON messages from the RIOT */
+    other_chan := make(chan string, CHAN_BUF_SIZE) /* other messages from the RIOT */
     channels   := stream_channels{rcv_json: json_chan, rcv_other: other_chan, snd: send_chan}
     riot_line[index].channels = channels
 
     /*sort that stuff out*/
-    connbuf := bufio.NewReader(conn)
-    go channels.sort_stream(connbuf)
+    go channels.sort_stream(&conn, logger)
 
-    conn.Write([]byte("ifconfig\n"))
+    _, err = conn.Write([]byte("ifconfig\n"))
+    check(err)
 
     fmt.Println(port,"/",index,": getting my IP...")
     /* find my IP address in the output */
@@ -178,61 +243,28 @@ func crank_this_mofo_up(index int, port int, wg *sync.WaitGroup) {
      * (just assume every message from main is a command for now) */
     for {
         message := <- send_chan
+
+        /*
         if !strings.HasSuffix(message, "\n") {
-            /* make sure command ends with a newline */
-            fmt.Sprint(message, "\n")
-        }
+            // make sure command ends with a newline
+            message = fmt.Sprint(message, "\n")
+        }*/
 
-        conn.Write([]byte(message))
-    }
-}
-
-/* Send a command to the RIOT behind stream_channels. */
-func (s stream_channels) send (command string) {
-    s.snd <- command
-}
-
-/* Look for string matching exp in the channels (TODO: actually use JSON) */
-func (s stream_channels) expect_JSON (json_str string) {
-    /*
-    var expected Message
-    var received Message
-
-    err := json.Unmarshal([]byte(json_str), &expected)
-    check(err)
-
-    for {
-        received_str := <- s.rcv_json
-        err := json.Unmarshal([]byte(json_str), &expected)
+        logger.Print(message)
+        _, err := conn.Write([]byte(message))
         check(err)
-
-        if reflect.DeepEqual(expected, received) {
-            fmt.Println(json_str)
-            return
-        }
-    }
-    */
-}
-
-/* Look for string matching exp in the channels (TODO: use regex) */
-func (s stream_channels) expect_other (exp string) {
-    for {
-        content := <- s.rcv_other
-        if content == exp {
-            fmt.Println(exp)
-            return
-        }
     }
 }
 
-func connect_to_RIOTs() {
+/* Set up connections to all RIOTs  */
+func connect_to_RIOTs(logdir_path string) {
     riot_line = load_position_port_info_line(desvirt_path)
 
     var wg sync.WaitGroup
     wg.Add(len(riot_line))
 
     for index, elem := range riot_line {
-        go crank_this_mofo_up(index, elem.port, &wg)
+        go control_riot(index, elem.port, &wg, logdir_path)
     }
 
     /* wait for all goroutines to finish setup before we go on */
@@ -240,14 +272,18 @@ func connect_to_RIOTs() {
 }
 
 func start_experiments() {
+    fmt.Println("Setting up clean RIOTs...")
+    //setup_network()
+    logdir_path := setup_logdir_path("testtest")
+    connect_to_RIOTs(logdir_path)
+
     fmt.Println("starting experiments...")
     beginning := riot_line[0]
-    beginning.channels.send("hlp\n")
-    beginning.channels.expect_other("hlp\n")
+
+    beginning.channels.send("{\"foo\":3}\n\n")
+    beginning.channels.expect_JSON("{\"foo\":3}\n\n")
 }
 
 func main() {
-    //setup_network()
-    connect_to_RIOTs()
     start_experiments()
 }
