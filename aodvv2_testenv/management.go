@@ -53,8 +53,10 @@ func check(e error) {
 
 /* Figure out the type of the content of a string */
 func get_content_type(str string) int {
-    //fmt.Printf("x%sx\n", str)
-    if strings.HasPrefix(str, "{") {
+    json_template := make(map[string]interface{})
+    err := json.Unmarshal([]byte(str), &json_template)
+
+    if err == nil {
         return CONTENT_TYPE_JSON
     }
     return CONTENT_TYPE_OTHER
