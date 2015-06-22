@@ -168,17 +168,18 @@ func (s stream_channels) send (command string) {
 }
 
 /* Look for string matching exp in the channels (TODO: actually use JSON) */
-func (s stream_channels) expect_JSON (json_str string) {
+func (s stream_channels) expect_JSON (expected_str string) {
     expected := make(map[string]interface{})
     received := make(map[string]interface{})
 
-    err := json.Unmarshal([]byte(json_str), &expected)
+    err := json.Unmarshal([]byte(expected_str), &expected)
     check(err)
 
     for {
         received_str := <- s.rcv_json
 
         err := json.Unmarshal([]byte(received_str), &received)
+        fmt.Println("expected: %s\nreceived: %s\n", expected_str, received_str)
         check(err)
 
         if reflect.DeepEqual(expected, received) {
