@@ -244,11 +244,11 @@ func control_riot(index int, port int, wg *sync.WaitGroup, logdir_path string) {
     for {
         message := <- send_chan
 
-        /*
+
         if !strings.HasSuffix(message, "\n") {
             // make sure command ends with a newline
             message = fmt.Sprint(message, "\n")
-        }*/
+        }
 
         logger.Print(message)
         _, err := conn.Write([]byte(message))
@@ -273,15 +273,15 @@ func connect_to_RIOTs(logdir_path string) {
 
 func start_experiments() {
     fmt.Println("Setting up clean RIOTs...")
-    //setup_network()
+    setup_network()
     logdir_path := setup_logdir_path("testtest")
     connect_to_RIOTs(logdir_path)
 
     fmt.Println("starting experiments...")
     beginning := riot_line[0]
 
-    beginning.channels.send("{\"foo\":3}\n\n")
-    beginning.channels.expect_JSON("{\"foo\":3}\n\n")
+    beginning.channels.send("{\"foo\":3}")
+    beginning.channels.expect_JSON("{\"foo\":3}\n")
 }
 
 func main() {
