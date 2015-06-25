@@ -51,6 +51,14 @@ func check(e error) {
     }
 }
 
+func check_str(s string, e error) {
+    if e != nil {
+        fmt.Println("OMG EVERYBODY PANIC")
+        fmt.Println("Offending string: ", s)
+        panic(e)
+    }
+}
+
 /* Figure out the type of the content of a string */
 func get_content_type(str string) int {
     json_template := make(map[string]interface{})
@@ -136,7 +144,7 @@ func (s stream_channels) sort_stream(conn *net.Conn, logger *log.Logger) {
 
     for {
         str, err := reader.ReadString('\n')
-        check(err)
+        check_str(str, err)
 
         if len(str)>0 {
             if strings.HasPrefix(str, ">") {
@@ -167,7 +175,7 @@ func (s stream_channels) send (command string) {
     s.snd <- command
 }
 
-/* Look for string matching exp in the channels (TODO: actually use JSON) */
+/* Look for string matching exp in the channels */
 func (s stream_channels) expect_JSON (expected_str string) {
     expected := make(map[string]interface{})
     received := make(map[string]interface{})
@@ -179,7 +187,7 @@ func (s stream_channels) expect_JSON (expected_str string) {
         received_str := <- s.rcv_json
 
         err := json.Unmarshal([]byte(received_str), &received)
-        fmt.Println("expected: %s\nreceived: %s\n", expected_str, received_str)
+        fmt.Printf("expected: %s\nreceived: %s\n", expected_str, received_str)
         check(err)
 
         if reflect.DeepEqual(expected, received) {
@@ -274,19 +282,112 @@ func connect_to_RIOTs(logdir_path string) {
     wg.Wait()
 }
 
-func start_experiments() {
-    fmt.Println("Setting up clean RIOTs...")
+/* create a clean slate: restart all RIOTs and set up logging identifiable by
+ * experiment_id. */
+func create_clean_setup(experiment_id string) {
+    fmt.Println("Setting up clean RIOTs for ", experiment_id)
     setup_network()
-    logdir_path := setup_logdir_path("testtest")
+    logdir_path := setup_logdir_path(experiment_id)
     connect_to_RIOTs(logdir_path)
+    fmt.Println("Setup done.")
+}
 
-    fmt.Println("starting experiments...")
+func test_route_creation_0_to_3() {
+    /* route states */
+    const
+    (
+        ROUTE_STATE_ACTIVE = iota
+        ROUTE_STATE_IDLE = iota
+        ROUTE_STATE_INVALID = iota
+        ROUTE_STATE_TIMED = iota
+    )
+    const test_string = "xoxotesttest"
+    const json_template_sent_rreq = "{\"log_type\": \"sent_rreq\", \"log_data\": {\"orig_addr\": \"%s\", \"targ_addr\": \"%s\", \"seqnum\": %d, \"metric\": %d}}"
+    const json_template_received_rreq = "{\"log_type\": \"received_rreq\", \"log_data\":{\"last_hop\": \"%s\", \"orig_addr\": \"%s\", \"targ_addr\": \"%s\", \"orig_addr_seqnum\": %d, \"metric\": %d}}"
+    const json_template_sent_rrep = "{\"log_type\": \"sent_rrep\", \"log_data\": {\"next_hop\": \"%s\",\"orig_addr\": \"%s\", \"orig_addr_seqnum\": %d, \"targ_addr\": \"%s\"}}"
+    const json_template_received_rrep = "{\"log_type\": \"received_rrep\", \"log_data\":{\"last_hop\": \"%s\", \"orig_addr\": \"%s\", \"orig_addr_seqnum\": %d, \"targ_addr\": \"%s\"}}"
+    const json_template_added_rt_entry = "{\"log_type\": \"added_rt_entry\", \"log_data\": {\"addr\": \"%s\", \"next_hop\": \"%s\", \"seqnum\": %d, \"metric\": %d, \"state\": %d}}"
+
+
+    create_clean_setup("testtest")
+
+    fmt.Println("topology: ",riot_line)
+
+    fmt.Println("Starting experiment...")
+
     beginning := riot_line[0]
+    end := riot_line[len(riot_line)-1]
 
-    beginning.channels.send("{\"foo\":3}")
-    beginning.channels.expect_JSON("{\"foo\":3}\n")
+    beginning.channels.send(fmt.Sprintf("send %s %s\n", end.ip, test_string))
+
+    /* Discover route...  */
+    expected_json := fmt.Sprintf(json_template_sent_rreq, beginning.ip, end.ip, 1, 0)
+    beginning.channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    expected_json = fmt.Sprintf(json_template_received_rreq, beginning.ip, beginning.ip, end.ip, 1, 0)
+    riot_line[1].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json = fmt.Sprintf(json_template_added_rt_entry, beginning.ip, beginning.ip, 1, 1, ROUTE_STATE_ACTIVE)
+    riot_line[1].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json = fmt.Sprintf(json_template_sent_rreq, beginning.ip, end.ip, 1, 1)
+    riot_line[1].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    expected_json = fmt.Sprintf(json_template_received_rreq, riot_line[1].ip, beginning.ip, end.ip, 1, 1)
+    riot_line[2].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json = fmt.Sprintf(json_template_added_rt_entry, beginning.ip, riot_line[1].ip, 1, 2, ROUTE_STATE_ACTIVE)
+    riot_line[2].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json = fmt.Sprintf(json_template_sent_rreq, beginning.ip, end.ip, 1, 2)
+    riot_line[2].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    expected_json = fmt.Sprintf(json_template_received_rreq, riot_line[2].ip, beginning.ip, end.ip, 1, 2)
+    end.channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json = fmt.Sprintf(json_template_added_rt_entry, beginning.ip, riot_line[2].ip, 1, 3, ROUTE_STATE_ACTIVE)
+    end.channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    /* And send a RREP back */
+    /* NOTE: added_rt_entry isn't checked on the was back yet because apparently
+     * weird RREQs are sent out before the experiment, screwing up the targaddr seqnum
+     * and I haven't figured out why yet. TODO FIXME */
+    expected_json = fmt.Sprintf(json_template_sent_rrep, riot_line[2].ip, beginning.ip, 1, end.ip)
+    end.channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    expected_json= fmt.Sprintf(json_template_received_rrep, end.ip, beginning.ip, 1, end.ip)
+    riot_line[2].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json= fmt.Sprintf(json_template_sent_rrep, riot_line[1].ip, beginning.ip, 1, end.ip)
+    riot_line[2].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    expected_json= fmt.Sprintf(json_template_received_rrep, riot_line[2].ip, beginning.ip, 1, end.ip)
+    riot_line[1].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+    expected_json= fmt.Sprintf(json_template_sent_rrep, beginning.ip, beginning.ip, 1, end.ip)
+    riot_line[1].channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    expected_json= fmt.Sprintf(json_template_received_rrep, riot_line[1].ip, beginning.ip, 1, end.ip)
+    fmt.Print(".")
+    end.channels.expect_JSON(expected_json)
+    fmt.Print(".")
+
+    //TODO: defer dump channels
+    fmt.Println("Done.")
+}
+
+func start_experiments() {
+    /* TODO: move this to dedicated test file */
+    test_route_creation_0_to_3()
 }
 
 func main() {
+    //TODO: build fresh RIOT image
     start_experiments()
 }
