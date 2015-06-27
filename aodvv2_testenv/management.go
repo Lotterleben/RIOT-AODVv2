@@ -187,7 +187,7 @@ func (s stream_channels) expect_JSON (expected_str string) {
         received_str := <- s.rcv_json
 
         err := json.Unmarshal([]byte(received_str), &received)
-        fmt.Printf("expected: %s\nreceived: %s\n", expected_str, received_str)
+        //fmt.Printf("expected: %s\nreceived: %s\n", expected_str, received_str)
         check(err)
 
         if reflect.DeepEqual(expected, received) {
@@ -308,20 +308,19 @@ func test_route_creation_0_to_3() {
     const json_template_received_rrep = "{\"log_type\": \"received_rrep\", \"log_data\":{\"last_hop\": \"%s\", \"orig_addr\": \"%s\", \"orig_addr_seqnum\": %d, \"targ_addr\": \"%s\"}}"
     const json_template_added_rt_entry = "{\"log_type\": \"added_rt_entry\", \"log_data\": {\"addr\": \"%s\", \"next_hop\": \"%s\", \"seqnum\": %d, \"metric\": %d, \"state\": %d}}"
 
-
     create_clean_setup("testtest")
 
-    fmt.Println("topology: ",riot_line)
-
-    fmt.Println("Starting experiment...")
+    fmt.Println("Starting test...")
 
     beginning := riot_line[0]
     end := riot_line[len(riot_line)-1]
 
     beginning.channels.send(fmt.Sprintf("send %s %s\n", end.ip, test_string))
+    fmt.Print(".")
 
     /* Discover route...  */
     expected_json := fmt.Sprintf(json_template_sent_rreq, beginning.ip, end.ip, 1, 0)
+    fmt.Print(".")
     beginning.channels.expect_JSON(expected_json)
     fmt.Print(".")
 
@@ -374,12 +373,11 @@ func test_route_creation_0_to_3() {
     fmt.Print(".")
 
     expected_json= fmt.Sprintf(json_template_received_rrep, riot_line[1].ip, beginning.ip, 1, end.ip)
-    fmt.Print(".")
-    end.channels.expect_JSON(expected_json)
+    beginning.channels.expect_JSON(expected_json)
     fmt.Print(".")
 
     //TODO: defer dump channels
-    fmt.Println("Done.")
+    fmt.Println("\nDone.")
 }
 
 func start_experiments() {
