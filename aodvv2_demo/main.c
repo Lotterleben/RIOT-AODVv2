@@ -40,8 +40,8 @@ char _rcv_stack_buf[THREAD_STACKSIZE_MAIN];
 
 
 /* init our network stack */
+/*
 int init_network(void) {
-    /** We take the first available IF */
     kernel_pid_t ifs[NG_NETIF_NUMOF];
     size_t numof = ng_netif_get(ifs);
     if(numof <= 0) {
@@ -49,12 +49,10 @@ int init_network(void) {
     }
 
 #ifndef BOARD_NATIVE
-    /** We set our channel */
     uint16_t data = 17;
     if (ng_netapi_set(ifs[0], NETCONF_OPT_CHANNEL, 0, &data, sizeof(uint16_t)) < 0) {
         return 1;
     }
-    /** We set our pan ID */
     data = 0xabcd;
     if (ng_netapi_set(ifs[0], NETCONF_OPT_NID, 0, &data, sizeof(uint16_t)) < 0) {
         return 1;
@@ -74,31 +72,43 @@ int init_network(void) {
         return 1;
     }
 
+
     aodv_init();
 
     return 0;
 }
-
-/**
-    M. BEGIN STOLEN FROM:
-    examples/ng_networking/udp.c:34 - :90
 */
-static void send(ng_ipv6_addr_t addr, uint16_t port, void *data, size_t data_length)
+
+static void send(char *addr_str, char *port_str, char *data)
 {
+    uint8_t port[2];
+    uint16_t tmp;
     ng_pktsnip_t *payload, *udp, *ip;
+    ng_ipv6_addr_t addr;
     ng_netreg_entry_t *sendto;
 
-    /* convert to correct byteorder */
-    port = HTONS(port);
+    /* parse destination address */
+    if (ng_ipv6_addr_from_str(&addr, addr_str) == NULL) {
+        puts("Error: unable to parse destination address");
+        return;
+    }
+    /* parse port */
+    tmp = (uint16_t)atoi(port_str);
+    if (tmp == 0) {
+        puts("Error: unable to parse destination port");
+        return;
+    }
+    port[0] = (uint8_t)tmp;
+    port[1] = tmp >> 8;
 
     /* allocate payload */
-    payload = ng_pktbuf_add(NULL, data, data_length, NG_NETTYPE_UNDEF);
+    payload = ng_pktbuf_add(NULL, data, strlen(data), NG_NETTYPE_UNDEF);
     if (payload == NULL) {
         puts("Error: unable to copy data to packet buffer");
         return;
     }
-    /* allocate UDP header, set source port := destination port TODO is this such a good idea?? */
-    udp = ng_udp_hdr_build(payload, (uint8_t*)&port, 2, (uint8_t*)&port, 2);
+    /* allocate UDP header, set source port := destination port */
+    udp = ng_udp_hdr_build(payload, port, 2, port, 2);
     if (udp == NULL) {
         puts("Error: unable to allocate UDP header");
         ng_pktbuf_release(payload);
@@ -124,11 +134,8 @@ static void send(ng_ipv6_addr_t addr, uint16_t port, void *data, size_t data_len
         ng_netapi_send(sendto->pid, ip);
         sendto = ng_netreg_getnext(sendto);
     }
+    printf("Success: send %i byte to %s:%u\n", payload->size, addr_str, tmp);
 }
-/**
-    M. END STOLEN FROM:
-    examples/ng_networking/udp.c:34 - :90
-*/
 
 
 int demo_send(int argc, char** argv)
@@ -138,20 +145,24 @@ int demo_send(int argc, char** argv)
         return 1;
     }
 
+    /*
     char* dest_str = argv[1] ;
     char* msg = argv[2];
+
+
     ng_ipv6_addr_t ng_addr;
 
-    /* turn dest_str into ng_ipv6_addr_t */
     ng_ipv6_addr_from_str(&ng_addr, dest_str);
-    int msg_len = strlen(msg)+1;
-
+    int msg_len = strlen(msg);//+1;
     printf("[demo]   sending packet of %i bytes towards %s...\n", msg_len, dest_str);
-    send(ng_addr, RANDOM_PORT, msg, msg_len);
+
+    */
+    send(argv[1], "1234", argv[2]);
 
     return 0;
 }
 
+/*
 static void *_demo_receiver_thread(void *arg)
 {
     (void) arg;
@@ -168,8 +179,8 @@ static void *_demo_receiver_thread(void *arg)
     reply.content.value = (uint32_t)(-ENOTSUP);
     reply.type = NG_NETAPI_MSG_TYPE_ACK;
 
-    /* start server (which means registering AODVv2 receiver for the chosen port) */
-    server.pid = sched_active_pid; /* sched_active_pid is our pid, since we are currently act */
+    // start server (which means registering AODVv2 receiver for the chosen port)
+    server.pid = sched_active_pid; // sched_active_pid is our pid, since we are currently act
     server.demux_ctx = (uint32_t)HTONS(RANDOM_PORT);
     ng_netreg_register(NG_NETTYPE_UDP, &server);
 
@@ -198,6 +209,7 @@ static void *_demo_receiver_thread(void *arg)
 
     return NULL;
 }
+*/
 
 
 const shell_command_t shell_commands[] = {
@@ -207,10 +219,9 @@ const shell_command_t shell_commands[] = {
 
 int main(void)
 {
-    if (init_network() != 0) {
-        return -1;
-    }
-    thread_create(_rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
+    aodv_init();
+
+    //thread_create(_rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
     /* TODO Do I still need this? */
     posix_open(uart0_handler_pid, 0);
