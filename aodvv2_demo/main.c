@@ -1,53 +1,135 @@
+/*
+ * Copyright (C) 2015
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
+/**
+ * @ingroup     examples
+ * @{
+ *
+ * @file
+ * @brief
+ *
+ * @author Martin Landsmann <Martin.Landsmann@HAW-Hamburg.de>
+ * @author Lotte Steenbrink <lotte.steenbrink@haw-hamburg.de>
+ *
+ * @}
+ */
+
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h> // for getting the pid
-#include <inet_pton.h>
-#include <time.h>
-#include <stdlib.h>
-
-#include "thread.h"
-#include "posix_io.h"
+#include "net/ng_ipv6.h"
+#include "net/ng_netbase.h"
+#include "net/ng_netif.h"
+#include "net/ng_udp.h"
+#include "net/ng_pkt.h"
 #include "shell.h"
-#include "shell_commands.h"
+#include "transceiver.h"
 #include "board_uart0.h"
-#include "udp.h"
-#include "net_help.h"
-
-#include "kernel.h"
-#include <config.h>
+#include "posix_io.h"
 
 #include "aodvv2/aodvv2.h"
-#include "routingtable.h"
-
-#define ENABLE_DEBUG (1)
-#include "debug.h"
 
 #define RANDOM_PORT         (1337)
-#define UDP_BUFFER_SIZE     (128)
-#define RCV_MSG_Q_SIZE      (64)
-#define DATA_SIZE           (20)
-#define STREAM_INTERVAL     (2000000)     // microseconds
-#define NUM_PKTS            (100)
+#define UDP_BUFFER_SIZE     (128) /** with respect to IEEE 802.15.4's MTU */
+#define RCV_MSG_Q_SIZE      (32)  /* TODO: check if smaller values work, too */
 
-// constants from the AODVv2 Draft, version 03
-#define DISCOVERY_ATTEMPTS_MAX (1) //(3)
-#define RREQ_WAIT_TIME         (2000000) // microseconds = 2 seconds
-
-int demo_attempt_to_send(char* dest_str, char* msg);
-
-static int _sock_snd, if_id;
-static sockaddr6_t _sockaddr;
-static ipv6_addr_t prefix;
-
-msg_t msg_q[RCV_MSG_Q_SIZE];
-static char addr_str[IPV6_MAX_ADDR_STR_LEN];
 char _rcv_stack_buf[THREAD_STACKSIZE_MAIN];
-timex_t _now;
 
-uint16_t get_hw_addr(void)
-{
-    return sysconfig.id;
+
+/* init our network stack */
+int init_network(void) {
+    /** We take the first available IF */
+    kernel_pid_t ifs[NG_NETIF_NUMOF];
+    size_t numof = ng_netif_get(ifs);
+    if(numof <= 0) {
+        return 1;
+    }
+
+#ifndef BOARD_NATIVE
+    /** We set our channel */
+    uint16_t data = 17;
+    if (ng_netapi_set(ifs[0], NETCONF_OPT_CHANNEL, 0, &data, sizeof(uint16_t)) < 0) {
+        return 1;
+    }
+    /** We set our pan ID */
+    data = 0xabcd;
+    if (ng_netapi_set(ifs[0], NETCONF_OPT_NID, 0, &data, sizeof(uint16_t)) < 0) {
+        return 1;
+    }
+#endif
+
+    ng_ipv6_addr_t addr;
+    uint8_t prefix_len = 128;
+    char* addr_str = "2001::1234";
+    if (ng_ipv6_addr_from_str(&addr, addr_str) == NULL) {
+        puts("error: unable to parse IPv6 address.");
+        return 1;
+    }
+
+    if (ng_ipv6_netif_add_addr(ifs[0], &addr, prefix_len, NG_IPV6_NETIF_ADDR_FLAGS_UNICAST) == NULL) {
+        puts("error: unable to add IPv6 address\n");
+        return 1;
+    }
+
+    aodv_init();
+
+    return 0;
 }
+
+/**
+    M. BEGIN STOLEN FROM:
+    examples/ng_networking/udp.c:34 - :90
+*/
+static void send(ng_ipv6_addr_t addr, uint16_t port, void *data, size_t data_length)
+{
+    ng_pktsnip_t *payload, *udp, *ip;
+    ng_netreg_entry_t *sendto;
+
+    /* convert to correct byteorder */
+    port = HTONS(port);
+
+    /* allocate payload */
+    payload = ng_pktbuf_add(NULL, data, data_length, NG_NETTYPE_UNDEF);
+    if (payload == NULL) {
+        puts("Error: unable to copy data to packet buffer");
+        return;
+    }
+    /* allocate UDP header, set source port := destination port TODO is this such a good idea?? */
+    udp = ng_udp_hdr_build(payload, (uint8_t*)&port, 2, (uint8_t*)&port, 2);
+    if (udp == NULL) {
+        puts("Error: unable to allocate UDP header");
+        ng_pktbuf_release(payload);
+        return;
+    }
+    /* allocate IPv6 header */
+    ip = ng_ipv6_hdr_build(udp, NULL, 0, (uint8_t *)&addr, sizeof(addr));
+    if (ip == NULL) {
+        puts("Error: unable to allocate IPv6 header");
+        ng_pktbuf_release(udp);
+        return;
+    }
+    /* send packet */
+    sendto = ng_netreg_lookup(NG_NETTYPE_UDP, NG_NETREG_DEMUX_CTX_ALL);
+    if (sendto == NULL) {
+        puts("Error: unable to locate UDP thread");
+        ng_pktbuf_release(ip);
+        return;
+    }
+    ng_pktbuf_hold(ip, ng_netreg_num(NG_NETTYPE_UDP,
+                                     NG_NETREG_DEMUX_CTX_ALL) - 1);
+    while (sendto != NULL) {
+        ng_netapi_send(sendto->pid, ip);
+        sendto = ng_netreg_getnext(sendto);
+    }
+}
+/**
+    M. END STOLEN FROM:
+    examples/ng_networking/udp.c:34 - :90
+*/
+
 
 int demo_send(int argc, char** argv)
 {
@@ -58,262 +140,79 @@ int demo_send(int argc, char** argv)
 
     char* dest_str = argv[1] ;
     char* msg = argv[2];
+    ng_ipv6_addr_t ng_addr;
 
-    return demo_attempt_to_send(dest_str, msg);
-}
-
-/*
-    Send a random 20-byte chunk of data to the address supplied by the user
-*/
-int demo_send_data(int argc, char** argv)
-{
-    if (argc != 2) {
-        printf("Usage: send_data <destination ip>\n");
-        return 1;
-    }
-
-    return demo_attempt_to_send(argv[1], "This is a test");
-}
-
-int  demo_send_stream(int argc, char** argv)
-{
-    if (argc != 2) {
-        printf("Usage: send_stream <destination ip>\n");
-        return 1;
-    }
-
-    char* dest_str = argv[1];
-
-    int msg_size = sizeof(char)*81;
-    char* msg = (char*) malloc(msg_size);
-
-    memset(msg, 'a', msg_size);
-    msg[msg_size - 1] = '\0';
-
-    /* TODO un-uncomment me
-    if (demo_attempt_to_send(dest_str, msg) < 0 ){
-        printf("[demo]   No route found, can't stream data.\n");
-        return;
-    }
-    */
-    inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
+    /* turn dest_str into ng_ipv6_addr_t */
+    ng_ipv6_addr_from_str(&ng_addr, dest_str);
     int msg_len = strlen(msg)+1;
 
-    vtimer_now(&_now);
-    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending stream of %i bytes...\n", _now.seconds, _now.microseconds, sizeof(msg) * strlen(msg));
-
-    for (int i=0; i < NUM_PKTS; i++) {
-        vtimer_now(&_now);
-
-        printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", _now.seconds, _now.microseconds, msg_len, dest_str);
-
-        socket_base_sendto(_sock_snd, msg, msg_len, 0, &_sockaddr, sizeof _sockaddr);
-
-        vtimer_usleep(STREAM_INTERVAL);
-        printf("%i\n", i);
-    }
-    free(msg);
+    printf("[demo]   sending packet of %i bytes towards %s...\n", msg_len, dest_str);
+    send(ng_addr, RANDOM_PORT, msg, msg_len);
 
     return 0;
-}
-
-/*
-    Help emulate a functional NDP implementation (this should be called by every
-    neighbor of a node that was shut down with demo_exit())
-*/
-int demo_remove_neighbor(int argc, char** argv)
-{
-    if (argc != 2) {
-        printf("Usage: rm_neighbor <destination ip>\n");
-        return 1;
-    }
-    ipv6_addr_t neighbor;
-    ndp_neighbor_cache_t* nc_entry;
-    inet_pton(AF_INET6, argv[1], &neighbor);
-    nc_entry = ndp_neighbor_cache_search(&neighbor);
-    if (nc_entry) {
-        nc_entry->state = NDP_NCE_STATUS_INCOMPLETE;
-        printf("[demo] neighbor removed.\n");
-        return 0;
-    }
-    else {
-        printf("[demo] couldn't remove neighbor.\n");
-        return 1;
-    }
-}
-
-/*
-    Help emulate a functional NDP implementation (this should be called for every
-    neighbor of the node on the grid)
-*/
-int demo_add_neighbor(int argc, char** argv)
-{
-    if (argc != 3) {
-        printf("Usage: add_neighbor <neighbor ip> <neighbor ll-addr>\n");
-        return 1;
-    }
-
-    net_if_eui64_t eut_eui64;
-    ipv6_addr_t neighbor;
-    inet_pton(AF_INET6, argv[1], &neighbor);
-
-    // only add neighbor if it's not already in Cache
-    if (ndp_neighbor_cache_search(&neighbor)!= NULL){
-        printf("IP %s already in Neighbor Cache, lladdr-len:%i\n", ipv6_addr_to_str(addr_str, IPV6_MAX_ADDR_STR_LEN, &neighbor), ndp_neighbor_cache_search(&neighbor)->lladdr_len);
-        return 1;
-    }
-
-    /* convert & flip */
-    memcpy(&eut_eui64, &neighbor.uint8[8], 8);
-    eut_eui64.uint8[0] ^= 0x02;
-
-    int res = ndp_neighbor_cache_add(0, &neighbor, &neighbor.uint16[7], 2, 0, NDP_NCE_STATUS_REACHABLE,
-                                  NDP_NCE_TYPE_TENTATIVE, 0xffff);
-
-    if(0 == res) {
-        printf("neighbor added.\n");
-        return 0;
-    }
-    return 1;
-}
-
-int demo_exit(int argc, char** argv)
-{
-    (void)argc;
-    (void)argv;
-    exit(0);
-    return 0;
-}
-
-int demo_attempt_to_send(char* dest_str, char* msg)
-{
-    uint8_t num_attempts = 0;
-
-    // turn dest_str into ipv6_addr_t
-    inet_pton(AF_INET6, dest_str, &_sockaddr.sin6_addr);
-    int msg_len = strlen(msg)+1;
-
-    vtimer_now(&_now);
-    printf("{%" PRIu32 ":%" PRIu32 "}[demo]   sending packet of %i bytes towards %s...\n", _now.seconds, _now.microseconds, msg_len, dest_str);
-
-    while(num_attempts < DISCOVERY_ATTEMPTS_MAX) {
-        int bytes_sent = socket_base_sendto(_sock_snd, msg, msg_len,
-                                                0, &_sockaddr, sizeof _sockaddr);
-
-        vtimer_now(&_now);
-        if (bytes_sent == -1) {
-            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   no bytes sent, probably because there is no route yet.\n", _now.seconds, _now.microseconds);
-            num_attempts++;
-            vtimer_usleep(RREQ_WAIT_TIME);
-        }
-        else {
-            printf("{%" PRIu32 ":%" PRIu32 "}[demo]   Success sending Data: %d bytes sent.\n", _now.seconds, _now.microseconds, bytes_sent);
-            return 0;
-        }
-    }
-    //printf("{%" PRIu32 ":%" PRIu32 "}[demo]  Error sending Data: no route found\n", _now.seconds, _now.microseconds);
-    return -1;
-}
-
-int demo_print_routingtable(int argc, char** argv)
-{
-    (void)argc;
-    (void)argv;
-    print_routingtable();
-    return 0;
-}
-
-static void _demo_init_socket(void)
-{
-    _sockaddr.sin6_family = AF_INET6;
-    _sockaddr.sin6_port = HTONS(RANDOM_PORT);
-
-    _sock_snd = socket_base_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
-    if(-1 == _sock_snd) {
-        printf("[demo]   Error Creating Socket!\n");
-        return;
-    }
 }
 
 static void *_demo_receiver_thread(void *arg)
 {
-    (void)arg;
+    (void) arg;
+    ng_netreg_entry_t server = {
+        .next = NULL,
+        .demux_ctx = NG_NETREG_DEMUX_CTX_ALL,
+        .pid = KERNEL_PID_UNDEF };
 
-    uint32_t fromlen;
-    int32_t rcv_size;
-    char buf_rcv[UDP_BUFFER_SIZE];
-    char addr_str_rec[IPV6_MAX_ADDR_STR_LEN];
-    msg_t rcv_msg_q[RCV_MSG_Q_SIZE];
+    msg_t msg, reply;
+    msg_t msg_q[RCV_MSG_Q_SIZE];
 
+    msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
 
-    timex_t _now2;
+    reply.content.value = (uint32_t)(-ENOTSUP);
+    reply.type = NG_NETAPI_MSG_TYPE_ACK;
 
-    msg_init_queue(rcv_msg_q, RCV_MSG_Q_SIZE);
+    /* start server (which means registering AODVv2 receiver for the chosen port) */
+    server.pid = sched_active_pid; /* sched_active_pid is our pid, since we are currently act */
+    server.demux_ctx = (uint32_t)HTONS(RANDOM_PORT);
+    ng_netreg_register(NG_NETTYPE_UDP, &server);
 
-    sockaddr6_t sa_rcv = { .sin6_family = AF_INET6,
-                           .sin6_port = HTONS(RANDOM_PORT) };
+    ng_pktsnip_t *pkt;
 
-    int sock_rcv = socket_base_socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    while (1) {
+        msg_receive(&msg);
 
-    if (-1 == socket_base_bind(sock_rcv, &sa_rcv, sizeof(sa_rcv))) {
-        DEBUG("[demo]   Error: bind to receive socket failed!\n");
-        socket_base_close(sock_rcv);
-    }
-
-    DEBUG("[demo]   ready to receive data\n");
-    for(;;) {
-        rcv_size = socket_base_recvfrom(sock_rcv, (void *)buf_rcv, UDP_BUFFER_SIZE, 0,
-                                          &sa_rcv, &fromlen);
-
-        vtimer_now(&_now2);
-
-        if(rcv_size < 0) {
-            DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   ERROR receiving data!\n", _now2.seconds, _now2.microseconds);
+        switch (msg.type) {
+            case NG_NETAPI_MSG_TYPE_RCV:
+                pkt = (ng_pktsnip_t *)msg.content.ptr;
+                printf("[demo] received data: %s\n", (char*) pkt->data);
+                ng_pktbuf_release(pkt);
+                break;
+            case NG_NETAPI_MSG_TYPE_SND:
+                break;
+            case NG_NETAPI_MSG_TYPE_GET:
+            case NG_NETAPI_MSG_TYPE_SET:
+                msg_reply(&msg, &reply);
+                break;
+            default:
+                printf("[demo] received something unexpected\n");
+                break;
         }
-        DEBUG("{%" PRIu32 ":%" PRIu32 "}[demo]   UDP packet received from %s: %s\n", _now2.seconds, _now2.microseconds, ipv6_addr_to_str(addr_str_rec, IPV6_MAX_ADDR_STR_LEN, &sa_rcv.sin6_addr), buf_rcv);
     }
 
-    socket_base_close(sock_rcv);
     return NULL;
 }
 
-/* init transport layer & routing stuff*/
-static void _init_tlayer(void)
-{
-    msg_init_queue(msg_q, RCV_MSG_Q_SIZE);
-
-    net_if_set_hardware_address(0, get_hw_addr());
-
-    printf("initializing 6LoWPAN...\n");
-
-    ipv6_addr_init(&prefix, 0xABCD, 0xEF12, 0, 0, 0, 0, 0, 0);
-    if_id = 0; // >1 interface isn't supported anyway, so there
-
-    //sixlowpan_lowpan_init_adhoc_interface(if_id, &prefix);
-    sixlowpan_lowpan_init_interface(if_id);
-    printf("initializing AODVv2...\n");
-
-    aodv_init();
-    _demo_init_socket();
-}
 
 const shell_command_t shell_commands[] = {
-    {"print_rt", "print routingtable", demo_print_routingtable},
     {"send", "send message to ip", demo_send},
-    {"send_data", "send 20 bytes of data to ip", demo_send_data},
-    {"send_stream", "send stream of data to ip", demo_send_stream},
-    {"add_neighbor", "add neighbor to Neighbor Cache", demo_add_neighbor},
-    {"rm_neighbor", "remove neighbor from Neighbor Cache", demo_remove_neighbor},
-    {"exit", "Shut down the RIOT", demo_exit},
     {NULL, NULL, NULL}
 };
 
 int main(void)
 {
-    _init_tlayer();
+    if (init_network() != 0) {
+        return -1;
+    }
     thread_create(_rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
+    /* TODO Do I still need this? */
     posix_open(uart0_handler_pid, 0);
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
@@ -322,6 +221,4 @@ int main(void)
     shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
 
     shell_run(&shell);
-
-    return 0;
 }
