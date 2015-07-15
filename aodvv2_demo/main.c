@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "aodvv2/aodvv2.h"
+#include "routingtable.h"
 
 #define ENABLE_DEBUG (1)
 #include "debug.h"
@@ -29,7 +30,7 @@
 #define NUM_PKTS            (100)
 
 // constants from the AODVv2 Draft, version 03
-#define DISCOVERY_ATTEMPTS_MAX (3) //(3)
+#define DISCOVERY_ATTEMPTS_MAX (1) //(3)
 #define RREQ_WAIT_TIME         (2000000) // microseconds = 2 seconds
 
 int demo_attempt_to_send(char* dest_str, char* msg);

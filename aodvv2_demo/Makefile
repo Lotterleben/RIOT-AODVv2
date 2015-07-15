@@ -57,4 +57,7 @@ USEMODULE += udp
 #aodv
 USEMODULE += aodvv2
 
+# we need this to use print_routingtable()
+export INCLUDES += -I${RIOTBASE}/sys/net/routing/aodvv2/
+
 include $(RIOTBASE)/Makefile.include
