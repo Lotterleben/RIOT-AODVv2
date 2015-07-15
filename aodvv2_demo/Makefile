@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = ng_aodvv2_demo
+APPLICATION = aodvv2_demo
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
@@ -28,6 +28,6 @@ USEMODULE += ng_ipv6_default
 USEMODULE += ng_udp
 
 CFLAGS += -DRIOT
-USEMODULE += ng_aodvv2
+USEMODULE += aodvv2
 
 include $(RIOTBASE)/Makefile.include
