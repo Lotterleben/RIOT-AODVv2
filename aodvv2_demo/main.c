@@ -219,7 +219,15 @@ const shell_command_t shell_commands[] = {
 
 int main(void)
 {
-    aodv_init();
+    /* get interface on which aodv is running */
+    kernel_pid_t ifs[NG_NETIF_NUMOF];
+    size_t numof = ng_netif_get(ifs);
+    if(numof <= 0) {
+        printf("no interface available: dropping packet.");
+        return -1;
+    }
+    /* use the first interface */
+    aodv_init(ifs[0]);
 
     //thread_create(_rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
