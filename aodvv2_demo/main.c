@@ -20,15 +20,15 @@
  */
 
 #include <stdio.h>
-#include "net/ng_ipv6.h"
-#include "net/ng_netbase.h"
-#include "net/ng_netif.h"
-#include "net/ng_udp.h"
-#include "net/ng_pkt.h"
+#include "net/ipv6.h"
+//#include "net/netbase.h"
+#include "net/gnrc/netif.h"
+#include "net/gnrc/udp.h"
+#include "net/gnrc/ipv6.h"
+#include "net/gnrc/pkt.h"
 #include "shell.h"
-#include "transceiver.h"
-#include "board_uart0.h"
-#include "posix_io.h"
+//#include "transceiver.h"
+//#include "posix_io.h"
 
 #include "aodvv2/aodvv2.h"
 
@@ -36,8 +36,8 @@
 #define UDP_BUFFER_SIZE     (128) /** with respect to IEEE 802.15.4's MTU */
 #define RCV_MSG_Q_SIZE      (32)  /* TODO: check if smaller values work, too */
 
-char _rcv_stack_buf[THREAD_STACKSIZE_MAIN];
-
+char rcv_stack_buf[THREAD_STACKSIZE_MAIN];
+char line_buf[SHELL_DEFAULT_BUFSIZE];
 
 /* init our network stack */
 /*
@@ -79,16 +79,16 @@ int init_network(void) {
 }
 */
 
-static void send(char *addr_str, char *port_str, char *data)
+static void send_data(char *addr_str, char *port_str, char *data)
 {
     uint8_t port[2];
     uint16_t tmp;
-    ng_pktsnip_t *payload, *udp, *ip;
-    ng_ipv6_addr_t addr;
-    ng_netreg_entry_t *sendto;
+    gnrc_pktsnip_t *payload, *udp, *ip;
+    ipv6_addr_t addr;
+    gnrc_netreg_entry_t *sendto;
 
     /* parse destination address */
-    if (ng_ipv6_addr_from_str(&addr, addr_str) == NULL) {
+    if (ipv6_addr_from_str(&addr, addr_str) == NULL) {
         puts("Error: unable to parse destination address");
         return;
     }
@@ -102,37 +102,37 @@ static void send(char *addr_str, char *port_str, char *data)
     port[1] = tmp >> 8;
 
     /* allocate payload */
-    payload = ng_pktbuf_add(NULL, data, strlen(data), NG_NETTYPE_UNDEF);
+    payload = gnrc_pktbuf_add(NULL, data, strlen(data), GNRC_NETTYPE_UNDEF);
     if (payload == NULL) {
         puts("Error: unable to copy data to packet buffer");
         return;
     }
     /* allocate UDP header, set source port := destination port */
-    udp = ng_udp_hdr_build(payload, port, 2, port, 2);
+    udp = gnrc_udp_hdr_build(payload, port, 2, port, 2);
     if (udp == NULL) {
         puts("Error: unable to allocate UDP header");
-        ng_pktbuf_release(payload);
+        gnrc_pktbuf_release(payload);
         return;
     }
     /* allocate IPv6 header */
-    ip = ng_ipv6_hdr_build(udp, NULL, 0, (uint8_t *)&addr, sizeof(addr));
+    ip = gnrc_ipv6_hdr_build(udp, NULL, 0, (uint8_t *)&addr, sizeof(addr));
     if (ip == NULL) {
         puts("Error: unable to allocate IPv6 header");
-        ng_pktbuf_release(udp);
+        gnrc_pktbuf_release(udp);
         return;
     }
     /* send packet */
-    sendto = ng_netreg_lookup(NG_NETTYPE_UDP, NG_NETREG_DEMUX_CTX_ALL);
+    sendto = gnrc_netreg_lookup(GNRC_NETTYPE_UDP, GNRC_NETREG_DEMUX_CTX_ALL);
     if (sendto == NULL) {
         puts("Error: unable to locate UDP thread");
-        ng_pktbuf_release(ip);
+        gnrc_pktbuf_release(ip);
         return;
     }
-    ng_pktbuf_hold(ip, ng_netreg_num(NG_NETTYPE_UDP,
-                                     NG_NETREG_DEMUX_CTX_ALL) - 1);
+    gnrc_pktbuf_hold(ip, gnrc_netreg_num(GNRC_NETTYPE_UDP,
+                                     GNRC_NETREG_DEMUX_CTX_ALL) - 1);
     while (sendto != NULL) {
-        ng_netapi_send(sendto->pid, ip);
-        sendto = ng_netreg_getnext(sendto);
+        gnrc_netapi_send(sendto->pid, ip);
+        sendto = gnrc_netreg_getnext(sendto);
     }
     printf("Success: send %i byte to %s:%u\n", payload->size, addr_str, tmp);
 }
@@ -157,7 +157,7 @@ int demo_send(int argc, char** argv)
     printf("[demo]   sending packet of %i bytes towards %s...\n", msg_len, dest_str);
 
     */
-    send(argv[1], "1234", argv[2]);
+    send_data(argv[1], "1234", argv[2]);
 
     return 0;
 }
@@ -220,8 +220,8 @@ const shell_command_t shell_commands[] = {
 int main(void)
 {
     /* get interface on which aodv is running */
-    kernel_pid_t ifs[NG_NETIF_NUMOF];
-    size_t numof = ng_netif_get(ifs);
+    kernel_pid_t ifs[GNRC_NETIF_NUMOF];
+    size_t numof = gnrc_netif_get(ifs);
     if(numof <= 0) {
         printf("no interface available: dropping packet.");
         return -1;
@@ -229,15 +229,9 @@ int main(void)
     /* use the first interface */
     aodv_init(ifs[0]);
 
-    //thread_create(_rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
-
-    /* TODO Do I still need this? */
-    posix_open(uart0_handler_pid, 0);
+    //thread_create(rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
-    shell_t shell;
-    shell_init(&shell, shell_commands, UART0_BUFSIZE, uart0_readc, uart0_putc);
-
-    shell_run(&shell);
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 }
