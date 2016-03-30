@@ -20,15 +20,12 @@
  */
 
 #include <stdio.h>
-#include "net/ipv6.h"
-//#include "net/netbase.h"
 #include "net/gnrc/netif.h"
 #include "net/gnrc/udp.h"
 #include "net/gnrc/ipv6.h"
 #include "net/gnrc/pkt.h"
 #include "shell.h"
-//#include "transceiver.h"
-//#include "posix_io.h"
+
 
 #include "aodvv2/aodvv2.h"
 
@@ -39,53 +36,13 @@
 char rcv_stack_buf[THREAD_STACKSIZE_MAIN];
 char line_buf[SHELL_DEFAULT_BUFSIZE];
 
-/* init our network stack */
-/*
-int init_network(void) {
-    kernel_pid_t ifs[NG_NETIF_NUMOF];
-    size_t numof = ng_netif_get(ifs);
-    if(numof <= 0) {
-        return 1;
-    }
-
-#ifndef BOARD_NATIVE
-    uint16_t data = 17;
-    if (ng_netapi_set(ifs[0], NETCONF_OPT_CHANNEL, 0, &data, sizeof(uint16_t)) < 0) {
-        return 1;
-    }
-    data = 0xabcd;
-    if (ng_netapi_set(ifs[0], NETCONF_OPT_NID, 0, &data, sizeof(uint16_t)) < 0) {
-        return 1;
-    }
-#endif
-
-    ng_ipv6_addr_t addr;
-    uint8_t prefix_len = 128;
-    char* addr_str = "2001::1234";
-    if (ng_ipv6_addr_from_str(&addr, addr_str) == NULL) {
-        puts("error: unable to parse IPv6 address.");
-        return 1;
-    }
-
-    if (ng_ipv6_netif_add_addr(ifs[0], &addr, prefix_len, NG_IPV6_NETIF_ADDR_FLAGS_UNICAST) == NULL) {
-        puts("error: unable to add IPv6 address\n");
-        return 1;
-    }
-
-
-    aodv_init();
-
-    return 0;
-}
-*/
-
 static void send_data(char *addr_str, char *port_str, char *data)
 {
     uint8_t port[2];
     uint16_t tmp;
     gnrc_pktsnip_t *payload, *udp, *ip;
     ipv6_addr_t addr;
-    gnrc_netreg_entry_t *sendto;
+    gnrc_netreg_entry_t *sendto_;
 
     /* parse destination address */
     if (ipv6_addr_from_str(&addr, addr_str) == NULL) {
@@ -122,18 +79,21 @@ static void send_data(char *addr_str, char *port_str, char *data)
         return;
     }
     /* send packet */
-    sendto = gnrc_netreg_lookup(GNRC_NETTYPE_UDP, GNRC_NETREG_DEMUX_CTX_ALL);
-    if (sendto == NULL) {
+    sendto_ = gnrc_netreg_lookup(GNRC_NETTYPE_UDP, GNRC_NETREG_DEMUX_CTX_ALL);
+    if (sendto_ == NULL) {
         puts("Error: unable to locate UDP thread");
         gnrc_pktbuf_release(ip);
         return;
     }
     gnrc_pktbuf_hold(ip, gnrc_netreg_num(GNRC_NETTYPE_UDP,
                                      GNRC_NETREG_DEMUX_CTX_ALL) - 1);
-    while (sendto != NULL) {
-        gnrc_netapi_send(sendto->pid, ip);
-        sendto = gnrc_netreg_getnext(sendto);
+    while (sendto_ != NULL) {
+        gnrc_netapi_send(sendto_->pid, ip);
+        sendto_ = gnrc_netreg_getnext(sendto_);
     }
+
+    // TODO: don't I have to release ip here as well?
+
     printf("Success: send %i byte to %s:%u\n", payload->size, addr_str, tmp);
 }
 
