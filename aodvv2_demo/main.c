@@ -36,6 +36,9 @@
 char rcv_stack_buf[THREAD_STACKSIZE_MAIN];
 char line_buf[SHELL_DEFAULT_BUFSIZE];
 
+/* import "ifconfig" shell command, used for printing addresses */
+extern int _netif_config(int argc, char **argv);
+
 static void send_data(char *addr_str, char *port_str, char *data)
 {
     uint8_t port[2];
@@ -191,6 +194,7 @@ int main(void)
 
     //thread_create(rcv_stack_buf, sizeof(_rcv_stack_buf), THREAD_PRIORITY_MAIN, CREATE_STACKTEST, _demo_receiver_thread, NULL ,"_demo_receiver_thread");
 
+    _netif_config(0, NULL);
     printf("\n\t\t\tWelcome to RIOT\n\n");
 
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
